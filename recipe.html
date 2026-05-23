@@ -1101,6 +1101,26 @@
     .cookmode-nav button.primary { background: var(--green); color: var(--white); }
     .cookmode-nav button.primary:hover { background: var(--green-dark); }
 
+    /* Ingredient chips in cook mode */
+    .cookmode-ings {
+      margin-top: 28px; padding-top: 22px;
+      border-top: 1px solid var(--border);
+    }
+    .cookmode-ings-label {
+      font: 700 10px/1 var(--sans); letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-soft); margin-bottom: 14px;
+    }
+    .cookmode-ings-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .cookmode-ing-chip {
+      display: inline-flex; align-items: center; gap: 0;
+      padding: 7px 14px; border-radius: 100px;
+      background: var(--bg-soft); border: 1px solid var(--border);
+      font: 500 14px var(--sans); color: var(--text);
+    }
+    .cookmode-ing-chip em {
+      font-style: normal; color: var(--green); font-weight: 700; margin-left: 6px;
+    }
+
     /* ============================================================
        Footer (compact)
        ============================================================ */
@@ -2044,9 +2064,53 @@
        ============================================================ */
     const cook = { i: 0 };
 
+    /* Match ingredient items to a step by searching their key words in the step text */
+    function ingredientsForStep(step) {
+      const haystack = (step.title + " " + step.desc).toLowerCase();
+      const factor = servings / baseServings;
+      const stopWords = new Set([
+        "with","into","from","diced","sliced","small","large","fresh","dried",
+        "melted","softened","roughly","finely","chopped","grated","torn","peeled",
+        "minced","halved","quartered","beaten","cooked","plain","dark","light",
+        "extra","good","warm","cold","room","temp","more","some","your","then"
+      ]);
+      const matched = [];
+
+      for (const group of ingredientGroups) {
+        for (const item of group.items) {
+          /* Strip descriptive phrases after first comma, then split into words */
+          const cleanText = item.text.toLowerCase().replace(/,.*$/, "");
+          const words = cleanText.split(/[\s\-\/]+/)
+            .filter(w => w.length >= 4 && !stopWords.has(w) && !/^\d/.test(w));
+          if (words.length === 0) continue;
+
+          const matched_word = words.some(w => {
+            const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            return new RegExp("\\b" + escaped + "\\b").test(haystack);
+          });
+          if (!matched_word) continue;
+
+          const scaled = item.amount * factor;
+          const amountStr = scaled > 0
+            ? `${formatAmount(scaled)}${item.unit ? "\u202f" + item.unit : ""}`
+            : "";
+          matched.push({ amountStr, text: item.text });
+        }
+      }
+      return matched;
+    }
+
     function renderCookmodeStep() {
       const s = steps[cook.i];
       const el = $("#cookmodeStep");
+      const ings = ingredientsForStep(s);
+      const ingsHtml = ings.length ? `
+        <div class="cookmode-ings">
+          <div class="cookmode-ings-label">Ingredients this step</div>
+          <div class="cookmode-ings-chips">
+            ${ings.map(i => `<span class="cookmode-ing-chip">${escapeHtml(i.text)}${i.amountStr ? `<em>(${escapeHtml(i.amountStr)})</em>` : ""}</span>`).join("")}
+          </div>
+        </div>` : "";
       el.innerHTML = `
         <div class="num">Step ${cook.i + 1} of ${steps.length}</div>
         <h2>${escapeHtml(s.title)}</h2>
@@ -2056,6 +2120,7 @@
         </div>
         <p class="desc">${escapeHtml(s.desc)}</p>
         ${s.tip ? `<div class="tip"><strong style="font-style:normal;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:6px;">Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
+        ${ingsHtml}
       `;
       $("#cookmodeTitle").textContent = recipe.title;
       $("#cookmodePrev").disabled = cook.i === 0;
