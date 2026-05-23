@@ -1,0 +1,2279 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recipy — Recipe</title>
+  <meta name="description" content="A detailed recipe with ingredients, step-by-step instructions, nutrition, and notes from the cook." />
+  <meta name="theme-color" content="#3BB812" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       Design tokens — shared with index.html
+       ============================================================ */
+    :root {
+      --green: #3BB812;
+      --green-dark: #005512;
+      --green-soft: #ECF8E6;
+      --orange: #FF7A00;
+      --cream: #FFF6E5;
+      --ink: #170805;
+      --gray: #555555;
+      --light-blue: #E6F1FC;
+      --blue: #4F8BD6;          /* recipe page cool accent */
+      --blue-soft: #EAF2FB;
+      --yellow: #FFC222;
+      --white: #FFFFFF;
+
+      --bg: #FFFFFF;
+      --bg-soft: #F4F6F8;       /* cool neutral instead of warm cream */
+      --text: #170805;
+      --text-soft: #555555;
+      --surface: #FFFFFF;
+      --surface-2: #F7FAFC;     /* very subtle cool tint */
+      --border: rgba(23, 8, 5, 0.09);
+      --tape: rgba(255, 194, 34, 0.55);
+      --shadow-color: 23, 8, 5;
+
+      --serif: "Playfair Display", "Canela Text Trial", Georgia, serif;
+      --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-pill: 999px;
+
+      --shadow-sm: 0 1px 2px rgba(var(--shadow-color), 0.06);
+      --shadow-md: 0 8px 24px rgba(var(--shadow-color), 0.10);
+      --shadow-lg: 0 24px 50px rgba(var(--shadow-color), 0.18);
+
+      --container: 1280px;
+      --easing: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    [data-theme="dark"] {
+      --bg: #0E1014;
+      --bg-soft: #161A20;
+      --text: #F0F2F5;
+      --text-soft: #9CA3AF;
+      --surface: #161A20;
+      --surface-2: #1B2028;
+      --border: rgba(240, 242, 245, 0.10);
+      --tape: rgba(255, 194, 34, 0.35);
+      --shadow-color: 0, 0, 0;
+      --blue: #6FA1DB;
+      --blue-soft: rgba(91, 143, 207, 0.14);
+      --green-soft: rgba(59, 184, 18, 0.12);
+    }
+
+    /* ============================================================
+       Reset & base
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color .35s var(--easing), color .35s var(--easing);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.5;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.03  0 0 0 0 0.02  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");
+      mix-blend-mode: multiply;
+    }
+    [data-theme="dark"] body::before { mix-blend-mode: screen; opacity: .35; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; padding: 0; }
+    img { display: block; max-width: 100%; }
+    h1, h2, h3, h4 { font-family: var(--serif); }
+    :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; border-radius: 4px; }
+    main { position: relative; z-index: 2; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 24px; position: relative; }
+    .container--narrow { max-width: 1080px; }
+
+    /* ============================================================
+       Scroll progress
+       ============================================================ */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0;
+      height: 2px; width: 0%;
+      background: var(--green);
+      z-index: 200;
+      transition: width .08s linear;
+      box-shadow: 0 0 10px rgba(59, 184, 18, 0.6);
+    }
+
+    /* ============================================================
+       Floating glass nav (shared with index.html)
+       ============================================================ */
+    .nav-wrap {
+      position: sticky; top: 12px; z-index: 50;
+      padding: 12px 16px 0;
+      pointer-events: none;
+      transition: top .35s var(--easing);
+    }
+    .nav-wrap > * { pointer-events: auto; }
+    .nav-wrap.is-stuck { top: 8px; }
+    .nav {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      padding: 8px 8px 8px 18px;
+      max-width: var(--container);
+      margin: 0 auto;
+      border-radius: 100px;
+      background: rgba(255, 255, 255, 0.62);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      box-shadow:
+        0 12px 40px rgba(23, 8, 5, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transition: background .35s var(--easing), box-shadow .35s var(--easing);
+    }
+    [data-theme="dark"] .nav {
+      background: rgba(26, 18, 14, 0.55);
+      border-color: rgba(244, 236, 223, 0.10);
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(244, 236, 223, 0.06);
+    }
+    .nav-wrap.is-stuck .nav {
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 18px 50px rgba(23, 8, 5, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    [data-theme="dark"] .nav-wrap.is-stuck .nav {
+      background: rgba(26, 18, 14, 0.78);
+    }
+
+    .nav-brand { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+    .back-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--text);
+      background: rgba(23, 8, 5, 0.05);
+      transition: background .2s var(--easing), color .2s var(--easing), transform .2s var(--easing);
+    }
+    [data-theme="dark"] .back-btn { background: rgba(244, 236, 223, 0.06); }
+    .back-btn:hover { transform: translateX(-2px); color: var(--green-dark); background: rgba(23, 8, 5, 0.09); }
+    [data-theme="dark"] .back-btn:hover { color: var(--green); background: rgba(244, 236, 223, 0.10); }
+
+    .logo {
+      font-family: var(--serif); font-weight: 800;
+      letter-spacing: 0.04em; font-size: 22px;
+      color: var(--green);
+      display: inline-flex; align-items: baseline; gap: 4px;
+      user-select: none;
+    }
+    .logo .logo-dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--orange);
+      transform: translateY(-2px);
+    }
+
+    .nav-crumb {
+      font: 500 13px var(--sans);
+      color: var(--text-soft);
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 20px;
+    }
+    .nav-crumb strong { color: var(--text); font-weight: 600; }
+
+    .nav-right { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .cmdk-trigger {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 8px 8px 8px 14px;
+      border-radius: 100px;
+      background: rgba(23, 8, 5, 0.05);
+      color: var(--text-soft);
+      font: 500 13px var(--sans);
+      transition: background .2s var(--easing), color .2s var(--easing);
+    }
+    [data-theme="dark"] .cmdk-trigger { background: rgba(244, 236, 223, 0.06); }
+    .cmdk-trigger:hover { background: rgba(23, 8, 5, 0.09); color: var(--text); }
+    [data-theme="dark"] .cmdk-trigger:hover { background: rgba(244, 236, 223, 0.10); color: var(--text); }
+    .cmdk-trigger svg { color: var(--text-soft); flex: 0 0 auto; }
+    .cmdk-trigger .kbd {
+      font: 600 11px var(--sans);
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text-soft);
+      letter-spacing: 0.02em;
+      box-shadow: var(--shadow-sm);
+    }
+    [data-theme="dark"] .cmdk-trigger .kbd { background: rgba(244, 236, 223, 0.08); box-shadow: none; }
+
+    .nav-icons {
+      display: flex; align-items: center; gap: 2px;
+      padding: 4px; border-radius: 100px;
+      background: rgba(23, 8, 5, 0.05);
+    }
+    [data-theme="dark"] .nav-icons { background: rgba(244, 236, 223, 0.06); }
+    .icon-btn {
+      position: relative;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--text);
+      transition: background .2s var(--easing), color .2s var(--easing);
+    }
+    .icon-btn:hover { background: var(--surface); color: var(--green-dark); }
+    [data-theme="dark"] .icon-btn:hover { background: rgba(244, 236, 223, 0.10); color: var(--green); }
+    .icon-btn.is-active { background: var(--green); color: var(--white); }
+    .theme-toggle .moon { display: none; }
+    [data-theme="dark"] .theme-toggle .sun { display: none; }
+    [data-theme="dark"] .theme-toggle .moon { display: inline; }
+    .badge {
+      position: absolute; top: -2px; right: -2px;
+      min-width: 18px; height: 18px; padding: 0 5px;
+      border-radius: var(--radius-pill);
+      background: var(--orange); color: var(--white);
+      font: 700 10px var(--sans);
+      display: none; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 2px var(--surface);
+    }
+    .badge.show { display: inline-flex; }
+
+    /* ============================================================
+       Command palette
+       ============================================================ */
+    .cmdk { position: fixed; inset: 0; z-index: 220; display: grid; place-items: start center; padding: 12vh 16px 16px; background: rgba(23, 8, 5, 0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .25s var(--easing); }
+    .cmdk.open { opacity: 1; pointer-events: auto; }
+    .cmdk-card { width: 100%; max-width: 640px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 40px 80px rgba(0,0,0,0.35); overflow: hidden; transform: translateY(18px) scale(0.97); transition: transform .3s var(--easing); }
+    .cmdk.open .cmdk-card { transform: translateY(0) scale(1); }
+    .cmdk-input { display: flex; align-items: center; gap: 14px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+    .cmdk-input svg { color: var(--text-soft); }
+    .cmdk-input input { flex: 1; border: none; outline: none; background: transparent; font: 500 17px var(--sans); color: var(--text); min-width: 0; }
+    .cmdk-input input::placeholder { color: var(--text-soft); }
+    .cmdk-input .esc { font: 600 11px var(--sans); padding: 4px 8px; border-radius: 6px; background: var(--bg-soft); color: var(--text-soft); }
+    .cmdk-body { max-height: min(56vh, 480px); overflow-y: auto; padding: 10px; }
+    .cmdk-section { padding: 10px 10px 4px; }
+    .cmdk-section h5 { margin: 0 0 6px; font: 700 10px var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-soft); }
+    .cmdk-item { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 12px; cursor: pointer; transition: background .12s var(--easing); text-decoration: none; color: inherit; }
+    .cmdk-item:hover, .cmdk-item.is-selected { background: var(--bg-soft); }
+    .cmdk-item-thumb { width: 42px; height: 42px; border-radius: 10px; overflow: hidden; background: var(--bg-soft); flex: 0 0 auto; }
+    .cmdk-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .cmdk-item-main { flex: 1; min-width: 0; }
+    .cmdk-item-title { font: 600 14px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cmdk-item-sub { font: 500 12px var(--sans); color: var(--text-soft); margin-top: 1px; }
+    .cmdk-item-meta { font: 600 11px var(--sans); letter-spacing: 0.04em; color: var(--text-soft); padding: 4px 10px; border-radius: 100px; background: var(--bg-soft); }
+    .cmdk-foot { display: flex; gap: 18px; padding: 12px 22px; border-top: 1px solid var(--border); background: var(--bg-soft); font: 500 11px var(--sans); color: var(--text-soft); align-items: center; }
+    .cmdk-foot kbd { font-family: var(--sans); font-weight: 600; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; margin-right: 4px; font-size: 10px; }
+
+    /* ============================================================
+       Recipe Hero
+       ============================================================ */
+    .r-hero {
+      position: relative;
+      min-height: 720px;
+      margin-top: -76px;
+      padding: 100px 0 60px;
+      color: var(--white);
+      display: flex; align-items: flex-end;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .r-hero-bg {
+      position: absolute; inset: 0; width: 100%; height: 115%;
+      object-fit: cover; z-index: -2;
+      filter: blur(2px) saturate(0.82) brightness(0.68);
+      will-change: transform;
+      transform: scale(1.04);
+      transform-origin: center top;
+    }
+    .r-hero::before {
+      content: ""; position: absolute; inset: 0; z-index: -1;
+      background:
+        linear-gradient(180deg, rgba(8,12,18,0.55) 0%, rgba(8,12,18,0.30) 35%, rgba(8,12,18,0.55) 70%, rgba(8,12,18,0.92) 100%);
+    }
+    .r-hero::after {
+      content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background-image:
+        radial-gradient(circle at 18% 28%, rgba(79, 139, 214, 0.22), transparent 38%),
+        radial-gradient(circle at 82% 72%, rgba(59, 184, 18, 0.18), transparent 40%);
+      mix-blend-mode: screen;
+    }
+
+    .r-hero-inner {
+      width: 100%;
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+    .r-crumb {
+      display: inline-flex; align-items: center; gap: 8px;
+      font: 600 11px var(--sans);
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255, 246, 229, 0.78);
+      margin-bottom: 20px;
+    }
+    .r-crumb a { color: inherit; transition: color .2s var(--easing); }
+    .r-crumb a:hover { color: var(--white); }
+    .r-crumb .sep { opacity: .5; }
+
+    .r-title {
+      font-family: var(--serif); font-weight: 600;
+      font-size: clamp(48px, 8vw, 96px);
+      line-height: 1.0;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+      max-width: 900px;
+      text-shadow: 0 4px 30px rgba(0,0,0,0.4);
+    }
+    .r-tagline {
+      font: italic 500 19px/1.5 var(--serif);
+      color: rgba(255, 246, 229, 0.88);
+      max-width: 600px;
+      margin: 0 0 36px;
+    }
+
+    .r-byline {
+      display: flex; align-items: center; gap: 14px;
+      margin: 0 0 32px;
+    }
+    .r-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--cream);
+      color: var(--green-dark);
+      display: inline-flex; align-items: center; justify-content: center;
+      font: 700 14px var(--sans);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
+    }
+    .r-byline-meta { line-height: 1.25; }
+    .r-byline-name { display: block; font: 600 15px var(--sans); color: var(--white); }
+    .r-byline-sub { display: block; font: 500 13px var(--sans); color: rgba(255,246,229,0.7); }
+
+    .r-quick {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 28px;
+    }
+    .r-quick .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--white);
+      font: 600 13px var(--sans);
+    }
+    .r-quick .chip svg { opacity: 0.85; }
+    .r-quick .chip strong { font-weight: 700; }
+    .r-quick .chip-accent { background: var(--green); border-color: transparent; }
+
+    .r-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .r-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px;
+      border-radius: 100px;
+      font: 600 14px var(--sans);
+      transition: transform .2s var(--easing), background .2s var(--easing), color .2s var(--easing), box-shadow .2s var(--easing);
+    }
+    .r-btn.primary {
+      background: var(--green); color: var(--white);
+      box-shadow: 0 8px 24px rgba(59, 184, 18, 0.35);
+    }
+    .r-btn.primary:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .r-btn.ghost {
+      background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.22);
+      color: var(--white);
+    }
+    .r-btn.ghost:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
+    .r-btn.is-saved { background: var(--orange); color: var(--white); border-color: transparent; }
+
+    /* ============================================================
+       At-a-glance band (sticky)
+       ============================================================ */
+    .r-glance {
+      position: sticky;
+      top: 76px;
+      z-index: 30;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      transition: box-shadow .25s var(--easing), background-color .35s var(--easing);
+    }
+    .r-glance.is-stuck { box-shadow: 0 6px 20px rgba(var(--shadow-color), 0.06); }
+    .r-glance-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px;
+      padding: 12px 24px;
+      max-width: var(--container);
+      margin: 0 auto;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .r-glance-inner::-webkit-scrollbar { display: none; }
+
+    .r-anchors { display: flex; gap: 4px; flex-wrap: nowrap; }
+    .r-anchor {
+      padding: 6px 12px;
+      font: 500 13px var(--sans);
+      color: var(--text-soft);
+      border-radius: 100px;
+      white-space: nowrap;
+      transition: background .2s var(--easing), color .2s var(--easing);
+    }
+    .r-anchor:hover { color: var(--green-dark); background: var(--bg-soft); }
+    .r-anchor.is-current { background: var(--green); color: var(--white); }
+
+    .r-cookmode-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      background: var(--ink); color: var(--white);
+      font: 600 12px var(--sans);
+      letter-spacing: 0.04em;
+      transition: background .2s var(--easing);
+      flex: 0 0 auto;
+    }
+    [data-theme="dark"] .r-cookmode-btn { background: var(--cream); color: var(--ink); }
+    .r-cookmode-btn:hover { background: var(--green); color: var(--white); }
+    [data-theme="dark"] .r-cookmode-btn:hover { background: var(--green); color: var(--white); }
+
+    /* ============================================================
+       Content layout
+       ============================================================ */
+    .r-content { padding: 64px 24px 80px; max-width: var(--container); margin: 0 auto; }
+    .r-section { scroll-margin-top: 140px; }
+    .r-section + .r-section { margin-top: 96px; }
+    .r-section-tag {
+      display: inline-block;
+      font: 700 10px var(--sans); letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--green-dark);
+      margin-bottom: 12px;
+    }
+    [data-theme="dark"] .r-section-tag { color: var(--green); }
+    .r-section h2 {
+      font-family: var(--serif); font-weight: 600;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      margin: 0 0 24px;
+    }
+
+    /* ---- Intro ---- */
+    .r-intro {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .r-intro p {
+      font: 400 18px/1.7 var(--sans);
+      color: var(--text);
+      margin: 0 0 20px;
+    }
+    .r-intro p:first-of-type::first-letter {
+      font-family: var(--serif);
+      font-weight: 700;
+      font-size: 78px;
+      line-height: 0.85;
+      float: left;
+      padding: 6px 12px 0 0;
+      color: var(--green-dark);
+    }
+    [data-theme="dark"] .r-intro p:first-of-type::first-letter { color: var(--green); }
+
+    /* ---- Macros card ---- */
+    .r-macros {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      box-shadow: var(--shadow-md);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .r-donut {
+      position: relative;
+      width: 220px; height: 220px;
+      flex: 0 0 auto;
+    }
+    .r-donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .r-donut .track { stroke: var(--bg-soft); }
+    .r-donut .seg { transition: stroke-dasharray 1.2s var(--easing); }
+    .r-donut .center {
+      position: absolute;
+      inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .r-donut .center .num {
+      font: 700 38px/1 var(--serif);
+      color: var(--text);
+    }
+    .r-donut .center .lbl {
+      font: 600 11px var(--sans);
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .r-macro-list {
+      display: grid; gap: 16px;
+    }
+    .r-macro-row {
+      display: grid;
+      grid-template-columns: 14px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .r-macro-row:last-child { border-bottom: 0; }
+    .r-macro-dot {
+      width: 12px; height: 12px; border-radius: 4px;
+    }
+    .r-macro-name { font: 600 14px var(--sans); color: var(--text); }
+    .r-macro-name span { color: var(--text-soft); font-weight: 500; margin-left: 8px; }
+    .r-macro-value { font: 700 16px var(--serif); color: var(--text); }
+    .r-macro-value small { font: 500 12px var(--sans); color: var(--text-soft); margin-left: 4px; }
+
+    /* ---- Chef's note ---- */
+    .r-note {
+      max-width: 720px;
+      margin: 64px auto 0;
+      background: var(--green-soft);
+      border: 1px solid rgba(59, 184, 18, 0.20);
+      border-left: 4px solid var(--green);
+      border-radius: var(--radius-md);
+      padding: 24px 28px;
+      position: relative;
+    }
+    [data-theme="dark"] .r-note {
+      background: rgba(59, 184, 18, 0.10);
+      border-color: rgba(59, 184, 18, 0.28);
+    }
+    .r-note-tag {
+      display: inline-block;
+      font: 700 10px var(--sans); letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--green-dark);
+      margin-bottom: 6px;
+    }
+    [data-theme="dark"] .r-note-tag { color: var(--green); }
+    .r-note p {
+      font: italic 500 17px/1.55 var(--serif);
+      margin: 0;
+      color: var(--text);
+    }
+
+    /* ---- Method (Ingredients + Steps) ---- */
+    .r-method {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+
+    /* Ingredients (sticky left) */
+    .r-ingredients {
+      position: sticky;
+      top: 150px;
+      background: var(--surface-2);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+    .r-ingredients h3 {
+      font-family: var(--serif); font-weight: 600; font-size: 22px;
+      margin: 0 0 4px;
+    }
+    .r-ingredients .servings {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px;
+      margin: 18px 0 22px;
+      border-radius: 100px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .r-ingredients .servings .label { font: 500 12px var(--sans); color: var(--text-soft); letter-spacing: 0.05em; }
+    .r-ingredients .stepper {
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .r-step-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--bg-soft);
+      color: var(--text);
+      transition: background .15s var(--easing);
+    }
+    .r-step-btn:hover { background: var(--green); color: var(--white); }
+    .r-step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .r-step-btn:disabled:hover { background: var(--bg-soft); color: var(--text); }
+    .r-step-count {
+      min-width: 38px; text-align: center;
+      font: 700 16px var(--serif); color: var(--text);
+    }
+
+    .r-ingredient-group { margin-top: 18px; }
+    .r-ingredient-group h4 {
+      font: 700 11px var(--sans);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--text-soft);
+      margin: 0 0 8px;
+    }
+    .r-ingredient-list { list-style: none; padding: 0; margin: 0; }
+    .r-ingredient {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 8px 4px;
+      cursor: pointer;
+      transition: opacity .2s var(--easing);
+      font: 400 14px/1.4 var(--sans);
+      color: var(--text);
+    }
+    .r-ingredient:hover .r-check { border-color: var(--green); }
+    .r-ingredient input { position: absolute; opacity: 0; pointer-events: none; }
+    .r-check {
+      flex: 0 0 auto;
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      transition: background .15s var(--easing), border-color .15s var(--easing), transform .2s var(--easing);
+      margin-top: 2px;
+      position: relative;
+    }
+    .r-check::after {
+      content: "";
+      position: absolute;
+      left: 4px; top: 1px;
+      width: 5px; height: 9px;
+      border: solid var(--white);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(0);
+      transition: transform .2s var(--easing);
+    }
+    .r-ingredient.is-done .r-check { background: var(--green); border-color: var(--green); }
+    .r-ingredient.is-done .r-check::after { transform: rotate(45deg) scale(1); }
+    .r-ingredient.is-done .r-text { color: var(--text-soft); text-decoration: line-through; text-decoration-thickness: 1px; }
+    .r-text { flex: 1; }
+    .r-amount { font-weight: 600; color: var(--text); }
+
+    /* Steps */
+    .r-steps {
+      counter-reset: step;
+      display: grid;
+      gap: 36px;
+    }
+    .r-step {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 24px;
+      padding: 24px 28px 24px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: opacity .35s var(--easing), background .35s var(--easing), border-color .35s var(--easing);
+      position: relative;
+    }
+    .r-step.is-current { border-color: var(--green); box-shadow: 0 12px 30px rgba(59, 184, 18, 0.10); }
+    .r-step.is-done { opacity: 0.55; background: var(--bg-soft); }
+    .r-step.is-done .r-step-num { color: var(--text-soft); }
+    .r-step-num-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 28px 0 0 28px;
+      position: relative;
+    }
+    .r-step-num {
+      font: 600 56px/0.9 var(--serif);
+      color: var(--green);
+      counter-increment: step;
+    }
+    .r-step-num::before { content: counter(step, decimal-leading-zero); }
+    .r-step-toggle {
+      margin-top: 14px;
+      width: 22px; height: 22px;
+      border-radius: 7px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      transition: background .15s var(--easing), border-color .15s var(--easing);
+      position: relative;
+      cursor: pointer;
+    }
+    .r-step-toggle::after {
+      content: "";
+      position: absolute;
+      left: 5px; top: 2px;
+      width: 6px; height: 11px;
+      border: solid var(--white);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg) scale(0);
+      transition: transform .2s var(--easing);
+    }
+    .r-step.is-done .r-step-toggle { background: var(--green); border-color: var(--green); }
+    .r-step.is-done .r-step-toggle::after { transform: rotate(45deg) scale(1); }
+
+    .r-step-main { padding: 24px 0; min-width: 0; }
+    .r-step-title {
+      font-family: var(--serif); font-weight: 600;
+      font-size: 22px; line-height: 1.2;
+      margin: 0 0 6px;
+      letter-spacing: -0.005em;
+    }
+    .r-step-time {
+      display: inline-flex; align-items: center; gap: 6px;
+      font: 600 12px var(--sans);
+      padding: 4px 10px;
+      border-radius: 100px;
+      background: var(--bg-soft);
+      color: var(--text-soft);
+      margin-bottom: 12px;
+    }
+    .r-step-desc {
+      font: 400 16px/1.65 var(--sans);
+      color: var(--text);
+      margin: 0;
+    }
+    .r-step-tip {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: var(--blue-soft);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font: italic 500 14px/1.5 var(--serif);
+      color: var(--text);
+    }
+    .r-step-tip strong { font-style: normal; font-family: var(--sans); font-weight: 700; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--blue); display: block; margin-bottom: 4px; }
+
+    /* Steps progress indicator (sticky to right side on wide screens) */
+    .r-steps-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .r-steps-header h3 { font: 600 22px var(--serif); margin: 0; }
+    .r-steps-progress {
+      font: 500 13px var(--sans);
+      color: var(--text-soft);
+    }
+    .r-steps-progress strong { color: var(--green-dark); font-weight: 700; }
+    [data-theme="dark"] .r-steps-progress strong { color: var(--green); }
+
+    /* ---- Equipment ---- */
+    .r-equipment {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .r-equipment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 14px;
+    }
+    .r-equip {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px;
+      padding: 22px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      transition: transform .2s var(--easing), border-color .2s var(--easing);
+    }
+    .r-equip:hover { transform: translateY(-2px); border-color: var(--green); }
+    .r-equip svg { color: var(--green-dark); }
+    [data-theme="dark"] .r-equip svg { color: var(--green); }
+    .r-equip span { font: 600 13px var(--sans); color: var(--text); text-align: center; }
+
+    /* ---- Notes ---- */
+    .r-notes { max-width: 960px; margin: 0 auto; }
+    .r-note-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 26px;
+      margin-bottom: 14px;
+    }
+    .r-note-card h4 {
+      font: 600 16px var(--serif);
+      margin: 0 0 6px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .r-note-card h4 svg { color: var(--green); }
+    .r-note-card p { margin: 0; font: 400 15px/1.6 var(--sans); color: var(--text); }
+
+    /* ---- Nutrition table ---- */
+    .r-nutrition { max-width: 720px; margin: 0 auto; }
+    .r-nutrition-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .r-nutrition-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .r-nutrition-head h3 { font: 600 18px var(--serif); margin: 0; }
+    .r-nutrition-head small { font: 500 12px var(--sans); color: var(--text-soft); }
+    .r-nutrition-table { width: 100%; border-collapse: collapse; }
+    .r-nutrition-table th, .r-nutrition-table td {
+      padding: 12px 24px;
+      text-align: left;
+      font: 500 14px var(--sans);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+    .r-nutrition-table th {
+      font-weight: 600;
+      color: var(--text-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .r-nutrition-table tr:last-child td { border-bottom: 0; }
+    .r-nutrition-table td:last-child { text-align: right; font-weight: 700; }
+
+    /* ---- Author strip ---- */
+    .r-author {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 24px;
+      align-items: center;
+    }
+    .r-author-photo {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      color: var(--white);
+      display: inline-flex; align-items: center; justify-content: center;
+      font: 700 32px var(--serif);
+      flex: 0 0 auto;
+    }
+    .r-author-meta h3 { font: 600 22px var(--serif); margin: 0 0 4px; }
+    .r-author-meta .role { font: 500 12px var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-soft); margin-bottom: 8px; }
+    .r-author-meta p { font: 400 15px/1.55 var(--sans); color: var(--text); margin: 8px 0 0; max-width: 520px; }
+    .r-follow {
+      padding: 10px 20px;
+      border-radius: 100px;
+      background: var(--ink); color: var(--white);
+      font: 600 13px var(--sans);
+      transition: background .2s var(--easing);
+      flex: 0 0 auto;
+    }
+    [data-theme="dark"] .r-follow { background: var(--cream); color: var(--ink); }
+    .r-follow:hover { background: var(--green); color: var(--white); }
+    [data-theme="dark"] .r-follow:hover { background: var(--green); color: var(--white); }
+
+    /* ---- Related ---- */
+    .r-related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+    .r-related-card {
+      display: block;
+      position: relative;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 4 / 5;
+      background: var(--bg-soft);
+      transition: transform .35s var(--easing), box-shadow .35s var(--easing);
+    }
+    .r-related-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .r-related-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .6s var(--easing);
+    }
+    .r-related-card:hover img { transform: scale(1.06); }
+    .r-related-card::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.78) 100%);
+    }
+    .r-related-meta {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      padding: 20px;
+      color: var(--white);
+      z-index: 2;
+    }
+    .r-related-meta .t { font: 600 17px/1.25 var(--serif); margin: 0 0 4px; }
+    .r-related-meta .s { font: 500 12px var(--sans); color: rgba(255,255,255,0.78); }
+
+    /* ---- Reviews ---- */
+    .r-reviews {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .r-reviews-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .r-rating { display: flex; align-items: center; gap: 10px; font: 500 14px var(--sans); color: var(--text-soft); }
+    .r-rating .stars { color: var(--yellow); display: inline-flex; gap: 2px; }
+    .r-rating strong { color: var(--text); font: 700 18px var(--serif); }
+
+    .r-review {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 26px;
+      margin-bottom: 14px;
+    }
+    .r-review-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .r-review-author { display: flex; align-items: center; gap: 10px; }
+    .r-review-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--bg-soft);
+      color: var(--green-dark);
+      font: 700 12px var(--sans);
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .r-review-name { font: 600 13px var(--sans); color: var(--text); }
+    .r-review-date { font: 500 12px var(--sans); color: var(--text-soft); }
+    .r-review p { margin: 0; font: 400 15px/1.55 var(--sans); color: var(--text); }
+    .r-review-stars { color: var(--yellow); display: inline-flex; gap: 1px; }
+
+    /* ============================================================
+       Floating action bar (mobile + scroll)
+       ============================================================ */
+    .r-fab {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      z-index: 60;
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px;
+      border-radius: 100px;
+      background: var(--ink);
+      color: var(--white);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      transition: transform .35s var(--easing);
+    }
+    [data-theme="dark"] .r-fab { background: var(--cream); color: var(--ink); }
+    .r-fab.show { transform: translateX(-50%) translateY(0); }
+    .r-fab button {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 16px;
+      border-radius: 100px;
+      color: inherit;
+      font: 600 13px var(--sans);
+      transition: background .15s var(--easing);
+    }
+    .r-fab button:hover { background: rgba(255,255,255,0.12); }
+    [data-theme="dark"] .r-fab button:hover { background: rgba(23,8,5,0.08); }
+    .r-fab button.primary { background: var(--green); color: var(--white); }
+    .r-fab button.primary:hover { background: var(--green-dark); }
+
+    /* ============================================================
+       Cook Mode overlay
+       ============================================================ */
+    .cookmode {
+      position: fixed; inset: 0;
+      z-index: 250;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      opacity: 0; pointer-events: none;
+      transition: opacity .35s var(--easing);
+    }
+    .cookmode.open { opacity: 1; pointer-events: auto; }
+    .cookmode-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cookmode-title { font: 600 16px var(--sans); color: var(--text-soft); }
+    .cookmode-title strong { color: var(--text); font-weight: 700; }
+    .cookmode-close {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--bg-soft);
+      color: var(--text);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background .2s var(--easing);
+    }
+    .cookmode-close:hover { background: var(--border); }
+
+    .cookmode-body {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 32px;
+    }
+    .cookmode-step {
+      max-width: 760px;
+      text-align: center;
+    }
+    .cookmode-step .num {
+      font: 700 18px var(--sans);
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+    .cookmode-step h2 {
+      font: 600 clamp(36px, 5vw, 60px)/1.1 var(--serif);
+      letter-spacing: -0.015em;
+      margin: 0 0 20px;
+    }
+    .cookmode-step .time {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      background: var(--bg-soft);
+      color: var(--text-soft);
+      font: 600 14px var(--sans);
+      margin-bottom: 28px;
+    }
+    .cookmode-step .desc {
+      font: 400 clamp(18px, 2vw, 22px)/1.6 var(--sans);
+      color: var(--text);
+      margin: 0;
+    }
+    .cookmode-step .tip {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: var(--blue-soft);
+      border-left: 3px solid var(--blue);
+      font: italic 500 17px/1.5 var(--serif);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      text-align: left;
+    }
+    .cookmode-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px;
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+    }
+    .cookmode-progress {
+      flex: 1;
+      max-width: 320px;
+      height: 6px;
+      border-radius: 100px;
+      background: var(--bg-soft);
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .cookmode-progress-bar {
+      height: 100%;
+      background: var(--green);
+      transition: width .4s var(--easing);
+    }
+    .cookmode-nav { display: flex; gap: 8px; }
+    .cookmode-nav button {
+      padding: 12px 20px;
+      border-radius: 100px;
+      background: var(--bg-soft);
+      color: var(--text);
+      font: 600 14px var(--sans);
+      transition: background .2s var(--easing);
+    }
+    .cookmode-nav button:hover:not(:disabled) { background: var(--border); }
+    .cookmode-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .cookmode-nav button.primary { background: var(--green); color: var(--white); }
+    .cookmode-nav button.primary:hover { background: var(--green-dark); }
+
+    /* ============================================================
+       Footer (compact)
+       ============================================================ */
+    footer {
+      background: var(--cream);
+      color: var(--text-soft);
+      margin-top: 80px;
+      padding: 40px 24px;
+      text-align: center;
+      font: 500 13px var(--sans);
+      border-top: 1px solid var(--border);
+    }
+    [data-theme="dark"] footer { background: var(--bg-soft); }
+    footer a { color: inherit; transition: color .2s var(--easing); margin: 0 12px; }
+    footer a:hover { color: var(--green-dark); }
+    footer .logo { font-size: 18px; margin-bottom: 8px; }
+
+    /* ============================================================
+       Toasts
+       ============================================================ */
+    .toasts { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 240; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+    .toast { background: var(--ink); color: var(--white); padding: 11px 20px; border-radius: 100px; font: 500 14px var(--sans); opacity: 0; transform: translateY(14px); transition: opacity .3s var(--easing), transform .35s var(--easing); box-shadow: 0 18px 40px rgba(0,0,0,0.25); display: inline-flex; align-items: center; gap: 8px; }
+    [data-theme="dark"] .toast { background: var(--cream); color: var(--ink); }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+    /* ============================================================
+       Responsive
+       ============================================================ */
+    @media (max-width: 1100px) {
+      .cmdk-trigger .label { display: none; }
+      .nav-crumb { display: none; }
+      .r-method { grid-template-columns: 1fr; gap: 36px; }
+      .r-ingredients { position: relative; top: auto; }
+    }
+    @media (max-width: 900px) {
+      .r-macros { grid-template-columns: 1fr; padding: 28px; gap: 28px; text-align: center; }
+      .r-macros .r-donut { margin: 0 auto; }
+      .r-author { grid-template-columns: auto 1fr; gap: 20px; padding: 28px; }
+      .r-follow { grid-column: 1 / -1; justify-self: start; }
+      .r-related-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .nav { padding: 6px 6px 6px 12px; border-radius: 28px; gap: 6px; }
+      .cmdk-trigger .kbd { display: none; }
+      .nav-icons { padding: 3px; }
+      .icon-btn { width: 34px; height: 34px; }
+      .r-hero { min-height: 600px; padding: 90px 0 40px; }
+      .r-title { font-size: 44px; }
+      .r-tagline { font-size: 16px; }
+      .r-glance { top: 70px; }
+      .r-content { padding: 40px 16px 80px; }
+      .r-section + .r-section { margin-top: 64px; }
+      .r-step { grid-template-columns: 56px 1fr; padding: 16px 18px 16px 0; gap: 12px; }
+      .r-step-num-wrap { padding: 20px 0 0 18px; }
+      .r-step-num { font-size: 44px; }
+      .r-step-main { padding: 20px 0; }
+      .r-step-title { font-size: 19px; }
+      .r-step-desc { font-size: 15px; }
+      .r-related-grid { grid-template-columns: 1fr; }
+      .r-fab { bottom: 12px; max-width: calc(100vw - 24px); flex-wrap: wrap; justify-content: center; }
+      .r-fab button { padding: 8px 12px; font-size: 12px; }
+      .r-author { grid-template-columns: 1fr; text-align: center; }
+      .r-author-photo { margin: 0 auto; }
+      .r-follow { justify-self: center; }
+    }
+
+    /* ============================================================
+       Print
+       ============================================================ */
+    @media print {
+      body::before, .nav-wrap, .r-fab, .scroll-progress, .cmdk, .toasts, .r-glance, .r-actions, .r-related, .r-reviews, footer { display: none !important; }
+      .r-hero { min-height: auto; padding: 0; color: var(--ink); margin-top: 0; }
+      .r-hero-bg, .r-hero::before, .r-hero::after { display: none; }
+      .r-hero-inner { padding: 0; }
+      .r-title, .r-tagline, .r-byline-name, .r-byline-sub, .r-quick .chip { color: var(--ink) !important; text-shadow: none !important; background: transparent !important; border: 1px solid var(--ink) !important; }
+      .r-method { grid-template-columns: 1fr 2fr; gap: 24px; }
+      .r-ingredients { position: relative; top: 0; }
+      .r-step { break-inside: avoid; box-shadow: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: 0.01s !important; animation-duration: 0.01s !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- Floating glass nav -->
+  <div class="nav-wrap" id="navWrap">
+    <nav class="nav" aria-label="Primary">
+      <div class="nav-brand">
+        <a href="index.html" class="back-btn" aria-label="Back to recipes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </a>
+        <a href="index.html" class="logo" aria-label="Recipy home">RECIPY<span class="logo-dot" aria-hidden="true"></span></a>
+      </div>
+
+      <div class="nav-crumb">
+        <a href="index.html">Recipes</a> · <strong id="navCrumbTitle">…</strong>
+      </div>
+
+      <div class="nav-right">
+        <button class="cmdk-trigger" id="cmdkTrigger" aria-label="Search recipes">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span class="label">Search…</span>
+          <span class="kbd" aria-hidden="true"><span id="kbdKey">⌘K</span></span>
+        </button>
+
+        <div class="nav-icons">
+          <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            <svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>
+            <svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
+          <button class="icon-btn" aria-label="Cart">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          </button>
+          <a href="index.html" class="icon-btn" id="navBookmark" aria-label="Saved recipes">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            <span class="badge" id="bookmarkBadge" aria-hidden="true">0</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Command palette -->
+  <div class="cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="cmdk-card">
+      <div class="cmdk-input">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="cmdkInput" type="text" placeholder="Search recipes, authors, or try 'duck'…" autocomplete="off" />
+        <button class="esc" id="cmdkEsc" aria-label="Close">ESC</button>
+      </div>
+      <div class="cmdk-body" id="cmdkBody"></div>
+      <div class="cmdk-foot">
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+        <span><kbd>↵</kbd> open</span>
+        <span><kbd>esc</kbd> close</span>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- Hero -->
+    <section class="r-hero" id="rHero">
+      <img class="r-hero-bg" id="rHeroBg" src="" alt="" aria-hidden="true" />
+      <div class="r-hero-inner">
+        <div class="r-crumb">
+          <a href="index.html">Recipes</a>
+          <span class="sep">›</span>
+          <span id="rCrumbCat">Dinner</span>
+          <span class="sep">›</span>
+          <span id="rCrumbTags">Comfort</span>
+        </div>
+        <h1 class="r-title" id="rTitle">Paprika chicken with spaetzle</h1>
+        <p class="r-tagline" id="rTagline">A glossy, warmly spiced one-pot supper that tastes like a slow Sunday — even on a Tuesday.</p>
+
+        <div class="r-byline">
+          <span class="r-avatar" id="rAvatar">LA</span>
+          <div class="r-byline-meta">
+            <span class="r-byline-name" id="rAuthor">—</span>
+            <span class="r-byline-sub"><span id="rByRole">—</span> · Published <span id="rDate">November 2026</span></span>
+          </div>
+        </div>
+
+        <div class="r-quick">
+          <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Total <strong id="rTotalTime">55 min</strong></span>
+          <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Serves <strong id="rServes">4</strong></span>
+          <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> <strong id="rDifficulty">Intermediate</strong></span>
+          <span class="chip chip-accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> <strong id="rHeroKcal">—</strong> kcal / serving</span>
+        </div>
+
+        <div class="r-actions">
+          <button class="r-btn primary" id="heroSave">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            <span id="heroSaveLabel">Save recipe</span>
+          </button>
+          <button class="r-btn ghost" id="heroPrint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print
+          </button>
+          <button class="r-btn ghost" id="heroShare">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            Share
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- At-a-glance / anchors -->
+    <div class="r-glance" id="rGlance">
+      <div class="r-glance-inner">
+        <nav class="r-anchors" aria-label="Recipe sections">
+          <a class="r-anchor is-current" href="#intro">Intro</a>
+          <a class="r-anchor" href="#macros">Macros</a>
+          <a class="r-anchor" href="#method">Method</a>
+          <a class="r-anchor" href="#equipment">Equipment</a>
+          <a class="r-anchor" href="#notes">Notes</a>
+          <a class="r-anchor" href="#nutrition">Nutrition</a>
+          <a class="r-anchor" href="#reviews">Reviews</a>
+        </nav>
+        <button class="r-cookmode-btn" id="cookModeBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path></svg>
+          Cook Mode
+        </button>
+      </div>
+    </div>
+
+    <div class="r-content">
+      <!-- Intro -->
+      <section class="r-section r-intro" id="intro">
+        <p id="rIntro"></p>
+
+        <aside class="r-note">
+          <span class="r-note-tag" id="rFactTitle">Did you know?</span>
+          <p id="rFactBody"></p>
+        </aside>
+      </section>
+
+      <!-- Macros -->
+      <section class="r-section r-macros" id="macros">
+        <div class="r-donut" aria-label="Macronutrient breakdown">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="track" cx="50" cy="50" r="40" fill="none" stroke-width="14"></circle>
+            <circle class="seg" id="segProtein" cx="50" cy="50" r="40" fill="none" stroke="var(--green)"  stroke-width="14" stroke-linecap="butt" stroke-dasharray="0 251.3" stroke-dashoffset="0"></circle>
+            <circle class="seg" id="segCarbs"   cx="50" cy="50" r="40" fill="none" stroke="var(--blue)"   stroke-width="14" stroke-linecap="butt" stroke-dasharray="0 251.3" stroke-dashoffset="0"></circle>
+            <circle class="seg" id="segFat"     cx="50" cy="50" r="40" fill="none" stroke="var(--orange)" stroke-width="14" stroke-linecap="butt" stroke-dasharray="0 251.3" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="center">
+            <span class="num" id="donutKcal">620</span>
+            <span class="lbl">Kcal / Serving</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="r-section-tag">Per serving</span>
+          <h2 style="margin:0 0 16px;">Macronutrient breakdown</h2>
+          <div class="r-macro-list">
+            <div class="r-macro-row">
+              <span class="r-macro-dot" style="background:var(--green)"></span>
+              <span class="r-macro-name">Protein <span id="macroProteinPct">· —%</span></span>
+              <span class="r-macro-value"><span id="macroProtein">—</span><small>g</small></span>
+            </div>
+            <div class="r-macro-row">
+              <span class="r-macro-dot" style="background:var(--blue)"></span>
+              <span class="r-macro-name">Carbohydrates <span id="macroCarbsPct">· —%</span></span>
+              <span class="r-macro-value"><span id="macroCarbs">—</span><small>g</small></span>
+            </div>
+            <div class="r-macro-row">
+              <span class="r-macro-dot" style="background:var(--orange)"></span>
+              <span class="r-macro-name">Fat <span id="macroFatPct">· —%</span></span>
+              <span class="r-macro-value"><span id="macroFat">—</span><small>g</small></span>
+            </div>
+            <div class="r-macro-row">
+              <span class="r-macro-dot" style="background:var(--text-soft)"></span>
+              <span class="r-macro-name">Fibre</span>
+              <span class="r-macro-value"><span id="macroFibre">—</span><small>g</small></span>
+            </div>
+            <div class="r-macro-row">
+              <span class="r-macro-dot" style="background:var(--text-soft);opacity:.5"></span>
+              <span class="r-macro-name">Sugar</span>
+              <span class="r-macro-value"><span id="macroSugar">—</span><small>g</small></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Method -->
+      <section class="r-section" id="method">
+        <span class="r-section-tag">Method</span>
+        <h2>How to make it</h2>
+
+        <div class="r-method">
+          <!-- Sticky ingredients -->
+          <aside class="r-ingredients" id="ingredientsBox">
+            <h3>Ingredients</h3>
+            <div class="servings">
+              <span class="label">Serves</span>
+              <div class="stepper">
+                <button class="r-step-btn" id="servingsDown" aria-label="Decrease servings">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <span class="r-step-count" id="servingsCount">4</span>
+                <button class="r-step-btn" id="servingsUp" aria-label="Increase servings">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+              </div>
+            </div>
+            <div id="ingredientGroups"></div>
+          </aside>
+
+          <!-- Steps -->
+          <div>
+            <div class="r-steps-header">
+              <h3>Instructions</h3>
+              <span class="r-steps-progress"><strong id="stepsDone">0</strong> / <span id="stepsTotal">10</span> steps</span>
+            </div>
+            <div class="r-steps" id="stepsList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Equipment -->
+      <section class="r-section r-equipment" id="equipment">
+        <span class="r-section-tag">What you'll need</span>
+        <h2>Equipment</h2>
+        <div class="r-equipment-grid" id="equipmentGrid"></div>
+      </section>
+
+      <!-- Notes -->
+      <section class="r-section r-notes" id="notes">
+        <span class="r-section-tag">Pro tips</span>
+        <h2>Notes &amp; substitutions</h2>
+        <div id="notesGrid"></div>
+      </section>
+
+      <!-- Nutrition table -->
+      <section class="r-section r-nutrition" id="nutrition">
+        <span class="r-section-tag">Full breakdown</span>
+        <h2>Nutrition</h2>
+        <div class="r-nutrition-card">
+          <div class="r-nutrition-head">
+            <h3>Per serving</h3>
+            <small>Based on <span id="nutServings">4</span> servings · approximate values</small>
+          </div>
+          <table class="r-nutrition-table">
+            <thead><tr><th>Nutrient</th><th>Amount</th><th>% DV</th></tr></thead>
+            <tbody id="nutritionBody"></tbody>
+          </table>
+          <small style="display:block;margin-top:12px;color:var(--text-soft);font-size:12px;">% Daily Value based on a 2,000 kcal/day reference diet. These are approximations - actual values vary with brand, prep and substitutions.</small>
+        </div>
+      </section>
+
+      <!-- Author -->
+      <section class="r-section r-author" id="author">
+        <span class="r-author-photo" id="authorPhoto">LA</span>
+        <div class="r-author-meta">
+          <div class="role" id="authorRole">About the cook</div>
+          <h3 id="authorName">Leslie Alexander</h3>
+          <p id="authorBio"></p>
+        </div>
+        <button class="r-follow">Follow</button>
+      </section>
+
+      <!-- Related -->
+      <section class="r-section" id="related">
+        <span class="r-section-tag">More like this</span>
+        <h2>You might also love</h2>
+        <div class="r-related-grid" id="relatedGrid"></div>
+      </section>
+
+      <!-- Reviews -->
+      <section class="r-section r-reviews" id="reviews">
+        <span class="r-section-tag">From the kitchen</span>
+        <div class="r-reviews-head">
+          <h2 style="margin:0;">Reviews</h2>
+          <div class="r-rating">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <strong>4.8</strong>
+            <span>· 247 reviews</span>
+          </div>
+        </div>
+
+        <div class="r-review">
+          <div class="r-review-head">
+            <div class="r-review-author">
+              <span class="r-review-avatar">MR</span>
+              <span class="r-review-name">Marta R.</span>
+              <span class="r-review-date">· 2 days ago</span>
+            </div>
+            <span class="r-review-stars" aria-label="5 stars">★★★★★</span>
+          </div>
+          <p>Made this on a snowy Tuesday and it tasted like a hug. The note about blooming the paprika was the move — won't skip that again.</p>
+        </div>
+
+        <div class="r-review">
+          <div class="r-review-head">
+            <div class="r-review-author">
+              <span class="r-review-avatar">DK</span>
+              <span class="r-review-name">Daniel K.</span>
+              <span class="r-review-date">· last week</span>
+            </div>
+            <span class="r-review-stars" aria-label="4 stars">★★★★☆</span>
+          </div>
+          <p>Subbed Greek yogurt and it still came together. Family asked for seconds. Will make again — next time with bone-in like the recipe suggests.</p>
+        </div>
+
+        <div class="r-review">
+          <div class="r-review-head">
+            <div class="r-review-author">
+              <span class="r-review-avatar">PM</span>
+              <span class="r-review-name">Priya M.</span>
+              <span class="r-review-date">· last month</span>
+            </div>
+            <span class="r-review-stars" aria-label="5 stars">★★★★★</span>
+          </div>
+          <p>First time making spaetzle from scratch — easier than I thought. The sauce is the star. Doubled the recipe and froze half; reheats beautifully.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="logo">RECIPY<span class="logo-dot" aria-hidden="true"></span></div>
+    <div>&copy; Recipy 2026 · <a href="#">Terms</a> <a href="#">Privacy</a> <a href="index.html">All recipes</a></div>
+  </footer>
+
+  <!-- Floating action bar -->
+  <div class="r-fab" id="rFab">
+    <button id="fabSave">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+      <span id="fabSaveLabel">Save</span>
+    </button>
+    <button id="fabPrint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      Print
+    </button>
+    <button class="primary" id="fabCook">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path></svg>
+      Cook Mode
+    </button>
+  </div>
+
+  <!-- Cook Mode overlay -->
+  <div class="cookmode" id="cookmode" role="dialog" aria-modal="true" aria-label="Cook mode">
+    <div class="cookmode-head">
+      <div class="cookmode-title">Cook Mode · <strong id="cookmodeTitle">…</strong></div>
+      <button class="cookmode-close" id="cookmodeClose" aria-label="Exit cook mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div class="cookmode-body">
+      <div class="cookmode-step" id="cookmodeStep"></div>
+    </div>
+    <div class="cookmode-foot">
+      <div class="cookmode-nav">
+        <button id="cookmodePrev" disabled>← Previous</button>
+      </div>
+      <div class="cookmode-progress" aria-hidden="true"><div class="cookmode-progress-bar" id="cookmodeBar"></div></div>
+      <div class="cookmode-nav">
+        <button class="primary" id="cookmodeNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="recipes-data.js"></script>
+  <script>
+    /* ============================================================
+       Shared data — sourced from window.RECIPES (recipes-data.js)
+       ============================================================ */
+    const recipes = window.RECIPES;
+    const fallbackPhoto = "photo-fallback.jpg";
+    const difficultyLabel = { 1: "Easy", 2: "Intermediate", 3: "Advanced" };
+    const heroMoodPhoto = "https://images.unsplash.com/photo-1556910103-1c02745aae4d";
+
+    function heroMoodUrl(w) {
+      const width = w || 1800;
+      return heroMoodPhoto + "?auto=format&fit=crop&w=" + width + "&q=80&blur=50";
+    }
+    function photoUrl(r, w) {
+      const width = w || 1600;
+      if (!r || !r.photo) return fallbackPhoto;
+      return r.photo.indexOf("unsplash") >= 0 ? r.photo + "?auto=format&fit=crop&w=" + width + "&q=82" : r.photo;
+    }
+    function authorBio(r) {
+      const lines = {
+        "Sara Mackinley":     "Sara is the brunch and bakery half of the Mackinley Kitchen. She believes a cup of tea, a warm muffin and a long Saturday morning is a meal in itself.",
+        "Sam Mackinley":      "Sam is the comfort and curry half of the Mackinley Kitchen, happiest when there's a pot bubbling, a knife in hand and music on. He cooks loud, generous food.",
+        "Sam & Sara Mackinley": "Sam & Sara cook together in their tiny home kitchen, swapping pans, pushing each other to season harder, and writing recipes you can actually make on a Tuesday."
+      };
+      return lines[r.author] || "Recipe by the Mackinley Kitchen.";
+    }
+
+    /* ============================================================
+       Per-recipe content — pulled later from window.RECIPES[recipeId]
+       ============================================================ */
+    let ingredientGroups = [];
+    let steps = [];
+
+
+    /* ============================================================
+       Helpers
+       ============================================================ */
+    const $  = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+    function initials(name) { return name.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase(); }
+
+    function toast(msg) {
+      const c = $("#toasts");
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.innerHTML = `<span class="dot"></span><span>${escapeHtml(msg)}</span>`;
+      c.appendChild(el);
+      requestAnimationFrame(() => el.classList.add("show"));
+      setTimeout(() => el.classList.remove("show"), 2400);
+      setTimeout(() => el.remove(), 3000);
+    }
+
+    /* ============================================================
+       Bookmarks (shared key with listing page)
+       ============================================================ */
+    const BOOKMARK_KEY = "recipy.bookmarks.v1";
+    function getBookmarks() {
+      try { return new Set(JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]")); }
+      catch { return new Set(); }
+    }
+    function saveBookmarks(set) {
+      localStorage.setItem(BOOKMARK_KEY, JSON.stringify([...set]));
+      updateBookmarkBadge();
+    }
+    function toggleBookmark(id) {
+      const set = getBookmarks();
+      const key = String(id);
+      const willSave = !set.has(key);
+      if (willSave) set.add(key); else set.delete(key);
+      saveBookmarks(set);
+      return willSave;
+    }
+    function updateBookmarkBadge() {
+      const badge = $("#bookmarkBadge");
+      const count = getBookmarks().size;
+      badge.textContent = count;
+      badge.classList.toggle("show", count > 0);
+    }
+
+    /* ============================================================
+       Recipe state
+       ============================================================ */
+    const params = new URLSearchParams(location.search);
+    const idParam = parseInt(params.get("id"), 10);
+    const recipeId = Number.isFinite(idParam) && recipes[idParam] ? idParam : 0;
+    const recipe = recipes[recipeId];
+    const photo = photoUrl(recipe);
+
+    /* Pull ingredient groups and steps from the loaded recipe */
+    ingredientGroups = recipe.ingredientGroups || [];
+    steps = recipe.steps || [];
+
+    const STORAGE_INGREDIENTS = `recipy.ingredients.${recipeId}`;
+    const STORAGE_STEPS = `recipy.steps.${recipeId}`;
+    const STORAGE_SERVINGS = `recipy.servings.${recipeId}`;
+
+    let baseServings = recipe.baseServings || 2;
+    let servings = parseInt(localStorage.getItem(STORAGE_SERVINGS), 10) || baseServings;
+
+    /* ============================================================
+       Render hero + content from recipe data
+       ============================================================ */
+    function renderHero() {
+      const r = recipe;
+      $("#rTitle").textContent = r.title;
+      $("#rAuthor").textContent = r.author;
+      $("#rAvatar").textContent = initials(r.author);
+      $("#authorName").textContent = r.author;
+      $("#authorPhoto").textContent = initials(r.author);
+      $("#authorRole").textContent = r.role || "About the cook";
+      $("#authorBio").textContent = authorBio(r);
+      $("#rByRole").textContent = r.role || "Recipe by";
+      $("#rHeroKcal").textContent = (r.macros && r.macros.calories) ? Math.round(r.macros.calories) : "—";
+      $("#rTotalTime").textContent = (r.time >= 60 ? Math.round(r.time / 60 * 10) / 10 + " hr" : r.time + " min");
+      $("#rDifficulty").textContent = difficultyLabel[r.difficulty];
+      $("#rCrumbTags").textContent = (r.tags || []).join(", ") || "Everyday";
+      $("#rCrumbCat").textContent = r.cuisine || (r.tags[0] || "Recipe");
+      const heroImg = $("#rHeroBg");
+      heroImg.src = heroMoodUrl(1800);
+      heroImg.onerror = function () { this.onerror = null; this.src = fallbackPhoto; };
+      $("#navCrumbTitle").textContent = r.title;
+      $("#rTagline").textContent = r.intro;
+      $("#rIntro").textContent = r.intro;
+      if (r.fact) {
+        $("#rFactTitle").textContent = r.fact.title || "Did you know?";
+        $("#rFactBody").textContent = r.fact.body || "";
+      }
+      document.title = `${r.title} — Recipy`;
+      renderMacrosBox();
+      renderEquipment();
+      renderNotes();
+      renderNutritionTable();
+    }
+
+    /* ----- Macro box (right side of donut) ----- */
+    function renderMacrosBox() {
+      const m = recipe.macros || { protein: 0, carbs: 0, fat: 0, fibre: 0, sugar: 0, calories: 0 };
+      const p = Number(m.protein) || 0;
+      const c = Number(m.carbs) || 0;
+      const f = Number(m.fat) || 0;
+      const total = (p * 4) + (c * 4) + (f * 9) || 1;
+      const pct = (n, mul) => Math.round(((n * mul) / total) * 100);
+      $("#macroProtein").textContent  = p;
+      $("#macroCarbs").textContent    = c;
+      $("#macroFat").textContent      = f;
+      $("#macroFibre").textContent    = (m.fibre != null) ? m.fibre : "—";
+      $("#macroSugar").textContent    = (m.sugar != null) ? m.sugar : "—";
+      $("#macroProteinPct").textContent = "· " + pct(p, 4) + "%";
+      $("#macroCarbsPct").textContent   = "· " + pct(c, 4) + "%";
+      $("#macroFatPct").textContent     = "· " + pct(f, 9) + "%";
+      $("#donutKcal").textContent = m.calories ? Math.round(m.calories) : "—";
+    }
+
+    /* ----- Equipment grid (icons rotate based on count) ----- */
+    function renderEquipment() {
+      const grid = $("#equipmentGrid");
+      const items = (recipe.equipment && recipe.equipment.length ? recipe.equipment : ["Pan", "Bowl", "Knife"]);
+      const icons = [
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"></path><path d="M7 11V8a5 5 0 0 1 10 0v3"></path></svg>',
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"></circle><path d="M22 14h-2"></path></svg>',
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c0-3 3-5 6-5s3 5 6 5 6-2 6-2v6c0 1.1-.9 2-2 2H5a2 2 0 0 1-2-2v-4z"></path></svg>',
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V3M21 21V3M7 12h10"></path></svg>',
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg>',
+        '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-9 9H5v-6l9-9z"></path></svg>'
+      ];
+      grid.innerHTML = items.map((item, i) => `<div class="r-equip">${icons[i % icons.length]}<span>${escapeHtml(item)}</span></div>`).join("");
+    }
+
+    /* ----- Notes & substitutions: derived from step tips + a default 'make ahead' card ----- */
+    function renderNotes() {
+      const grid = $("#notesGrid");
+      const tipNotes = (recipe.steps || [])
+        .filter(s => s.tip)
+        .slice(0, 2)
+        .map((s, i) => ({
+          title: i === 0 ? "Top tip" : "From the kitchen",
+          body: s.tip,
+          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M12 2a7 7 0 0 1 4 12.7c-.7.6-1 1.5-1 2.3v1H9v-1c0-.8-.3-1.7-1-2.3A7 7 0 0 1 12 2z"></path></svg>'
+        }));
+      const makeAhead = {
+        title: "Make ahead",
+        body: "Most of these flavours deepen overnight. Cover and refrigerate for up to 3 days, or freeze portions for up to a month. Reheat gently with a splash of water or stock to bring the sauce back to life.",
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+      };
+      const swaps = {
+        title: "Easy swaps",
+        body: getSwapsCopy(recipe),
+        icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>'
+      };
+      const all = [...tipNotes, makeAhead, swaps];
+      grid.innerHTML = all.map(n => `
+        <div class="r-note-card">
+          <h4>${n.icon} ${escapeHtml(n.title)}</h4>
+          <p>${escapeHtml(n.body)}</p>
+        </div>
+      `).join("");
+    }
+
+    function getSwapsCopy(r) {
+      const tags = (r.tags || []);
+      if (tags.includes("Vegan")) return "Already vegan. To make it gluten free, swap any noodles or pasta for rice or rice noodles, and double-check stock cubes are GF certified.";
+      if (tags.includes("Veg"))   return "Make it vegan: swap halloumi for marinated tofu, butter for olive oil, cheese for nutritional yeast or vegan feta, and any cream for oat or coconut cream.";
+      return "Most components here can be swapped one-for-one — read each step for the in-line tips and trust your taste.";
+    }
+
+    /* ----- Nutrition table ----- */
+    function renderNutritionTable() {
+      const m = recipe.macros || {};
+      const dv = (n, ref) => ref > 0 ? Math.round((Number(n) || 0) / ref * 100) + "%" : "—";
+      const rows = [
+        ["Calories", (m.calories != null ? m.calories + " kcal" : "—"), dv(m.calories, 2000)],
+        ["Protein",  (m.protein != null ? m.protein + " g" : "—"),     dv(m.protein, 50)],
+        ["Carbohydrates", (m.carbs != null ? m.carbs + " g" : "—"),    dv(m.carbs, 300)],
+        ["— of which sugars", (m.sugar != null ? m.sugar + " g" : "—"), "—"],
+        ["Fat",      (m.fat != null ? m.fat + " g" : "—"),             dv(m.fat, 70)],
+        ["Fibre",    (m.fibre != null ? m.fibre + " g" : "—"),         dv(m.fibre, 30)],
+        ["Sodium",   "—", "—"],
+        ["Cholesterol", "—", "—"]
+      ];
+      const tbody = $("#nutritionBody");
+      tbody.innerHTML = rows.map(([n, a, p]) => `<tr><td>${escapeHtml(n)}</td><td>${escapeHtml(a)}</td><td>${escapeHtml(p)}</td></tr>`).join("");
+    }
+
+    /* ============================================================
+       Ingredients — render, scale, persist checks
+       ============================================================ */
+    function formatAmount(n) {
+      if (n === 0) return "";
+      if (n < 0.1) return n.toFixed(2);
+      if (n < 1) {
+        // Render common fractions
+        const fractions = [[0.25, "¼"], [0.33, "⅓"], [0.5, "½"], [0.67, "⅔"], [0.75, "¾"]];
+        for (const [v, glyph] of fractions) if (Math.abs(n - v) < 0.04) return glyph;
+        return n.toFixed(2).replace(/\.?0+$/, "");
+      }
+      if (Number.isInteger(n)) return String(n);
+      const whole = Math.floor(n);
+      const frac = n - whole;
+      const fractions = [[0.25, "¼"], [0.33, "⅓"], [0.5, "½"], [0.67, "⅔"], [0.75, "¾"]];
+      for (const [v, glyph] of fractions) if (Math.abs(frac - v) < 0.04) return whole + glyph;
+      return n.toFixed(1).replace(/\.0$/, "");
+    }
+
+    function renderIngredients() {
+      const wrap = $("#ingredientGroups");
+      const checked = new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]"));
+      const factor = servings / baseServings;
+
+      wrap.innerHTML = ingredientGroups.map((group, gi) => `
+        <div class="r-ingredient-group">
+          <h4>${escapeHtml(group.name)}</h4>
+          <ul class="r-ingredient-list">
+            ${group.items.map((item, ii) => {
+              const key = `${gi}-${ii}`;
+              const isDone = checked.has(key);
+              const scaled = item.amount * factor;
+              return `
+                <li class="r-ingredient ${isDone ? 'is-done' : ''}" data-key="${key}">
+                  <span class="r-check" aria-hidden="true"></span>
+                  <span class="r-text">
+                    <span class="r-amount">${formatAmount(scaled)}${item.unit ? ` ${escapeHtml(item.unit)}` : ''}</span>
+                    ${escapeHtml(item.text)}
+                  </span>
+                </li>
+              `;
+            }).join("")}
+          </ul>
+        </div>
+      `).join("");
+
+      $$(".r-ingredient", wrap).forEach(li => {
+        li.addEventListener("click", () => {
+          const key = li.dataset.key;
+          const checked = new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]"));
+          if (checked.has(key)) checked.delete(key); else checked.add(key);
+          localStorage.setItem(STORAGE_INGREDIENTS, JSON.stringify([...checked]));
+          li.classList.toggle("is-done", checked.has(key));
+        });
+      });
+    }
+
+    function updateServings(next) {
+      servings = Math.max(1, Math.min(16, next));
+      localStorage.setItem(STORAGE_SERVINGS, String(servings));
+      $("#servingsCount").textContent = servings;
+      $("#rServes").textContent = servings;
+      $("#nutServings").textContent = servings;
+      renderIngredients();
+    }
+
+    function initServingsStepper() {
+      updateServings(servings);
+      $("#servingsDown").addEventListener("click", () => updateServings(servings - 1));
+      $("#servingsUp").addEventListener("click", () => updateServings(servings + 1));
+    }
+
+    /* ============================================================
+       Steps — render, check off, progress, current
+       ============================================================ */
+    function renderSteps() {
+      const wrap = $("#stepsList");
+      const done = new Set(JSON.parse(localStorage.getItem(STORAGE_STEPS) || "[]"));
+      wrap.innerHTML = steps.map((s, i) => `
+        <article class="r-step ${done.has(String(i)) ? 'is-done' : ''}" data-step="${i}">
+          <div class="r-step-num-wrap">
+            <span class="r-step-num" aria-hidden="true"></span>
+            <button class="r-step-toggle" aria-label="${done.has(String(i)) ? 'Mark step incomplete' : 'Mark step complete'}" aria-pressed="${done.has(String(i))}"></button>
+          </div>
+          <div class="r-step-main">
+            <h3 class="r-step-title">${escapeHtml(s.title)}</h3>
+            <span class="r-step-time">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              ~${s.time} min
+            </span>
+            <p class="r-step-desc">${escapeHtml(s.desc)}</p>
+            ${s.tip ? `<div class="r-step-tip"><strong>Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
+          </div>
+        </article>
+      `).join("");
+
+      $("#stepsTotal").textContent = steps.length;
+
+      $$(".r-step-toggle", wrap).forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const step = btn.closest(".r-step");
+          const i = step.dataset.step;
+          const done = new Set(JSON.parse(localStorage.getItem(STORAGE_STEPS) || "[]"));
+          const willMark = !done.has(i);
+          if (willMark) done.add(i); else done.delete(i);
+          localStorage.setItem(STORAGE_STEPS, JSON.stringify([...done]));
+          step.classList.toggle("is-done", willMark);
+          btn.setAttribute("aria-pressed", willMark);
+          btn.setAttribute("aria-label", willMark ? "Mark step incomplete" : "Mark step complete");
+          updateStepsProgress();
+        });
+      });
+
+      updateStepsProgress();
+    }
+
+    function updateStepsProgress() {
+      const done = new Set(JSON.parse(localStorage.getItem(STORAGE_STEPS) || "[]"));
+      $("#stepsDone").textContent = done.size;
+    }
+
+    /* ============================================================
+       Macro donut — animate in (real macros)
+       ============================================================ */
+    function animateDonut() {
+      const C = 2 * Math.PI * 40; // 251.327
+      const m = recipe.macros || { protein: 1, carbs: 1, fat: 1 };
+      const p = (Number(m.protein) || 0) * 4;
+      const c = (Number(m.carbs)   || 0) * 4;
+      const f = (Number(m.fat)     || 0) * 9;
+      const sum = p + c + f || 1;
+      const protein = p / sum, carbs = c / sum, fat = f / sum;
+      const arcs = [
+        { id: "segProtein", frac: protein, offset: 0 },
+        { id: "segCarbs",   frac: carbs,   offset: -C * protein },
+        { id: "segFat",     frac: fat,     offset: -C * (protein + carbs) }
+      ];
+      arcs.forEach(({ id, frac, offset }) => {
+        const el = document.getElementById(id);
+        el.setAttribute("stroke-dashoffset", offset);
+        requestAnimationFrame(() => {
+          el.setAttribute("stroke-dasharray", `${C * frac} ${C}`);
+        });
+      });
+    }
+
+    /* ============================================================
+       Anchor scrollspy
+       ============================================================ */
+    function initScrollspy() {
+      const anchors = $$(".r-anchor");
+      const sections = anchors.map(a => $(a.getAttribute("href")));
+      anchors.forEach(a => a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = $(a.getAttribute("href"));
+        if (target) window.scrollTo({ top: target.offsetTop - 130, behavior: "smooth" });
+      }));
+
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = "#" + entry.target.id;
+            anchors.forEach(a => a.classList.toggle("is-current", a.getAttribute("href") === id));
+          }
+        });
+      }, { rootMargin: "-160px 0px -55% 0px", threshold: 0 });
+      sections.forEach(s => s && obs.observe(s));
+    }
+
+    /* ============================================================
+       Nav scroll + glance stuck states + parallax
+       ============================================================ */
+    function initScrollEffects() {
+      const navWrap = $("#navWrap");
+      const glance = $("#rGlance");
+      const heroBg = $("#rHeroBg");
+      const progress = $("#scrollProgress");
+      const fab = $("#rFab");
+      const heroBottom = () => $("#rHero").offsetTop + $("#rHero").offsetHeight;
+
+      const onScroll = () => {
+        const y = window.scrollY;
+        navWrap.classList.toggle("is-stuck", y > 8);
+        glance.classList.toggle("is-stuck", y > heroBottom() - 80);
+        if (heroBg) heroBg.style.transform = `translateY(${y * 0.25}px) scale(1.04)`;
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = h > 0 ? (y / h * 100).toFixed(2) + "%" : "0%";
+        fab.classList.toggle("show", y > heroBottom() && y + window.innerHeight < h);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+    }
+
+    /* ============================================================
+       Save / Print / Share
+       ============================================================ */
+    function syncSaveButtons() {
+      const saved = getBookmarks().has(String(recipeId));
+      $("#heroSave").classList.toggle("is-saved", saved);
+      $("#heroSaveLabel").textContent = saved ? "Saved" : "Save recipe";
+      $("#fabSaveLabel").textContent = saved ? "Saved" : "Save";
+    }
+    function bindActions() {
+      const save = () => {
+        const saved = toggleBookmark(recipeId);
+        syncSaveButtons();
+        toast(saved ? "Saved to your collection" : "Removed from saves");
+      };
+      $("#heroSave").addEventListener("click", save);
+      $("#fabSave").addEventListener("click", save);
+
+      const print = () => window.print();
+      $("#heroPrint").addEventListener("click", print);
+      $("#fabPrint").addEventListener("click", print);
+
+      const share = async () => {
+        const data = { title: recipe.title, text: `${recipe.title} by ${recipe.author}`, url: location.href };
+        if (navigator.share) {
+          try { await navigator.share(data); } catch (_) {}
+        } else {
+          try {
+            await navigator.clipboard.writeText(location.href);
+            toast("Link copied to clipboard");
+          } catch { toast("Share unavailable"); }
+        }
+      };
+      $("#heroShare").addEventListener("click", share);
+    }
+
+    /* ============================================================
+       Related — score by shared tags + cuisine, return top 3
+       ============================================================ */
+    function renderRelated() {
+      const grid = $("#relatedGrid");
+      const myTags = new Set(recipe.tags || []);
+      const myCuisine = recipe.cuisine || "";
+      const ranked = recipes
+        .map((r, i) => {
+          if (i === recipeId) return null;
+          const sharedTags = (r.tags || []).filter(t => myTags.has(t)).length;
+          const cuisineBonus = (r.cuisine && r.cuisine === myCuisine) ? 2 : 0;
+          return { r, i, score: sharedTags + cuisineBonus };
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score || Math.random() - 0.5)
+        .slice(0, 3);
+      grid.innerHTML = ranked.map(({ r, i }) => `
+        <a href="recipe.html?id=${i}" class="r-related-card">
+          <img src="${photoUrl(r, 600)}" onerror="this.onerror=null;this.src='${fallbackPhoto}'" alt="${escapeHtml(r.title)}" loading="lazy" />
+          <div class="r-related-meta">
+            <p class="t">${escapeHtml(r.title)}</p>
+            <p class="s">${escapeHtml(r.author)} · ${r.time} min · ${difficultyLabel[r.difficulty]}</p>
+          </div>
+        </a>
+      `).join("");
+    }
+
+    /* ============================================================
+       Cook Mode
+       ============================================================ */
+    const cook = { i: 0 };
+
+    function renderCookmodeStep() {
+      const s = steps[cook.i];
+      const el = $("#cookmodeStep");
+      el.innerHTML = `
+        <div class="num">Step ${cook.i + 1} of ${steps.length}</div>
+        <h2>${escapeHtml(s.title)}</h2>
+        <div class="time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          About ${s.time} min
+        </div>
+        <p class="desc">${escapeHtml(s.desc)}</p>
+        ${s.tip ? `<div class="tip"><strong style="font-style:normal;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:6px;">Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
+      `;
+      $("#cookmodeTitle").textContent = recipe.title;
+      $("#cookmodePrev").disabled = cook.i === 0;
+      $("#cookmodeNext").textContent = cook.i === steps.length - 1 ? "Finish ✓" : "Next →";
+      $("#cookmodeBar").style.width = ((cook.i + 1) / steps.length * 100) + "%";
+    }
+
+    let wakeLock = null;
+    async function acquireWakeLock() {
+      try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch (_) {}
+    }
+    function releaseWakeLock() {
+      try { if (wakeLock) wakeLock.release(); wakeLock = null; } catch (_) {}
+    }
+
+    function openCookMode() {
+      cook.i = 0;
+      renderCookmodeStep();
+      $("#cookmode").classList.add("open");
+      document.body.style.overflow = "hidden";
+      acquireWakeLock();
+    }
+    function closeCookMode() {
+      $("#cookmode").classList.remove("open");
+      document.body.style.overflow = "";
+      releaseWakeLock();
+    }
+    function nextStep() {
+      const i = cook.i;
+      const done = new Set(JSON.parse(localStorage.getItem(STORAGE_STEPS) || "[]"));
+      done.add(String(i));
+      localStorage.setItem(STORAGE_STEPS, JSON.stringify([...done]));
+      const stepEl = $(`.r-step[data-step="${i}"]`);
+      if (stepEl) {
+        stepEl.classList.add("is-done");
+        stepEl.querySelector(".r-step-toggle").setAttribute("aria-pressed", "true");
+      }
+      updateStepsProgress();
+      if (i < steps.length - 1) { cook.i = i + 1; renderCookmodeStep(); }
+      else { toast("Done! Time to plate."); closeCookMode(); }
+    }
+    function prevStep() {
+      if (cook.i > 0) { cook.i--; renderCookmodeStep(); }
+    }
+
+    function initCookMode() {
+      $("#cookModeBtn").addEventListener("click", openCookMode);
+      $("#fabCook").addEventListener("click", openCookMode);
+      $("#cookmodeClose").addEventListener("click", closeCookMode);
+      $("#cookmodeNext").addEventListener("click", nextStep);
+      $("#cookmodePrev").addEventListener("click", prevStep);
+      window.addEventListener("keydown", (e) => {
+        if (!$("#cookmode").classList.contains("open")) return;
+        if (e.key === "Escape")     { closeCookMode(); }
+        else if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); nextStep(); }
+        else if (e.key === "ArrowLeft") { prevStep(); }
+      });
+    }
+
+    /* ============================================================
+       Theme
+       ============================================================ */
+    function initTheme() {
+      const root = document.documentElement;
+      const saved = localStorage.getItem("recipy.theme");
+      if (saved === "dark" || saved === "light") root.dataset.theme = saved;
+      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) root.dataset.theme = "dark";
+
+      $("#themeToggle").addEventListener("click", () => {
+        const next = root.dataset.theme === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        localStorage.setItem("recipy.theme", next);
+        toast(next === "dark" ? "Lights down. Cozy mode." : "Lights up.");
+      });
+    }
+
+    /* ============================================================
+       Command palette (subset of listing)
+       ============================================================ */
+    const cmdk = {
+      el: null, input: null, body: null, items: [], selected: 0,
+      open() {
+        this.el.classList.add("open");
+        document.body.style.overflow = "hidden";
+        this.input.value = "";
+        this.render();
+        setTimeout(() => this.input.focus(), 50);
+      },
+      close() { this.el.classList.remove("open"); document.body.style.overflow = ""; },
+      isOpen() { return this.el.classList.contains("open"); },
+      render() {
+        const q = this.input.value.trim().toLowerCase();
+        const results = q
+          ? recipes.map((r, i) => ({ r, i })).filter(({ r }) =>
+              r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q)))
+          : recipes.map((r, i) => ({ r, i })).slice(0, 6);
+
+        const recipeList = results.length === 0
+          ? `<div class="cmdk-section"><h5>No matches</h5></div>`
+          : `<div class="cmdk-section">
+              <h5>${q ? `${results.length} ${results.length === 1 ? "match" : "matches"}` : "Other recipes"}</h5>
+              ${results.slice(0, 8).map(({ r, i }) => `
+                <a class="cmdk-item" href="recipe.html?id=${i}">
+                  <span class="cmdk-item-thumb"><img src="${photoUrl(r, 200)}" onerror="this.onerror=null;this.src='${fallbackPhoto}'" alt="" /></span>
+                  <div class="cmdk-item-main">
+                    <div class="cmdk-item-title">${escapeHtml(r.title)}</div>
+                    <div class="cmdk-item-sub">${escapeHtml(r.author)} · ${r.time} min · ${difficultyLabel[r.difficulty]}</div>
+                  </div>
+                  <span class="cmdk-item-meta">${escapeHtml(r.tags[0] || "")}</span>
+                </a>`).join("")}
+            </div>`;
+
+        const actions = !q ? `
+          <div class="cmdk-section">
+            <h5>Quick actions</h5>
+            <a class="cmdk-item" href="index.html">
+              <div class="cmdk-item-main">
+                <div class="cmdk-item-title">Back to all recipes</div>
+                <div class="cmdk-item-sub">Browse the full collection</div>
+              </div>
+            </a>
+            <button class="cmdk-item" data-action="theme" style="width:100%;text-align:left">
+              <div class="cmdk-item-main">
+                <div class="cmdk-item-title">Toggle dark mode</div>
+                <div class="cmdk-item-sub">Switch between light and dark</div>
+              </div>
+              <span class="cmdk-item-meta">D</span>
+            </button>
+            <button class="cmdk-item" data-action="cook" style="width:100%;text-align:left">
+              <div class="cmdk-item-main">
+                <div class="cmdk-item-title">Enter Cook Mode</div>
+                <div class="cmdk-item-sub">Focus on one step at a time</div>
+              </div>
+              <span class="cmdk-item-meta">C</span>
+            </button>
+          </div>` : "";
+
+        this.body.innerHTML = recipeList + actions;
+        this.items = $$(".cmdk-item", this.body);
+        this.selected = 0;
+        this.updateSelection();
+      },
+      updateSelection() {
+        this.items.forEach((el, i) => el.classList.toggle("is-selected", i === this.selected));
+        const sel = this.items[this.selected];
+        if (sel) sel.scrollIntoView({ block: "nearest" });
+      },
+      move(d) { if (this.items.length) { this.selected = (this.selected + d + this.items.length) % this.items.length; this.updateSelection(); } },
+      activate() {
+        const sel = this.items[this.selected];
+        if (!sel) return;
+        const action = sel.dataset.action;
+        if (action === "theme") { this.close(); $("#themeToggle").click(); }
+        else if (action === "cook") { this.close(); openCookMode(); }
+        else { window.location.href = sel.getAttribute("href"); }
+      }
+    };
+
+    function initCmdk() {
+      cmdk.el = $("#cmdk");
+      cmdk.input = $("#cmdkInput");
+      cmdk.body = $("#cmdkBody");
+      $("#cmdkTrigger").addEventListener("click", () => cmdk.open());
+      $("#cmdkEsc").addEventListener("click", () => cmdk.close());
+      let t;
+      cmdk.input.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => cmdk.render(), 100); });
+      cmdk.input.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") { e.preventDefault(); cmdk.move(1); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); cmdk.move(-1); }
+        else if (e.key === "Enter") { e.preventDefault(); cmdk.activate(); }
+        else if (e.key === "Escape") { e.preventDefault(); cmdk.close(); }
+      });
+      cmdk.body.addEventListener("click", (e) => {
+        const item = e.target.closest(".cmdk-item");
+        if (item && item.dataset.action === "theme") { e.preventDefault(); cmdk.close(); $("#themeToggle").click(); }
+        if (item && item.dataset.action === "cook") { e.preventDefault(); cmdk.close(); openCookMode(); }
+      });
+      cmdk.el.addEventListener("click", (e) => { if (e.target === cmdk.el) cmdk.close(); });
+
+      const isMac = navigator.platform.toUpperCase().includes("MAC");
+      const k = $("#kbdKey"); if (k) k.textContent = isMac ? "⌘K" : "Ctrl K";
+    }
+
+    function initKeyboard() {
+      window.addEventListener("keydown", (e) => {
+        const tag = document.activeElement?.tagName;
+        const typing = (tag === "INPUT" || tag === "TEXTAREA") && document.activeElement !== cmdk.input;
+        const cmdK = (e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K");
+        if (cmdK) { e.preventDefault(); cmdk.isOpen() ? cmdk.close() : cmdk.open(); return; }
+        if (e.key === "/" && !typing) { e.preventDefault(); cmdk.open(); return; }
+        if (cmdk.isOpen()) return;
+        if ($("#cookmode").classList.contains("open")) return;
+        if ((e.key === "c" || e.key === "C") && !typing) { openCookMode(); }
+        else if ((e.key === "d" || e.key === "D") && !typing && !e.metaKey && !e.ctrlKey) { $("#themeToggle").click(); }
+        else if ((e.key === "s" || e.key === "S") && !typing && !e.metaKey && !e.ctrlKey) { $("#heroSave").click(); }
+      });
+    }
+
+    /* ============================================================
+       Boot
+       ============================================================ */
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      renderHero();
+      renderIngredients();
+      initServingsStepper();
+      renderSteps();
+      renderRelated();
+      initScrollspy();
+      initScrollEffects();
+      animateDonut();
+      bindActions();
+      syncSaveButtons();
+      updateBookmarkBadge();
+      initCookMode();
+      initCmdk();
+      initKeyboard();
+    });
+  </script>
+</body>
+</html>
