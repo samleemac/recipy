@@ -1147,6 +1147,16 @@
       0%, 100% { background: var(--bg-soft); }
       40%      { background: rgba(74, 222, 128, 0.22); }
     }
+    @keyframes timerNudge {
+      0%   { transform: scale(1)    rotate(0deg); }
+      18%  { transform: scale(1.08) rotate(-4deg); }
+      36%  { transform: scale(1.08) rotate(4deg); }
+      54%  { transform: scale(1.06) rotate(-3deg); }
+      72%  { transform: scale(1.04) rotate(2deg); }
+      88%  { transform: scale(1.01) rotate(-1deg); }
+      100% { transform: scale(1)    rotate(0deg); }
+    }
+    .cook-timer.is-nudge { animation: timerNudge .55s var(--easing) both; }
     .cook-timer {
       pointer-events: auto;
       background: var(--bg);
@@ -2374,8 +2384,14 @@
     }
 
     function startCookTimer(label, minutes) {
-      if (cookTimers.some(t => t.label === label)) {
-        toast("Timer already running for this step");
+      const existing = cookTimers.find(t => t.label === label);
+      if (existing) {
+        /* Nudge the existing chip to draw attention to it */
+        const chip = existing.el;
+        chip.classList.remove("is-nudge");
+        void chip.offsetWidth; /* force reflow so animation restarts */
+        chip.classList.add("is-nudge");
+        chip.addEventListener("animationend", () => chip.classList.remove("is-nudge"), { once: true });
         return;
       }
       const id      = ++cookTimerSeq;
