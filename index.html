@@ -2157,6 +2157,66 @@
       toast(adding ? `Added to your week` : "Removed from plan");
     }
 
+    /* Aggregate all ingredients from the plan, summing amounts where the
+       ingredient name + unit are the same. Groups the result alphabetically
+       into broad aisles for easier shopping. */
+    function aggregateShopItems() {
+      const plan = getPlan();
+      const agg = new Map(); /* key: normalizedName|unit → entry */
+
+      [...plan].forEach(id => {
+        const r = window.RECIPES[parseInt(id, 10)];
+        if (!r || !r.ingredientGroups) return;
+        r.ingredientGroups.forEach(group => {
+          group.items.forEach(item => {
+            /* Normalize: strip descriptors after first comma, lowercase for keying */
+            const nameRaw  = item.text.replace(/,.*$/, "").trim();
+            const nameKey  = nameRaw.toLowerCase();
+            const unit     = (item.unit || "").toLowerCase().trim();
+            const mapKey   = nameKey + "|" + unit;
+
+            if (agg.has(mapKey)) {
+              agg.get(mapKey).totalAmount += (item.amount || 0);
+            } else {
+              /* Capitalise first letter for display */
+              const displayName = nameRaw.charAt(0).toUpperCase() + nameRaw.slice(1);
+              agg.set(mapKey, {
+                displayName,
+                unit: item.unit || "",
+                totalAmount: item.amount || 0,
+                /* stable key for checked-state storage */
+                storeKey: "agg|" + mapKey
+              });
+            }
+          });
+        });
+      });
+
+      /* Sort A → Z */
+      return [...agg.values()].sort((a, b) =>
+        a.displayName.toLowerCase().localeCompare(b.displayName.toLowerCase())
+      );
+    }
+
+    /* Assign each ingredient to a broad aisle so the list is easy to navigate */
+    const AISLES = [
+      { label: "Fresh Produce",  test: /\b(apple|lemon|lime|onion|garlic|ginger|tomato|tomatoes|potato|potatoes|carrot|carrots|pepper|peppers|courgette|aubergine|mushroom|mushrooms|spinach|kale|cabbage|leek|leeks|broccoli|cauliflower|celery|peas|bean|beans|chickpeas|sweetcorn|avocado|spring onion|spring onions|coriander|parsley|basil|thyme|rosemary|mint|chilli|chillies|chili)\b/ },
+      { label: "Tins & Jars",    test: /\b(canned|tinned|can of|jar of|passata|stock|coconut milk|coconut cream|chopped tomatoes|tomato paste|tomato purée|lentils|red lentils|green lentils)\b|tin|jar/ },
+      { label: "Dairy & Eggs",   test: /\b(milk|cream|butter|cheese|halloumi|parmesan|cheddar|mozzarella|yogurt|yoghurt|crème fraîche|egg|eggs|ghee)\b/ },
+      { label: "Dry Goods",      test: /\b(flour|rice|pasta|linguine|spaghetti|tagliatelle|noodle|noodles|oat|oats|breadcrumb|breadcrumbs|cracker|crackers|lentil|lentils)\b/ },
+      { label: "Herbs & Spices", test: /\b(cumin|coriander|turmeric|paprika|cinnamon|garam masala|curry|chilli powder|cayenne|oregano|bay|cardamom|nutmeg|pepper|salt|vanilla|extract|seasoning|spice)\b/ },
+      { label: "Oils & Sauces",  test: /\b(oil|olive oil|vegetable oil|sesame oil|soy sauce|tamari|fish sauce|worcestershire|vinegar|tahini|miso|sriracha|harissa|ketchup|mustard)\b/ },
+      { label: "Bakery & Sweet", test: /\b(bread|bun|buns|roll|rolls|wrap|wraps|pitta|sugar|maple syrup|honey|golden syrup|chocolate|cocoa)\b/ },
+    ];
+
+    function aisleFor(name) {
+      const lower = name.toLowerCase();
+      for (const aisle of AISLES) {
+        if (aisle.test.test(lower)) return aisle.label;
+      }
+      return "Other";
+    }
+
     function renderShoppingList() {
       const plan = getPlan();
       const body = $("#shopBody");
@@ -2168,46 +2228,52 @@
         return;
       }
 
+      const items  = aggregateShopItems();
       const checked = getShopChecked();
-      subhead.textContent = `${plan.size} recipe${plan.size > 1 ? "s" : ""} · tap items to tick off`;
+      subhead.textContent = `${items.length} ingredient${items.length !== 1 ? "s" : ""} · ${plan.size} recipe${plan.size > 1 ? "s" : ""}`;
 
-      body.innerHTML = [...plan].map(id => {
-        const r = window.RECIPES[parseInt(id, 10)];
-        if (!r || !r.ingredientGroups) return "";
+      /* Group by aisle */
+      const byAisle = new Map();
+      items.forEach(item => {
+        const aisle = aisleFor(item.displayName);
+        if (!byAisle.has(aisle)) byAisle.set(aisle, []);
+        byAisle.get(aisle).push(item);
+      });
 
-        const groupsHtml = r.ingredientGroups.map(group => {
-          const itemsHtml = group.items.map((item, ii) => {
-            const key = `${id}-${group.name}-${ii}`;
-            const isTicked = checked.has(key);
-            const amountStr = formatShopAmount(item.amount, item.unit);
-            return `
-              <div class="shop-item ${isTicked ? 'is-checked' : ''}" data-key="${escapeHtml(key)}">
-                <span class="shop-item-check">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                </span>
-                <span class="shop-item-text">
-                  <span class="shop-amount">${escapeHtml(amountStr)}</span>${escapeHtml(item.text)}
-                </span>
-              </div>`;
-          }).join("");
-          return `<div class="shop-group-label">${escapeHtml(group.name)}</div>${itemsHtml}`;
+      /* Render aisle by aisle in AISLES order then Other */
+      const aisleOrder = [...AISLES.map(a => a.label), "Other"].filter(l => byAisle.has(l));
+
+      body.innerHTML = aisleOrder.map(aisleLabel => {
+        const aisleItems = byAisle.get(aisleLabel);
+        const itemsHtml = aisleItems.map(item => {
+          const isTicked  = checked.has(item.storeKey);
+          const amountStr = formatShopAmount(item.totalAmount, item.unit);
+          return `
+            <div class="shop-item ${isTicked ? "is-checked" : ""}" data-key="${escapeHtml(item.storeKey)}">
+              <span class="shop-item-check">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              <span class="shop-item-text">
+                <span class="shop-amount">${escapeHtml(amountStr)}</span>${escapeHtml(item.displayName)}
+              </span>
+            </div>`;
         }).join("");
 
         return `
           <div class="shop-recipe-group">
-            <div class="shop-recipe-name">${escapeHtml(r.title)}</div>
-            ${groupsHtml}
+            <div class="shop-recipe-name">${escapeHtml(aisleLabel)}</div>
+            ${itemsHtml}
           </div>`;
       }).join("");
 
-      // Bind tick toggles
-      $$(".shop-item", body).forEach(item => {
-        item.addEventListener("click", () => {
-          const key = item.dataset.key;
-          const checked = getShopChecked();
-          if (checked.has(key)) checked.delete(key); else checked.add(key);
-          saveShopChecked(checked);
-          item.classList.toggle("is-checked", checked.has(key));
+      /* Bind tick toggles */
+      $$(".shop-item", body).forEach(el => {
+        el.addEventListener("click", () => {
+          const key = el.dataset.key;
+          const ch = getShopChecked();
+          if (ch.has(key)) ch.delete(key); else ch.add(key);
+          saveShopChecked(ch);
+          el.classList.toggle("is-checked", ch.has(key));
         });
       });
     }
