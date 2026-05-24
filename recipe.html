@@ -1101,6 +1101,82 @@
     .cookmode-nav button.primary { background: var(--green); color: var(--white); }
     .cookmode-nav button.primary:hover { background: var(--green-dark); }
 
+    /* ============================================================
+       Floating timers
+       ============================================================ */
+    .cook-timers {
+      position: fixed; top: 80px; right: 16px;
+      z-index: 320;
+      display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+      max-width: 200px;
+    }
+    @keyframes timerIn {
+      from { opacity: 0; transform: translateX(24px) scale(0.95); }
+      to   { opacity: 1; transform: translateX(0)   scale(1); }
+    }
+    @keyframes timerDoneFlash {
+      0%, 100% { background: var(--bg-soft); }
+      40%      { background: rgba(74, 222, 128, 0.22); }
+    }
+    .cook-timer {
+      pointer-events: auto;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 12px 14px;
+      box-shadow: 0 6px 28px rgba(0,0,0,0.28);
+      animation: timerIn .3s var(--easing) both;
+      position: relative;
+    }
+    .cook-timer.is-urgent { border-color: #ef4444; }
+    .cook-timer.is-done   { animation: timerDoneFlash 1s var(--easing) 3; border-color: var(--green); }
+    .cook-timer-label {
+      font: 700 10px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-soft); margin-bottom: 6px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cook-timer-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .cook-timer-clock {
+      font: 700 28px/1 var(--mono, monospace); letter-spacing: -0.01em;
+      color: var(--text);
+      transition: color .3s;
+    }
+    .cook-timer.is-urgent .cook-timer-clock { color: #ef4444; }
+    .cook-timer.is-done   .cook-timer-clock { color: var(--green); font-size: 14px; font-family: var(--sans); letter-spacing: 0; }
+    .cook-timer-cancel {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--bg-soft); color: var(--text-soft);
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .2s, color .2s;
+    }
+    .cook-timer-cancel:hover { background: #ef4444; color: #fff; }
+    .cook-timer-bar {
+      margin-top: 8px; height: 3px; border-radius: 100px;
+      background: var(--border); overflow: hidden;
+    }
+    .cook-timer-bar-fill {
+      height: 100%; border-radius: 100px;
+      background: var(--green);
+      transition: width 1s linear, background .5s;
+    }
+    .cook-timer.is-urgent .cook-timer-bar-fill { background: #ef4444; }
+
+    /* Start timer button inside a step */
+    .cookmode-timer-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 100px;
+      background: var(--bg-soft); border: 1.5px solid var(--border);
+      color: var(--text-soft); font: 600 13px var(--sans);
+      margin-left: 8px;
+      transition: background .2s, border-color .2s, color .2s;
+      vertical-align: middle;
+    }
+    .cookmode-timer-btn:hover { background: var(--green); border-color: var(--green); color: var(--white); }
+
     /* Ingredient chips in cook mode */
     .cookmode-ings {
       margin-top: 28px; padding-top: 22px;
@@ -1570,6 +1646,9 @@
   </div>
 
   <!-- Toasts -->
+  <!-- Floating cook timers -->
+  <div class="cook-timers" id="cookTimers" aria-live="polite"></div>
+
   <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
   <script src="recipes-data.js"></script>
@@ -2111,17 +2190,29 @@
             ${ings.map(i => `<span class="cookmode-ing-chip">${escapeHtml(i.text)}${i.amountStr ? `<em>(${escapeHtml(i.amountStr)})</em>` : ""}</span>`).join("")}
           </div>
         </div>` : "";
+      const timerBtn = s.time > 0 ? `
+        <button class="cookmode-timer-btn" data-timer-mins="${s.time}" data-timer-label="${escapeHtml(s.title)}" type="button" aria-label="Start ${s.time}-minute timer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          ${s.time} min timer
+        </button>` : "";
+
       el.innerHTML = `
         <div class="num">Step ${cook.i + 1} of ${steps.length}</div>
         <h2>${escapeHtml(s.title)}</h2>
-        <div class="time">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          About ${s.time} min
+        <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;margin-bottom:28px;">
+          <div class="time" style="margin-bottom:0;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            About ${s.time} min
+          </div>${timerBtn}
         </div>
         <p class="desc">${escapeHtml(s.desc)}</p>
         ${s.tip ? `<div class="tip"><strong style="font-style:normal;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:6px;">Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
         ${ingsHtml}
       `;
+      // Bind the timer button (can't use onclick in innerHTML — use event delegation)
+      const tb = el.querySelector(".cookmode-timer-btn");
+      if (tb) tb.addEventListener("click", () => startCookTimer(tb.dataset.timerLabel, parseInt(tb.dataset.timerMins, 10)));
+
       $("#cookmodeTitle").textContent = recipe.title;
       $("#cookmodePrev").disabled = cook.i === 0;
       $("#cookmodeNext").textContent = cook.i === steps.length - 1 ? "Finish ✓" : "Next →";
@@ -2164,6 +2255,101 @@
     }
     function prevStep() {
       if (cook.i > 0) { cook.i--; renderCookmodeStep(); }
+    }
+
+    /* ============================================================
+       Cook Timers
+       ============================================================ */
+    const cookTimers = [];
+    let cookTimerSeq = 0;
+
+    function padT(n) { return String(n).padStart(2, "0"); }
+
+    function fmtClock(remaining) {
+      const m = Math.floor(remaining / 60);
+      const s = remaining % 60;
+      return `${padT(m)}:${padT(s)}`;
+    }
+
+    function playTimerBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [[0, 880], [0.35, 880], [0.7, 1100]].forEach(([delay, freq]) => {
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.28, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.32);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.35);
+        });
+      } catch (_) {}
+    }
+
+    function updateTimerEl(entry) {
+      const clockEl  = entry.el.querySelector(".cook-timer-clock");
+      const fillEl   = entry.el.querySelector(".cook-timer-bar-fill");
+      if (!clockEl) return;
+      clockEl.textContent = fmtClock(entry.remaining);
+      const pct = entry.total > 0 ? (entry.remaining / entry.total * 100) : 0;
+      if (fillEl) fillEl.style.width = pct + "%";
+      entry.el.classList.toggle("is-urgent", entry.remaining > 0 && entry.remaining <= 30);
+    }
+
+    function finishTimer(entry) {
+      clearInterval(entry.interval);
+      entry.el.classList.add("is-done");
+      const clockEl = entry.el.querySelector(".cook-timer-clock");
+      if (clockEl) clockEl.textContent = "Done!";
+      const fillEl  = entry.el.querySelector(".cook-timer-bar-fill");
+      if (fillEl) { fillEl.style.width = "100%"; fillEl.style.background = "var(--green)"; }
+      playTimerBeep();
+      toast("⏱ Timer done: " + entry.label);
+      setTimeout(() => cancelCookTimer(entry.id), 9000);
+    }
+
+    function cancelCookTimer(id) {
+      const idx = cookTimers.findIndex(t => t.id === id);
+      if (idx === -1) return;
+      const entry = cookTimers[idx];
+      clearInterval(entry.interval);
+      entry.el.style.animation = "timerIn .25s var(--easing) reverse both";
+      setTimeout(() => { entry.el.remove(); }, 240);
+      cookTimers.splice(idx, 1);
+    }
+
+    function startCookTimer(label, minutes) {
+      const id      = ++cookTimerSeq;
+      const total   = minutes * 60;
+      const entry   = { id, label, total, remaining: total, interval: null, el: null };
+
+      const el = document.createElement("div");
+      el.className = "cook-timer";
+      el.innerHTML = `
+        <div class="cook-timer-label">${escapeHtml(label)}</div>
+        <div class="cook-timer-row">
+          <span class="cook-timer-clock">${fmtClock(total)}</span>
+          <button class="cook-timer-cancel" aria-label="Cancel timer" type="button">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="cook-timer-bar"><div class="cook-timer-bar-fill" style="width:100%"></div></div>
+      `;
+      el.querySelector(".cook-timer-cancel").addEventListener("click", () => cancelCookTimer(id));
+      $("#cookTimers").appendChild(el);
+      entry.el = el;
+
+      entry.interval = setInterval(() => {
+        entry.remaining--;
+        updateTimerEl(entry);
+        if (entry.remaining <= 0) finishTimer(entry);
+      }, 1000);
+
+      cookTimers.push(entry);
+      toast(`⏱ ${minutes}-min timer started`);
     }
 
     function initCookMode() {
