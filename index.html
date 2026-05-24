@@ -920,34 +920,57 @@
     }
 
     /* ============================================================
-       Plan mode — card "+" button
+       Plan mode — whole-card selection
        ============================================================ */
-    .plan-card-btn {
-      position: absolute; top: 10px; left: 10px;
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.92);
-      color: #111;
-      display: none; align-items: center; justify-content: center;
-      z-index: 4;
-      transition: background .2s var(--easing), transform .2s var(--easing);
-      font-size: 20px; line-height: 1; font-weight: 300;
+
+    /* Disable navigation & make entire card the click target */
+    body.plan-mode .card-link  { pointer-events: none; }
+    body.plan-mode .card       { cursor: pointer; }
+
+    /* Dim all cards in plan mode; hover lifts the scrim */
+    body.plan-mode .card-media::before {
+      content: ""; position: absolute; inset: 0; z-index: 3;
+      background: rgba(0,0,0,0.32);
+      border-radius: inherit; pointer-events: none;
+      transition: background .25s var(--easing);
     }
-    .plan-card-btn:hover { transform: scale(1.1); background: var(--white); }
-    .plan-card-btn svg { pointer-events: none; }
-    /* Show the buttons only while plan mode is active */
-    body.plan-mode .plan-card-btn { display: inline-flex; }
-    body.plan-mode .card.is-planned .plan-card-btn {
+    body.plan-mode .card:hover .card-media::before       { background: rgba(0,0,0,0.14); }
+    body.plan-mode .card.is-planned .card-media::before  { background: rgba(30,160,75,0.42); }
+
+    /* Centered plan icon — hidden normally, shown in plan mode */
+    .plan-center-icon {
+      display: none;
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5; pointer-events: none;
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(255,255,255,0.94);
+      color: #111;
+      align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+      transition: transform .2s var(--easing), background .2s;
+    }
+    body.plan-mode .plan-center-icon { display: flex; }
+    body.plan-mode .card:hover .plan-center-icon {
+      transform: translate(-50%, -50%) scale(1.13);
+    }
+    body.plan-mode .card.is-planned .plan-center-icon {
       background: var(--green); color: var(--white);
     }
-    /* Subtle highlight on planned cards */
-    body.plan-mode .card.is-planned .card-media::after {
-      content: "";
-      position: absolute; inset: 0;
-      border-radius: inherit;
-      box-shadow: inset 0 0 0 3px var(--green);
-      pointer-events: none; z-index: 3;
+    body.plan-mode .card.is-planned:hover .plan-center-icon {
+      background: var(--green-dark); transform: translate(-50%, -50%) scale(1.1);
     }
+
+    /* Quick pop when a card is added/removed from the plan */
+    @keyframes planPop {
+      0%   { transform: scale(1); }
+      45%  { transform: scale(1.035); }
+      100% { transform: scale(1); }
+    }
+    .card.plan-pop { animation: planPop .28s var(--easing); }
+
+    /* Corner plan button: no longer used, keep hidden */
+    .plan-card-btn { display: none !important; }
 
     /* ============================================================
        Plan bar — sticky bottom strip
@@ -1947,11 +1970,11 @@
               <img src="${photoUrl}" onerror="this.onerror=null;this.src='${fallbackPhoto}'" alt="${escapeHtml(r.title)}" loading="lazy" />
               <div class="card-overlay"></div>
 
-              <button class="plan-card-btn" data-action="plan" aria-label="${inPlan ? 'Remove from plan' : 'Add to plan'}" aria-pressed="${inPlan}">
+              <div class="plan-center-icon" aria-hidden="true">
                 ${inPlan
-                  ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
-                  : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`}
-              </button>
+                  ? `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                  : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`}
+              </div>
 
               <div class="card-chips">
                 <span class="chip">
@@ -2001,13 +2024,27 @@
         });
       });
 
-      // Bind plan buttons
-      $$(".plan-card-btn", grid).forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const card = btn.closest(".card");
+      // Bind whole-card click for plan mode
+      $$(".card", grid).forEach(card => {
+        card.addEventListener("click", (e) => {
+          if (!document.body.classList.contains("plan-mode")) return;
+          if (e.target.closest(".bookmark-btn")) return; // let bookmark work normally
+          e.preventDefault();
           const id = card.dataset.id;
-          togglePlan(id, card, btn);
+          togglePlan(id, card, null);
+          // Update center icon to reflect new state
+          const icon = card.querySelector(".plan-center-icon");
+          if (icon) {
+            const nowPlanned = card.classList.contains("is-planned");
+            icon.innerHTML = nowPlanned
+              ? `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+              : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+          }
+          // Pop animation
+          card.classList.remove("plan-pop");
+          void card.offsetWidth;
+          card.classList.add("plan-pop");
+          card.addEventListener("animationend", () => card.classList.remove("plan-pop"), { once: true });
         });
       });
     }
