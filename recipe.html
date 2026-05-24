@@ -1204,7 +1204,11 @@
       transition: background .2s, border-color .2s, color .2s;
       vertical-align: middle;
     }
-    .cookmode-timer-btn:hover { background: var(--green); border-color: var(--green); color: var(--white); }
+    .cookmode-timer-btn:hover:not(:disabled) { background: var(--green); border-color: var(--green); color: var(--white); }
+    .cookmode-timer-btn:disabled {
+      opacity: 0.45; cursor: not-allowed;
+      background: var(--bg-soft); color: var(--text-soft); border-color: var(--border);
+    }
 
     /* Ingredient chips in cook mode */
     .cookmode-ings {
@@ -2245,7 +2249,13 @@
       `;
       // Bind the timer button (can't use onclick in innerHTML — use event delegation)
       const tb = el.querySelector(".cookmode-timer-btn");
-      if (tb) tb.addEventListener("click", () => startCookTimer(tb.dataset.timerLabel, parseInt(tb.dataset.timerMins, 10)));
+      if (tb) {
+        if (cookTimers.some(t => t.label === tb.dataset.timerLabel)) {
+          tb.disabled = true;
+          tb.title = "Timer already running for this step";
+        }
+        tb.addEventListener("click", () => startCookTimer(tb.dataset.timerLabel, parseInt(tb.dataset.timerMins, 10)));
+      }
 
       $("#cookmodeTitle").textContent = recipe.title;
       $("#cookmodePrev").disabled = cook.i === 0;
@@ -2347,6 +2357,11 @@
       setTimeout(() => cancelCookTimer(entry.id), 9000);
     }
 
+    function reenableTimerBtn(label) {
+      const tb = document.querySelector(`.cookmode-timer-btn[data-timer-label="${CSS.escape(label)}"]`);
+      if (tb) { tb.disabled = false; tb.title = ""; }
+    }
+
     function cancelCookTimer(id) {
       const idx = cookTimers.findIndex(t => t.id === id);
       if (idx === -1) return;
@@ -2355,9 +2370,14 @@
       entry.el.style.animation = "timerIn .25s var(--easing) reverse both";
       setTimeout(() => { entry.el.remove(); }, 240);
       cookTimers.splice(idx, 1);
+      reenableTimerBtn(entry.label);
     }
 
     function startCookTimer(label, minutes) {
+      if (cookTimers.some(t => t.label === label)) {
+        toast("Timer already running for this step");
+        return;
+      }
       const id      = ++cookTimerSeq;
       const total   = minutes * 60;
       const entry   = { id, label, total, remaining: total, interval: null, el: null };
