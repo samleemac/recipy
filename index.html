@@ -923,9 +923,20 @@
        Plan mode — whole-card selection
        ============================================================ */
 
-    /* Disable navigation & make entire card the click target */
-    body.plan-mode .card-link  { pointer-events: none; }
-    body.plan-mode .card       { cursor: pointer; }
+    /* Invisible full-card button overlay — shown in plan mode.
+       Using a real <button> ensures iOS Safari fires touch events reliably. */
+    .plan-overlay-btn {
+      display: none;
+      position: absolute; inset: 0; z-index: 5;
+      background: transparent;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body.plan-mode .plan-overlay-btn { display: block; }
+
+    /* Bookmark stays above the overlay so it remains usable */
+    body.plan-mode .bookmark-btn { z-index: 6; position: relative; }
 
     /* Dim all cards in plan mode; hover lifts the scrim */
     body.plan-mode .card-media::before {
@@ -934,15 +945,15 @@
       border-radius: inherit; pointer-events: none;
       transition: background .25s var(--easing);
     }
-    body.plan-mode .card:hover .card-media::before       { background: rgba(0,0,0,0.14); }
-    body.plan-mode .card.is-planned .card-media::before  { background: rgba(30,160,75,0.42); }
+    body.plan-mode .card:hover .card-media::before      { background: rgba(0,0,0,0.14); }
+    body.plan-mode .card.is-planned .card-media::before { background: rgba(30,160,75,0.42); }
 
     /* Centered plan icon — hidden normally, shown in plan mode */
     .plan-center-icon {
       display: none;
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 5; pointer-events: none;
+      z-index: 7; pointer-events: none;
       width: 64px; height: 64px; border-radius: 50%;
       background: rgba(255,255,255,0.94);
       color: #111;
@@ -951,14 +962,15 @@
       transition: transform .2s var(--easing), background .2s;
     }
     body.plan-mode .plan-center-icon { display: flex; }
-    body.plan-mode .card:hover .plan-center-icon {
+    body.plan-mode .card:hover .plan-center-icon,
+    body.plan-mode .plan-overlay-btn:focus ~ * .plan-center-icon {
       transform: translate(-50%, -50%) scale(1.13);
     }
     body.plan-mode .card.is-planned .plan-center-icon {
       background: var(--green); color: var(--white);
     }
     body.plan-mode .card.is-planned:hover .plan-center-icon {
-      background: var(--green-dark); transform: translate(-50%, -50%) scale(1.1);
+      background: var(--green-dark);
     }
 
     /* Quick pop when a card is added/removed from the plan */
@@ -969,7 +981,7 @@
     }
     .card.plan-pop { animation: planPop .28s var(--easing); }
 
-    /* Corner plan button: no longer used, keep hidden */
+    /* Old corner button no longer used */
     .plan-card-btn { display: none !important; }
 
     /* ============================================================
@@ -1966,6 +1978,7 @@
         return `
           <article class="card ${inPlan ? 'is-planned' : ''}" data-id="${i}" data-tags="${r.tags.join(',')}" style="animation-delay:${delay}; --tilt:${tilt}deg">
             <a class="card-link" href="recipe.html?id=${i}" aria-label="View recipe: ${escapeHtml(r.title)}"></a>
+            <button class="plan-overlay-btn" type="button" aria-label="${inPlan ? 'Remove from plan' : 'Add to plan'}" aria-pressed="${inPlan}"></button>
             <div class="card-media">
               <img src="${photoUrl}" onerror="this.onerror=null;this.src='${fallbackPhoto}'" alt="${escapeHtml(r.title)}" loading="lazy" />
               <div class="card-overlay"></div>
@@ -2024,18 +2037,20 @@
         });
       });
 
-      // Bind whole-card click for plan mode
-      $$(".card", grid).forEach(card => {
-        card.addEventListener("click", (e) => {
-          if (!document.body.classList.contains("plan-mode")) return;
-          if (e.target.closest(".bookmark-btn")) return; // let bookmark work normally
-          e.preventDefault();
-          const id = card.dataset.id;
+      // Plan overlay button — uses a real <button> so iOS Safari fires touch events
+      $$(".plan-overlay-btn", grid).forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const card = btn.closest(".card");
+          const id   = card.dataset.id;
           togglePlan(id, card, null);
-          // Update center icon to reflect new state
+          const nowPlanned = card.classList.contains("is-planned");
+          // Update overlay btn aria
+          btn.setAttribute("aria-pressed", nowPlanned);
+          btn.setAttribute("aria-label", nowPlanned ? "Remove from plan" : "Add to plan");
+          // Update centre icon
           const icon = card.querySelector(".plan-center-icon");
           if (icon) {
-            const nowPlanned = card.classList.contains("is-planned");
             icon.innerHTML = nowPlanned
               ? `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
               : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
