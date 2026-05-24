@@ -1090,6 +1090,41 @@
       color: var(--text-soft); font: 400 15px var(--sans);
     }
 
+    /* Servings-per-recipe section inside the shopping list */
+    .shop-servings-section {
+      padding: 20px 0 16px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .shop-servings-label {
+      font: 700 10px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--text-soft); margin-bottom: 14px;
+    }
+    .shop-serving-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 7px 0;
+    }
+    .shop-serving-title {
+      font: 600 14px/1.3 var(--sans); color: var(--text); flex: 1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .shop-serving-stepper {
+      display: flex; align-items: center;
+      background: var(--bg-soft); border: 1.5px solid var(--border);
+      border-radius: 100px; overflow: hidden; flex-shrink: 0;
+    }
+    .shop-stepper-btn {
+      width: 32px; height: 32px;
+      font: 600 18px/1 var(--sans); color: var(--text);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .shop-stepper-btn:hover { background: var(--border); }
+    .shop-stepper-val {
+      min-width: 30px; text-align: center;
+      font: 700 14px/1 var(--sans); color: var(--text);
+    }
+
     .card-body {
       position: absolute;
       left: 0; right: 0; bottom: 0;
@@ -2103,6 +2138,7 @@
        ============================================================ */
     const PLAN_KEY      = "recipy.plan";
     const SHOP_KEY      = "recipy.shopchecked";
+    const SERVINGS_KEY  = "recipy.planservings";
 
     function getPlan() {
       try { return new Set(JSON.parse(localStorage.getItem(PLAN_KEY) || "[]")); } catch { return new Set(); }
@@ -2115,6 +2151,18 @@
     }
     function saveShopChecked(set) {
       localStorage.setItem(SHOP_KEY, JSON.stringify([...set]));
+    }
+    function getPlanServings() {
+      try { return JSON.parse(localStorage.getItem(SERVINGS_KEY) || "{}"); } catch { return {}; }
+    }
+    function getServingsForRecipe(id) {
+      const saved = getPlanServings();
+      return saved[String(id)] !== undefined ? saved[String(id)] : 2;
+    }
+    function setServingsForRecipe(id, n) {
+      const saved = getPlanServings();
+      saved[String(id)] = Math.max(1, Math.min(20, n));
+      localStorage.setItem(SERVINGS_KEY, JSON.stringify(saved));
     }
 
     function formatShopAmount(amount, unit) {
@@ -2167,6 +2215,8 @@
       [...plan].forEach(id => {
         const r = window.RECIPES[parseInt(id, 10)];
         if (!r || !r.ingredientGroups) return;
+        const selectedServings = getServingsForRecipe(id);
+        const factor = selectedServings / (r.baseServings || 2);
         r.ingredientGroups.forEach(group => {
           group.items.forEach(item => {
             /* Normalize: strip descriptors after first comma, lowercase for keying */
@@ -2174,16 +2224,17 @@
             const nameKey  = nameRaw.toLowerCase();
             const unit     = (item.unit || "").toLowerCase().trim();
             const mapKey   = nameKey + "|" + unit;
+            const scaled   = (item.amount || 0) * factor;
 
             if (agg.has(mapKey)) {
-              agg.get(mapKey).totalAmount += (item.amount || 0);
+              agg.get(mapKey).totalAmount += scaled;
             } else {
               /* Capitalise first letter for display */
               const displayName = nameRaw.charAt(0).toUpperCase() + nameRaw.slice(1);
               agg.set(mapKey, {
                 displayName,
                 unit: item.unit || "",
-                totalAmount: item.amount || 0,
+                totalAmount: scaled,
                 /* stable key for checked-state storage */
                 storeKey: "agg|" + mapKey
               });
@@ -2217,33 +2268,25 @@
       return "Other";
     }
 
-    function renderShoppingList() {
-      const plan = getPlan();
-      const body = $("#shopBody");
-      const subhead = $("#shopSubhead");
-
-      if (plan.size === 0) {
-        body.innerHTML = `<div class="shop-empty">No recipes chosen yet.<br>Close this and tap + on recipes to add them.</div>`;
-        subhead.textContent = "No recipes selected";
-        return;
-      }
-
-      const items  = aggregateShopItems();
+    /* Re-render just the aggregated ingredient list (called on every stepper change) */
+    function renderShopIngredients(container) {
+      const items   = aggregateShopItems();
       const checked = getShopChecked();
+
+      /* Update subhead count */
+      const plan = getPlan();
+      const subhead = $("#shopSubhead");
       subhead.textContent = `${items.length} ingredient${items.length !== 1 ? "s" : ""} · ${plan.size} recipe${plan.size > 1 ? "s" : ""}`;
 
-      /* Group by aisle */
       const byAisle = new Map();
       items.forEach(item => {
         const aisle = aisleFor(item.displayName);
         if (!byAisle.has(aisle)) byAisle.set(aisle, []);
         byAisle.get(aisle).push(item);
       });
-
-      /* Render aisle by aisle in AISLES order then Other */
       const aisleOrder = [...AISLES.map(a => a.label), "Other"].filter(l => byAisle.has(l));
 
-      body.innerHTML = aisleOrder.map(aisleLabel => {
+      container.innerHTML = aisleOrder.map(aisleLabel => {
         const aisleItems = byAisle.get(aisleLabel);
         const itemsHtml = aisleItems.map(item => {
           const isTicked  = checked.has(item.storeKey);
@@ -2258,7 +2301,6 @@
               </span>
             </div>`;
         }).join("");
-
         return `
           <div class="shop-recipe-group">
             <div class="shop-recipe-name">${escapeHtml(aisleLabel)}</div>
@@ -2266,8 +2308,7 @@
           </div>`;
       }).join("");
 
-      /* Bind tick toggles */
-      $$(".shop-item", body).forEach(el => {
+      $$(".shop-item", container).forEach(el => {
         el.addEventListener("click", () => {
           const key = el.dataset.key;
           const ch = getShopChecked();
@@ -2276,6 +2317,56 @@
           el.classList.toggle("is-checked", ch.has(key));
         });
       });
+    }
+
+    function renderShoppingList() {
+      const plan = getPlan();
+      const body = $("#shopBody");
+      const subhead = $("#shopSubhead");
+
+      if (plan.size === 0) {
+        body.innerHTML = `<div class="shop-empty">No recipes chosen yet.<br>Close this and tap + on recipes to add them.</div>`;
+        subhead.textContent = "No recipes selected";
+        return;
+      }
+
+      /* ---- Servings section ---- */
+      const servingsHtml = `
+        <div class="shop-servings-section" id="shopServingsSection">
+          <div class="shop-servings-label">Servings per recipe</div>
+          ${[...plan].map(id => {
+            const r = window.RECIPES[parseInt(id, 10)];
+            if (!r) return "";
+            const s = getServingsForRecipe(id);
+            return `
+              <div class="shop-serving-row">
+                <span class="shop-serving-title">${escapeHtml(r.title)}</span>
+                <div class="shop-serving-stepper">
+                  <button class="shop-stepper-btn" data-stepper-id="${id}" data-dir="-1" aria-label="Fewer servings" type="button">−</button>
+                  <span class="shop-stepper-val" id="shopServ${id}">${s}</span>
+                  <button class="shop-stepper-btn" data-stepper-id="${id}" data-dir="1" aria-label="More servings" type="button">+</button>
+                </div>
+              </div>`;
+          }).join("")}
+        </div>`;
+
+      /* ---- Ingredient list container ---- */
+      body.innerHTML = servingsHtml + `<div id="shopIngredients"></div>`;
+
+      /* Bind steppers */
+      $$(".shop-stepper-btn", body).forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id  = btn.dataset.stepperId;
+          const dir = parseInt(btn.dataset.dir, 10);
+          const next = getServingsForRecipe(id) + dir;
+          setServingsForRecipe(id, next);
+          const valEl = $("#shopServ" + id);
+          if (valEl) valEl.textContent = getServingsForRecipe(id);
+          renderShopIngredients($("#shopIngredients"));
+        });
+      });
+
+      renderShopIngredients($("#shopIngredients"));
     }
 
     function openShoppingList() {
