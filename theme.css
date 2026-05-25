@@ -75,20 +75,26 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 700; letter-
   font: 800 22px var(--sans); letter-spacing: -0.02em;
   color: var(--text);
   display: inline-flex; align-items: center; gap: 4px;
+  flex-shrink: 0;
 }
 .app-logo .dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: var(--green);
-  display: inline-block;
+  flex-shrink: 0;
 }
 .app-nav-links {
-  display: flex; gap: 4px; margin-left: 18px;
-  list-style: none; padding: 0;
+  display: flex; align-items: center; gap: 4px;
+  list-style: none; padding: 0; margin: 0 0 0 18px;
+}
+.app-nav-links li {
+  display: flex; align-items: center;
 }
 .app-nav-links a {
-  padding: 8px 12px; border-radius: 100px;
+  display: inline-flex; align-items: center;
+  padding: 8px 14px; border-radius: 100px;
   font: 600 14px var(--sans); color: var(--text-soft);
   transition: background .15s, color .15s;
+  white-space: nowrap;
 }
 .app-nav-links a:hover { background: var(--bg-soft); color: var(--text); }
 .app-nav-spacer { flex: 1; }

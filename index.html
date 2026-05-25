@@ -196,9 +196,10 @@
       font-size: 22px;
       color: var(--green);
       display: inline-flex;
-      align-items: baseline;
+      align-items: center;
       gap: 4px;
       user-select: none;
+      flex-shrink: 0;
     }
     .logo .logo-dot {
       display: inline-block;
@@ -242,12 +243,17 @@
 
     .nav-links {
       display: flex;
+      align-items: center;
       gap: 2px;
       list-style: none;
       padding: 0;
       margin: 0;
       font-weight: 500;
       flex: 0 0 auto;
+    }
+    .nav-links li {
+      display: flex;
+      align-items: center;
     }
     .nav-links a {
       display: inline-flex;
@@ -258,6 +264,7 @@
       transition: background .2s var(--easing), color .2s var(--easing);
       color: var(--text);
       font-size: 14px;
+      white-space: nowrap;
     }
     .nav-links a:hover {
       background: rgba(23, 8, 5, 0.06);
