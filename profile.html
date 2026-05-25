@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile · Recipy</title>
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    .profile-head {
+      display: grid;
+      grid-template-columns: 96px 1fr auto;
+      gap: 24px;
+      align-items: center;
+      padding: 32px 0 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .profile-meta h1 { font-size: 36px; line-height: 1.05; }
+    .profile-meta .username { font: 500 14px var(--sans); color: var(--text-soft); }
+    .profile-meta .bio { font: 400 15px/1.55 var(--sans); margin-top: 12px; max-width: 50ch; color: var(--text); }
+    .profile-stats {
+      display: flex; gap: 24px; margin-top: 16px;
+      font: 500 14px var(--sans); color: var(--text-soft);
+    }
+    .profile-stats strong { color: var(--text); font-weight: 700; }
+    .profile-actions { display: flex; gap: 10px; }
+
+    .profile-tabs {
+      display: flex; gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .profile-tab {
+      padding: 12px 18px;
+      font: 600 14px var(--sans);
+      color: var(--text-soft);
+      border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .profile-tab.is-active { color: var(--text); border-color: var(--green); }
+
+    .recipe-grid {
+      display: grid; gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    .mini-card {
+      display: block;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .mini-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.10); }
+    .mini-card-img {
+      width: 100%; aspect-ratio: 4/3;
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+    }
+    .mini-card-body { padding: 12px 14px 14px; }
+    .mini-card-title { font: 700 15px var(--sans); color: var(--text); margin: 0; line-height: 1.25; }
+    .mini-card-meta  { font: 400 12px var(--sans); color: var(--text-soft); margin-top: 4px; }
+
+    .cook-list { display: grid; gap: 14px; }
+    .cook-row {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 14px;
+      padding: 14px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .cook-thumb {
+      width: 64px; height: 64px;
+      border-radius: 12px;
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+    }
+    .cook-row-title { font: 600 14px var(--sans); color: var(--text); }
+    .cook-row-caption { font: 400 13px var(--sans); color: var(--text-soft); margin-top: 4px; }
+    .cook-row-time { font: 400 12px var(--sans); color: var(--text-soft); margin-top: 6px; }
+
+    .pill-status {
+      display: inline-block; margin-left: 8px;
+      padding: 3px 10px; border-radius: 100px;
+      font: 700 10px var(--sans); letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .pill-status.pending  { background: rgba(245,158,11,0.18); color: #b45309; }
+    .pill-status.rejected { background: rgba(239,68,68,0.18); color: #b91c1c; }
+    .pill-status.draft    { background: var(--bg); color: var(--text-soft); }
+
+    /* Avatar with image */
+    .avatar-photo {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Edit profile panel */
+    .edit-panel {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      margin-bottom: 28px;
+      display: none;
+    }
+    .edit-panel.open { display: block; }
+    .edit-panel h2 { font: 700 18px var(--sans); margin: 0 0 6px; }
+    .edit-panel .section-sub { font: 400 13px var(--sans); color: var(--text-soft); margin: 0 0 18px; }
+    .edit-avatar-row {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 18px;
+    }
+    .edit-avatar-preview {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--green);
+      color: var(--white);
+      font: 700 28px var(--sans);
+      display: flex; align-items: center; justify-content: center;
+      background-size: cover; background-position: center;
+      flex-shrink: 0;
+    }
+    .edit-avatar-controls { display: flex; flex-direction: column; gap: 6px; }
+    .edit-avatar-btn {
+      padding: 7px 14px; border-radius: 100px;
+      background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text); font: 600 13px var(--sans);
+      transition: background .15s, border-color .15s;
+      width: max-content;
+    }
+    .edit-avatar-btn:hover { background: var(--border); border-color: var(--text-soft); }
+    .edit-avatar-hint { font: 400 12px var(--sans); color: var(--text-soft); }
+    .edit-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+    /* Share a cook panel */
+    .share-panel {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+      margin-bottom: 28px;
+      display: none;
+    }
+    .share-panel.open { display: block; }
+    .share-panel h2 { font: 700 18px var(--sans); margin: 0 0 6px; }
+    .share-panel .section-sub { font: 400 13px var(--sans); color: var(--text-soft); margin: 0 0 18px; }
+
+    .recipe-picker { position: relative; }
+    .recipe-picker-input-wrap {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .recipe-picker-input-wrap input {
+      flex: 1;
+      border: none; background: transparent;
+      font: 500 14px var(--sans);
+      color: var(--text);
+    }
+    .recipe-picker-input-wrap input:focus { outline: none; }
+    .recipe-picker-results {
+      margin-top: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      display: grid; gap: 6px;
+    }
+    .recipe-picker-results:empty { display: none; }
+    .recipe-picker-row {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-align: left;
+    }
+    .recipe-picker-row:hover { background: var(--border); }
+    .recipe-picker-thumb {
+      width: 48px; height: 48px;
+      border-radius: 8px;
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+    }
+    .recipe-picker-title { font: 700 14px var(--sans); color: var(--text); line-height: 1.2; }
+    .recipe-picker-meta  { font: 400 12px var(--sans); color: var(--text-soft); margin-top: 2px; }
+
+    .share-selected {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1.5px solid var(--green);
+      border-radius: 12px;
+    }
+    .share-selected-thumb {
+      width: 56px; height: 56px;
+      border-radius: 10px;
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+    }
+    .share-selected-clear {
+      padding: 6px 12px;
+      border-radius: 100px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font: 600 12px var(--sans);
+    }
+    .share-photo-preview {
+      width: 80px; height: 80px;
+      border-radius: 10px;
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+      display: none;
+    }
+    .share-photo-preview.has-photo { display: block; }
+    .share-photo-row { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+
+    @media (max-width: 640px) {
+      .profile-head { grid-template-columns: 80px 1fr; }
+      .profile-actions { grid-column: 1 / -1; }
+      .profile-meta h1 { font-size: 28px; }
+      .avatar-photo { width: 80px; height: 80px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-nav"><div id="appNav"></div></header>
+
+  <main class="app-container wide">
+    <div id="profileRoot">
+      <div class="empty-state"><span class="spinner"></span></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js"></script>
+  <script>
+    const $ = (s, root = document) => root.querySelector(s);
+    const params = new URLSearchParams(location.search);
+    const targetUsername = (params.get("u") || "").toLowerCase();
+
+    let viewer = null;        // the signed-in user (Supabase user object)
+    let viewerProfile = null;
+    let target = null;        // the profile being viewed
+    let isFollowing = false;
+    let activeTab = "recipes";
+
+    function initialsFrom(name) {
+      return (name || "U").trim().split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+    }
+
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+
+    function timeAgo(iso) {
+      const d = new Date(iso);
+      const sec = (Date.now() - d.getTime()) / 1000;
+      if (sec < 60)      return "just now";
+      if (sec < 3600)    return Math.floor(sec / 60) + "m ago";
+      if (sec < 86400)   return Math.floor(sec / 3600) + "h ago";
+      if (sec < 604800)  return Math.floor(sec / 86400) + "d ago";
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+
+    async function loadProfile() {
+      const root = $("#profileRoot");
+      if (!window.RECIPY || !window.RECIPY.configured) {
+        root.innerHTML = `<div class="empty-state"><h3>Profiles need Supabase.</h3><p>Add your project URL and anon key to <code>config.js</code> to view profiles.</p></div>`;
+        return;
+      }
+
+      // If no username on URL, redirect to your own profile (or sign-in prompt)
+      let username = targetUsername;
+      if (!username) {
+        const p = window.AppShell.profile();
+        if (p && p.username) {
+          username = p.username;
+          history.replaceState(null, "", `profile.html?u=${encodeURIComponent(username)}`);
+        } else {
+          root.innerHTML = `<div class="empty-state"><h3>Sign in to see your profile.</h3><button class="btn btn-primary" id="goSignIn" style="margin-top:12px">Sign in</button></div>`;
+          $("#goSignIn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
+          return;
+        }
+      }
+
+      target = await window.RECIPY.profiles.byUsername(username);
+      if (!target) {
+        root.innerHTML = `<div class="empty-state"><h3>@${escapeHtml(username)} not found.</h3><p>Check the spelling or browse the <a href="index.html">recipe library</a>.</p></div>`;
+        return;
+      }
+
+      const [counts, recipesList, cooks] = await Promise.all([
+        window.RECIPY.follows.counts(target.id),
+        window.RECIPY.recipes.getByAuthor(
+          target.id,
+          /* include drafts/pending only when looking at yourself */
+          viewer && viewer.id === target.id
+        ),
+        window.RECIPY.posts.byUser(target.id, 30),
+      ]);
+
+      const isSelf = viewer && viewer.id === target.id;
+      if (!isSelf && viewer) {
+        isFollowing = await window.RECIPY.follows.isFollowing(target.id);
+      } else {
+        isFollowing = false;
+      }
+
+      renderProfile({ counts, recipesList, cooks, isSelf });
+    }
+
+    function avatarHtml(p, size = "lg") {
+      const cls = size === "lg" ? "avatar-lg" : size === "md" ? "avatar-md" : "avatar-sm";
+      if (p && p.avatar_url) {
+        return `<img class="avatar-photo" src="${escapeHtml(p.avatar_url)}" alt="${escapeHtml(p.display_name || p.username || '')}" />`;
+      }
+      return `<div class="${cls}">${escapeHtml(initialsFrom((p && (p.display_name || p.username)) || 'U'))}</div>`;
+    }
+
+    function renderProfile({ counts, recipesList, cooks, isSelf }) {
+      const root = $("#profileRoot");
+      root.innerHTML = `
+        <section class="profile-head">
+          ${avatarHtml(target, "lg")}
+          <div class="profile-meta">
+            <h1>${escapeHtml(target.display_name || target.username)}</h1>
+            <div class="username">@${escapeHtml(target.username)}</div>
+            ${target.bio ? `<p class="bio">${escapeHtml(target.bio)}</p>` : (isSelf ? `<p class="bio" style="color:var(--text-soft);font-style:italic">No bio yet — click "Edit profile" to add one.</p>` : "")}
+            <div class="profile-stats">
+              <span><strong>${recipesList.filter(r => r.status === "published").length}</strong> recipes</span>
+              <span><strong>${counts.followers}</strong> followers</span>
+              <span><strong>${counts.following}</strong> following</span>
+            </div>
+          </div>
+          <div class="profile-actions">
+            ${isSelf
+              ? `<button class="btn btn-secondary" id="editProfileBtn"  type="button">Edit profile</button>
+                 <button class="btn btn-primary"   id="shareCookBtn"    type="button">Share a cook</button>
+                 <a      class="btn btn-ghost"     href="upload.html">Submit a recipe</a>`
+              : viewer
+                ? `<button class="btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}" id="followBtn">${isFollowing ? 'Following' : 'Follow'}</button>`
+                : `<button class="btn btn-primary" id="followSignInBtn">Sign in to follow</button>`}
+          </div>
+        </section>
+
+        ${isSelf ? renderEditPanel() + renderSharePanel() : ""}
+
+        <div class="profile-tabs">
+          <button class="profile-tab ${activeTab === 'recipes' ? 'is-active' : ''}" data-tab="recipes">Recipes</button>
+          <button class="profile-tab ${activeTab === 'cooks'   ? 'is-active' : ''}" data-tab="cooks">Cooks</button>
+        </div>
+
+        <div id="tabContent"></div>
+      `;
+
+      if (isSelf) {
+        $("#editProfileBtn").addEventListener("click", () => {
+          $("#editPanel").classList.toggle("open");
+          $("#sharePanel").classList.remove("open");
+        });
+        $("#shareCookBtn").addEventListener("click", () => {
+          const open = $("#sharePanel").classList.toggle("open");
+          $("#editPanel").classList.remove("open");
+          if (open) ensureRecipesCache();
+        });
+        bindEditPanel();
+        bindSharePanel();
+      } else if (viewer) {
+        $("#followBtn").addEventListener("click", onFollowClick);
+      } else {
+        $("#followSignInBtn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
+      }
+
+      $$(".profile-tab").forEach(btn => btn.addEventListener("click", () => {
+        activeTab = btn.dataset.tab;
+        $$(".profile-tab").forEach(b => b.classList.toggle("is-active", b === btn));
+        renderTab(recipesList, cooks, isSelf);
+      }));
+
+      renderTab(recipesList, cooks, isSelf);
+    }
+
+    function renderEditPanel() {
+      const previewStyle = target.avatar_url
+        ? `background-image:url('${escapeHtml(target.avatar_url)}');color:transparent`
+        : "";
+      return `
+        <section class="edit-panel" id="editPanel">
+          <h2>Edit your profile</h2>
+          <p class="section-sub">Update your photo, name and bio. Changes save instantly.</p>
+
+          <div class="edit-avatar-row">
+            <div class="edit-avatar-preview" id="avatarPreview" style="${previewStyle}">
+              ${target.avatar_url ? "" : escapeHtml(initialsFrom(target.display_name || target.username))}
+            </div>
+            <div class="edit-avatar-controls">
+              <input type="file" id="avatarFile" accept="image/jpeg,image/png,image/webp" hidden>
+              <button class="edit-avatar-btn" id="avatarPickBtn" type="button">Choose photo</button>
+              <span class="edit-avatar-hint">JPEG / PNG / WebP, up to 5 MB.</span>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="editDisplay">Display name</label>
+            <input class="form-input" type="text" id="editDisplay" maxlength="60" value="${escapeHtml(target.display_name || '')}" />
+          </div>
+          <div class="form-field">
+            <label for="editBio">Bio</label>
+            <textarea class="form-textarea" id="editBio" rows="3" maxlength="280" placeholder="A line or two about you and how you cook.">${escapeHtml(target.bio || '')}</textarea>
+            <span class="hint" id="bioCount">${(target.bio || "").length}/280</span>
+          </div>
+
+          <div class="edit-actions">
+            <button class="btn btn-ghost" id="editCancel" type="button">Close</button>
+            <button class="btn btn-primary" id="editSave"   type="button">Save changes</button>
+          </div>
+        </section>
+      `;
+    }
+
+    function bindEditPanel() {
+      const fileInput = $("#avatarFile");
+      const pickBtn   = $("#avatarPickBtn");
+      const preview   = $("#avatarPreview");
+      const bio       = $("#editBio");
+      const bioCount  = $("#bioCount");
+
+      pickBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          window.AppShell.toast("That's not an image file.");
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          window.AppShell.toast("Photo must be 5 MB or smaller.");
+          return;
+        }
+        const localUrl = URL.createObjectURL(file);
+        preview.style.backgroundImage = `url("${localUrl}")`;
+        preview.style.color = "transparent";
+        preview.textContent = "";
+        pickBtn.disabled = true;
+        pickBtn.textContent = "Uploading…";
+        try {
+          const url = await window.RECIPY.profiles.uploadAvatar(file);
+          target.avatar_url = url;
+          /* refresh the big avatar at top of page */
+          const heroAvatar = document.querySelector(".profile-head > :first-child");
+          if (heroAvatar) heroAvatar.outerHTML = avatarHtml(target, "lg");
+          window.AppShell.toast("Profile photo updated");
+        } catch (err) {
+          window.AppShell.toast(err.message || "Couldn't upload photo");
+        } finally {
+          pickBtn.disabled = false;
+          pickBtn.textContent = "Choose photo";
+        }
+      });
+
+      bio.addEventListener("input", () => {
+        bioCount.textContent = `${bio.value.length}/280`;
+      });
+
+      $("#editCancel").addEventListener("click", () => $("#editPanel").classList.remove("open"));
+
+      $("#editSave").addEventListener("click", async () => {
+        const saveBtn = $("#editSave");
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving…";
+        try {
+          await window.RECIPY.profiles.update({
+            display_name: $("#editDisplay").value.trim(),
+            bio:          bio.value.trim(),
+          });
+          target.display_name = $("#editDisplay").value.trim();
+          target.bio          = bio.value.trim();
+          /* re-render so name/bio update everywhere */
+          await loadProfile();
+          window.AppShell.toast("Profile saved");
+        } catch (err) {
+          window.AppShell.toast(err.message || "Couldn't save");
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save changes";
+        }
+      });
+    }
+
+    /* =====================================================
+       Share a cook
+       ===================================================== */
+    let allRecipesCache = null;
+    let shareSelectedRecipe = null;
+    let shareSelectedPhotoFile = null;
+
+    async function ensureRecipesCache() {
+      if (allRecipesCache) return allRecipesCache;
+      try {
+        allRecipesCache = await window.RECIPY.recipes.getAll();
+      } catch (err) {
+        allRecipesCache = (window.RECIPES || []).map(r => ({
+          id: r.id, title: r.title, slug: r.slug || String(r.id), photo: r.photo,
+          author: r.author, time: r.time, status: "published",
+        }));
+      }
+      return allRecipesCache;
+    }
+
+    function renderSharePanel() {
+      return `
+        <section class="share-panel" id="sharePanel">
+          <h2>Share a cook</h2>
+          <p class="section-sub">Tell people you just made something. Your post lands in their feed.</p>
+
+          <div class="form-field">
+            <label>Which recipe?</label>
+            <div class="recipe-picker" id="recipePicker">
+              <div class="recipe-picker-input-wrap">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="recipePickerInput" placeholder="Search recipes by name" autocomplete="off" />
+              </div>
+              <div class="recipe-picker-results" id="recipePickerResults"></div>
+              <div id="shareSelectedWrap"></div>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="shareCaption">How was it? <span class="hint">(optional)</span></label>
+            <textarea class="form-textarea" id="shareCaption" rows="3" maxlength="280" placeholder="Best version yet — added a squeeze of lemon at the end."></textarea>
+            <span class="hint" id="shareCount">0/280</span>
+          </div>
+
+          <div class="form-field">
+            <label>Photo <span class="hint">(optional)</span></label>
+            <div class="share-photo-row">
+              <div class="share-photo-preview" id="sharePhotoPreview"></div>
+              <input type="file" id="sharePhotoFile" accept="image/jpeg,image/png,image/webp" hidden>
+              <button class="edit-avatar-btn" id="sharePhotoBtn" type="button">Choose photo</button>
+              <button class="edit-avatar-btn" id="sharePhotoClear" type="button" hidden>Remove</button>
+            </div>
+          </div>
+
+          <div class="edit-actions">
+            <button class="btn btn-ghost" id="shareCancel" type="button">Close</button>
+            <button class="btn btn-primary" id="shareSubmit" type="button" disabled>Share</button>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderRecipePickerResults(q) {
+      const resultsEl = $("#recipePickerResults");
+      if (!q) { resultsEl.innerHTML = ""; return; }
+      const list = (allRecipesCache || [])
+        .filter(r => r.status !== "rejected" && r.status !== "draft")
+        .filter(r => r.title.toLowerCase().includes(q.toLowerCase()))
+        .slice(0, 6);
+      if (!list.length) {
+        resultsEl.innerHTML = `<div class="recipe-picker-meta" style="padding:8px">No recipes match.</div>`;
+        return;
+      }
+      resultsEl.innerHTML = list.map(r => {
+        const photo = (r.photo || "").includes("unsplash") ? `${r.photo}?auto=format&fit=crop&w=200&q=70` : (r.photo || "");
+        const photoStyle = photo ? `background-image:url('${escapeHtml(photo)}')` : "";
+        return `
+          <button class="recipe-picker-row" type="button" data-id="${escapeHtml(r.id)}">
+            <span class="recipe-picker-thumb" style="${photoStyle}"></span>
+            <span>
+              <div class="recipe-picker-title">${escapeHtml(r.title)}</div>
+              <div class="recipe-picker-meta">${r.time ? `${r.time} min` : ""}${r.author ? ` · ${escapeHtml(r.author)}` : ""}</div>
+            </span>
+          </button>
+        `;
+      }).join("");
+      $$("#recipePickerResults .recipe-picker-row").forEach(row => {
+        row.addEventListener("click", () => selectShareRecipe(row.dataset.id));
+      });
+    }
+
+    function selectShareRecipe(id) {
+      const r = (allRecipesCache || []).find(x => String(x.id) === String(id));
+      if (!r) return;
+      shareSelectedRecipe = r;
+      $("#recipePickerInput").value = "";
+      $("#recipePickerResults").innerHTML = "";
+      const photo = (r.photo || "").includes("unsplash") ? `${r.photo}?auto=format&fit=crop&w=200&q=70` : (r.photo || "");
+      const photoStyle = photo ? `background-image:url('${escapeHtml(photo)}')` : "";
+      $("#shareSelectedWrap").innerHTML = `
+        <div class="share-selected" style="margin-top:8px">
+          <span class="share-selected-thumb" style="${photoStyle}"></span>
+          <span>
+            <div class="recipe-picker-title">${escapeHtml(r.title)}</div>
+            <div class="recipe-picker-meta">Selected</div>
+          </span>
+          <button class="share-selected-clear" type="button" id="shareClearRecipe">Change</button>
+        </div>`;
+      $("#shareClearRecipe").addEventListener("click", clearShareRecipe);
+      $("#shareSubmit").disabled = false;
+    }
+
+    function clearShareRecipe() {
+      shareSelectedRecipe = null;
+      $("#shareSelectedWrap").innerHTML = "";
+      $("#shareSubmit").disabled = true;
+    }
+
+    function resetSharePanel() {
+      shareSelectedRecipe = null;
+      shareSelectedPhotoFile = null;
+      $("#recipePickerInput").value = "";
+      $("#recipePickerResults").innerHTML = "";
+      $("#shareSelectedWrap").innerHTML = "";
+      $("#shareCaption").value = "";
+      $("#shareCount").textContent = "0/280";
+      const preview = $("#sharePhotoPreview");
+      preview.classList.remove("has-photo");
+      preview.style.backgroundImage = "";
+      $("#sharePhotoFile").value = "";
+      $("#sharePhotoClear").hidden = true;
+      $("#shareSubmit").disabled = true;
+    }
+
+    function bindSharePanel() {
+      $("#recipePickerInput").addEventListener("input", (e) => {
+        renderRecipePickerResults(e.target.value.trim());
+      });
+
+      const caption = $("#shareCaption");
+      caption.addEventListener("input", () => {
+        $("#shareCount").textContent = `${caption.value.length}/280`;
+      });
+
+      const photoFile  = $("#sharePhotoFile");
+      const photoBtn   = $("#sharePhotoBtn");
+      const photoClear = $("#sharePhotoClear");
+      const preview    = $("#sharePhotoPreview");
+
+      photoBtn.addEventListener("click", () => photoFile.click());
+      photoFile.addEventListener("change", () => {
+        const file = photoFile.files[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          window.AppShell.toast("That's not an image file.");
+          return;
+        }
+        if (file.size > 8 * 1024 * 1024) {
+          window.AppShell.toast("Photo must be 8 MB or smaller.");
+          return;
+        }
+        shareSelectedPhotoFile = file;
+        const url = URL.createObjectURL(file);
+        preview.style.backgroundImage = `url("${url}")`;
+        preview.classList.add("has-photo");
+        photoClear.hidden = false;
+      });
+      photoClear.addEventListener("click", () => {
+        shareSelectedPhotoFile = null;
+        photoFile.value = "";
+        preview.classList.remove("has-photo");
+        preview.style.backgroundImage = "";
+        photoClear.hidden = true;
+      });
+
+      $("#shareCancel").addEventListener("click", () => {
+        $("#sharePanel").classList.remove("open");
+      });
+
+      $("#shareSubmit").addEventListener("click", async () => {
+        if (!shareSelectedRecipe) {
+          window.AppShell.toast("Pick a recipe first.");
+          return;
+        }
+        const btn = $("#shareSubmit");
+        btn.disabled = true;
+        btn.textContent = "Sharing…";
+        try {
+          let photoUrl = null;
+          if (shareSelectedPhotoFile) {
+            photoUrl = await window.RECIPY.posts.uploadPhoto(shareSelectedPhotoFile);
+          }
+          await window.RECIPY.posts.create({
+            recipeId: shareSelectedRecipe.id,
+            caption:  $("#shareCaption").value.trim(),
+            photoUrl,
+          });
+          window.AppShell.toast("Cook shared to your feed");
+          $("#sharePanel").classList.remove("open");
+          resetSharePanel();
+          await loadProfile();
+        } catch (err) {
+          window.AppShell.toast(err.message || "Couldn't share that cook");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Share";
+        }
+      });
+    }
+
+    function renderTab(recipesList, cooks, isSelf) {
+      const el = $("#tabContent");
+      if (activeTab === "recipes") {
+        if (!recipesList.length) {
+          el.innerHTML = `<div class="empty-state"><h3>No recipes yet.</h3>${isSelf ? `<p><a href="upload.html">Submit your first one</a> — it goes straight to the admin queue.</p>` : ""}</div>`;
+          return;
+        }
+        el.innerHTML = `<div class="recipe-grid">${recipesList.map(r => `
+          <a class="mini-card" href="${r.status === 'published' ? `recipe.html?slug=${encodeURIComponent(r.slug)}` : '#'}">
+            <div class="mini-card-img" style="background-image:url(${escapeHtml((r.photo || '') + '?auto=format&fit=crop&w=600&q=72')})"></div>
+            <div class="mini-card-body">
+              <div class="mini-card-title">${escapeHtml(r.title)}${r.status !== 'published' ? `<span class="pill-status ${r.status}">${r.status}</span>` : ""}</div>
+              <div class="mini-card-meta">${r.time} min · ${escapeHtml(r.cuisine || '')}</div>
+              ${r.status === 'rejected' && r.rejectReason ? `<div class="mini-card-meta" style="color:#b91c1c;margin-top:6px"><strong>Rejected:</strong> ${escapeHtml(r.rejectReason)}</div>` : ""}
+            </div>
+          </a>
+        `).join("")}</div>`;
+        return;
+      }
+
+      // Cooks tab
+      if (!cooks.length) {
+        el.innerHTML = `<div class="empty-state"><h3>No cooks yet.</h3>${isSelf ? `<p>Finish a recipe in cook mode and hit "Share to Feed".</p>` : ""}</div>`;
+        return;
+      }
+      el.innerHTML = `<div class="cook-list">${cooks.map(c => {
+        const photo = c.photoUrl || (c.recipe && c.recipe.photo_url) || "";
+        const photoStyle = photo ? `background-image:url(${escapeHtml(photo + '?auto=format&fit=crop&w=300&q=72')})` : "";
+        return `
+          <a class="cook-row" href="${c.recipe ? `recipe.html?slug=${encodeURIComponent(c.recipe.slug)}` : '#'}">
+            <div class="cook-thumb" style="${photoStyle}"></div>
+            <div>
+              <div class="cook-row-title">Cooked ${escapeHtml(c.recipe ? c.recipe.title : 'a recipe')}</div>
+              ${c.caption ? `<div class="cook-row-caption">${escapeHtml(c.caption)}</div>` : ""}
+              <div class="cook-row-time">${timeAgo(c.createdAt)}</div>
+            </div>
+          </a>`;
+      }).join("")}</div>`;
+    }
+
+    async function onFollowClick() {
+      const btn = $("#followBtn");
+      btn.disabled = true;
+      try {
+        const now = await window.RECIPY.follows.toggle(target.id);
+        isFollowing = now;
+        btn.disabled = false;
+        btn.textContent = now ? "Following" : "Follow";
+        btn.classList.toggle("btn-primary", !now);
+        btn.classList.toggle("btn-secondary", now);
+        window.AppShell.toast(now ? `Following @${target.username}` : "Unfollowed");
+      } catch (err) {
+        btn.disabled = false;
+        window.AppShell.toast(err.message || "Couldn't update follow");
+      }
+    }
+
+    function $$(sel) { return Array.from(document.querySelectorAll(sel)); }
+
+    window.AppShell.onAuth(async (user, profile) => {
+      viewer = user;
+      viewerProfile = profile;
+      await loadProfile();
+    });
+  </script>
+</body>
+</html>

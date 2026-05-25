@@ -1,3 +1,6 @@
 .DS_Store
 __shot-*.png
 *.log
+node_modules/
+.env
+.env.*

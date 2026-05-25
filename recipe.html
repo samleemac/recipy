@@ -11,6 +11,9 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
 
   <style>
+    /* Ensure [hidden] always wins over later display rules */
+    [hidden] { display: none !important; }
+
     /* ============================================================
        Design tokens — shared with index.html
        ============================================================ */
@@ -267,7 +270,12 @@
     .cmdk-input input { flex: 1; border: none; outline: none; background: transparent; font: 500 17px var(--sans); color: var(--text); min-width: 0; }
     .cmdk-input input::placeholder { color: var(--text-soft); }
     .cmdk-input .esc { font: 600 11px var(--sans); padding: 4px 8px; border-radius: 6px; background: var(--bg-soft); color: var(--text-soft); }
+    .cmdk-modes { display: flex; gap: 4px; padding: 10px 14px 0; border-top: 1px solid var(--border); }
+    .cmdk-mode { padding: 7px 14px; border-radius: 100px; background: transparent; color: var(--text-soft); font: 600 12px var(--sans); transition: background .15s, color .15s; }
+    .cmdk-mode.is-active { background: var(--accent, #2563eb); color: #fff; }
     .cmdk-body { max-height: min(56vh, 480px); overflow-y: auto; padding: 10px; }
+    .cmdk-item-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent, #2563eb); color: #fff; display: inline-flex; align-items: center; justify-content: center; font: 700 14px var(--sans); flex-shrink: 0; overflow: hidden; }
+    .cmdk-item-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .cmdk-section { padding: 10px 10px 4px; }
     .cmdk-section h5 { margin: 0 0 6px; font: 700 10px var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-soft); }
     .cmdk-item { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 12px; cursor: pointer; transition: background .12s var(--easing); text-decoration: none; color: inherit; }
@@ -1067,6 +1075,92 @@
       border-radius: 0 var(--radius-md) var(--radius-md) 0;
       text-align: left;
     }
+
+    /* Cook mode — finish + publish view */
+    .cook-finish { max-width: 480px; margin: 0 auto; text-align: center; }
+    .cook-finish-icon {
+      width: 72px; height: 72px; margin: 0 auto 22px;
+      border-radius: 50%; background: var(--green); color: var(--white);
+      display: flex; align-items: center; justify-content: center;
+      animation: cookFinishPop .55s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes cookFinishPop {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .cook-finish h2 { font: 700 36px/1.05 var(--serif); margin: 0 0 8px; }
+    .cook-finish-sub { font: 400 17px/1.5 var(--sans); color: var(--text-soft); margin: 0 0 32px; }
+    .cook-publish-form {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: left;
+    }
+    .cook-publish-form h3 {
+      font: 700 16px var(--sans); margin: 0 0 14px; color: var(--text);
+    }
+    .cook-publish-form textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: 400 14px/1.4 var(--sans);
+      resize: vertical;
+      transition: border-color .15s;
+    }
+    .cook-publish-form textarea:focus { outline: none; border-color: var(--green); }
+    .cook-photo-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 12px;
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      font: 600 13px var(--sans);
+      transition: background .15s, border-color .15s;
+    }
+    .cook-photo-btn:hover { background: var(--border); border-color: var(--text-soft); }
+    .cook-photo-preview {
+      margin-top: 12px;
+      height: 160px;
+      border-radius: 12px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg);
+    }
+    .cook-finish-actions {
+      display: flex; gap: 10px; margin-top: 18px;
+    }
+    .cook-skip-btn, .cook-publish-btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: 100px;
+      font: 700 14px var(--sans);
+      transition: background .15s, color .15s;
+    }
+    .cook-skip-btn {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      color: var(--text-soft);
+    }
+    .cook-skip-btn:hover { background: var(--bg-soft); }
+    .cook-publish-btn {
+      background: var(--green); color: var(--white);
+    }
+    .cook-publish-btn:hover { background: var(--green-dark); }
+    .cook-publish-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .cook-signed-out-cta {
+      padding: 20px;
+      background: var(--bg-soft);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+    .cook-signed-out-cta p { margin: 0 0 14px; font: 500 14px var(--sans); color: var(--text-soft); }
+    .cook-signed-out-cta .cook-skip-btn { flex: none; padding: 10px 24px; }
     /* Progress bar strip at the bottom of cook mode */
     .cookmode-foot {
       padding: 16px 32px;
@@ -1375,6 +1469,10 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input id="cmdkInput" type="text" placeholder="Search recipes, authors, or try 'duck'…" autocomplete="off" />
         <button class="esc" id="cmdkEsc" aria-label="Close">ESC</button>
+      </div>
+      <div class="cmdk-modes" role="tablist">
+        <button class="cmdk-mode is-active" id="cmdkModeRecipes" data-mode="recipes" type="button">Recipes</button>
+        <button class="cmdk-mode"            id="cmdkModePeople"  data-mode="people"  type="button">People</button>
       </div>
       <div class="cmdk-body" id="cmdkBody"></div>
       <div class="cmdk-foot">
@@ -1699,12 +1797,16 @@
 
   <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
   <script src="recipes-data.js"></script>
+  <script src="supabase-client.js"></script>
   <script>
     /* ============================================================
-       Shared data — sourced from window.RECIPES (recipes-data.js)
+       Shared data — Supabase first, with window.RECIPES as a fallback
+       while Supabase is being set up.
        ============================================================ */
-    const recipes = window.RECIPES;
+    let recipes = window.RECIPES || [];
     const fallbackPhoto = "photo-fallback.jpg";
     const difficultyLabel = { 1: "Easy", 2: "Intermediate", 3: "Advanced" };
     const heroMoodPhoto = "https://images.unsplash.com/photo-1556910103-1c02745aae4d";
@@ -1774,6 +1876,12 @@
       const willSave = !set.has(key);
       if (willSave) set.add(key); else set.delete(key);
       saveBookmarks(set);
+      if (window.RECIPY && window.RECIPY.configured && /^[0-9a-f-]{36}$/i.test(key)) {
+        const promise = willSave
+          ? window.RECIPY.bookmarks.add(key)
+          : window.RECIPY.bookmarks.remove(key);
+        promise.catch(() => {});
+      }
       return willSave;
     }
     function updateBookmarkBadge() {
@@ -1784,24 +1892,60 @@
     }
 
     /* ============================================================
-       Recipe state
+       Recipe state — populated by resolveRecipe() before any render.
        ============================================================ */
     const params = new URLSearchParams(location.search);
-    const idParam = parseInt(params.get("id"), 10);
-    const recipeId = Number.isFinite(idParam) && recipes[idParam] ? idParam : 0;
-    const recipe = recipes[recipeId];
-    const photo = photoUrl(recipe);
+    const slugParam = params.get("slug");
+    const idParam   = parseInt(params.get("id"), 10);
+    let recipe = null;
+    let recipeKey = "";           /* stable storage key (UUID or slug) */
+    let STORAGE_INGREDIENTS = "";
+    let STORAGE_STEPS = "";
+    let STORAGE_SERVINGS = "";
+    let baseServings = 2;
+    let servings = 2;
+    let photo = fallbackPhoto;
 
-    /* Pull ingredient groups and steps from the loaded recipe */
-    ingredientGroups = recipe.ingredientGroups || [];
-    steps = recipe.steps || [];
-
-    const STORAGE_INGREDIENTS = `recipy.ingredients.${recipeId}`;
-    const STORAGE_STEPS = `recipy.steps.${recipeId}`;
-    const STORAGE_SERVINGS = `recipy.servings.${recipeId}`;
-
-    let baseServings = recipe.baseServings || 2;
-    let servings = parseInt(localStorage.getItem(STORAGE_SERVINGS), 10) || baseServings;
+    async function resolveRecipe() {
+      if (window.RECIPY && window.RECIPY.configured) {
+        if (slugParam) {
+          recipe = await window.RECIPY.recipes.getBySlug(slugParam);
+        }
+        if (!recipe) {
+          /* Fallback: legacy ?id=N url — translate via the same-position
+             record in recipes-data.js if available */
+          if (Number.isFinite(idParam)) {
+            const legacy = (window.RECIPES || [])[idParam];
+            if (legacy && legacy.slug) {
+              recipe = await window.RECIPY.recipes.getBySlug(legacy.slug);
+            }
+          }
+        }
+        if (!recipe) {
+          /* Last resort: pick the newest published recipe */
+          const list = await window.RECIPY.recipes.getAll();
+          recipe = list[0] || null;
+        }
+      } else {
+        /* Offline fallback: use the bundled recipes array */
+        if (slugParam) recipe = recipes.find(r => r.slug === slugParam) || null;
+        if (!recipe && Number.isFinite(idParam) && recipes[idParam]) recipe = recipes[idParam];
+        if (!recipe) recipe = recipes[0] || null;
+      }
+      if (!recipe) {
+        document.body.innerHTML = "<p style='padding:40px;text-align:center;font:600 18px sans-serif'>Recipe not found.</p>";
+        throw new Error("Recipe not found");
+      }
+      ingredientGroups = recipe.ingredientGroups || [];
+      steps            = recipe.steps || [];
+      recipeKey        = String(recipe.id || recipe.slug || "0");
+      STORAGE_INGREDIENTS = `recipy.ingredients.${recipeKey}`;
+      STORAGE_STEPS       = `recipy.steps.${recipeKey}`;
+      STORAGE_SERVINGS    = `recipy.servings.${recipeKey}`;
+      baseServings = recipe.baseServings || 2;
+      servings = parseInt(localStorage.getItem(STORAGE_SERVINGS), 10) || baseServings;
+      photo = photoUrl(recipe);
+    }
 
     /* ============================================================
        Render hero + content from recipe data
@@ -2126,14 +2270,14 @@
        Save / Print / Share
        ============================================================ */
     function syncSaveButtons() {
-      const saved = getBookmarks().has(String(recipeId));
+      const saved = getBookmarks().has(recipeKey);
       $("#heroSave").classList.toggle("is-saved", saved);
       $("#heroSaveLabel").textContent = saved ? "Saved" : "Save recipe";
       $("#fabSaveLabel").textContent = saved ? "Saved" : "Save";
     }
     function bindActions() {
       const save = () => {
-        const saved = toggleBookmark(recipeId);
+        const saved = toggleBookmark(recipeKey);
         syncSaveButtons();
         toast(saved ? "Saved to your collection" : "Removed from saves");
       };
@@ -2167,7 +2311,8 @@
       const myCuisine = recipe.cuisine || "";
       const ranked = recipes
         .map((r, i) => {
-          if (i === recipeId) return null;
+          if (recipe.id && r.id === recipe.id) return null;
+          if (!recipe.id && r.slug === recipe.slug) return null;
           const sharedTags = (r.tags || []).filter(t => myTags.has(t)).length;
           const cuisineBonus = (r.cuisine && r.cuisine === myCuisine) ? 2 : 0;
           return { r, i, score: sharedTags + cuisineBonus };
@@ -2176,7 +2321,7 @@
         .sort((a, b) => b.score - a.score || Math.random() - 0.5)
         .slice(0, 3);
       grid.innerHTML = ranked.map(({ r, i }) => `
-        <a href="recipe.html?id=${i}" class="r-related-card">
+        <a href="${r.slug ? `recipe.html?slug=${encodeURIComponent(r.slug)}` : `recipe.html?id=${i}`}" class="r-related-card">
           <img src="${photoUrl(r, 600)}" onerror="this.onerror=null;this.src='${fallbackPhoto}'" alt="${escapeHtml(r.title)}" loading="lazy" />
           <div class="r-related-meta">
             <p class="t">${escapeHtml(r.title)}</p>
@@ -2307,7 +2452,89 @@
       }
       updateStepsProgress();
       if (i < steps.length - 1) { cook.i = i + 1; renderCookmodeStep(); }
-      else { toast("Done! Time to plate."); closeCookMode(); }
+      else { showCookFinishView(); }
+    }
+
+    /* ============================================================
+       Cook mode — finish + "I made this!" publish flow
+       ============================================================ */
+    let currentUser = null;
+    let cookPublishPhoto = null;
+
+    function showCookFinishView() {
+      const isSignedIn = !!(window.RECIPY && window.RECIPY.configured && currentUser);
+      const recipeReady = isSignedIn && recipe && recipe.id && typeof recipe.id === "string";
+      const el = $("#cookmodeStep");
+      cookPublishPhoto = null;
+      el.innerHTML = `
+        <div class="cook-finish">
+          <div class="cook-finish-icon" aria-hidden="true">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <h2>You made it!</h2>
+          <p class="cook-finish-sub">Time to plate up <strong>${escapeHtml(recipe.title)}</strong>.</p>
+          ${recipeReady ? `
+            <div class="cook-publish-form">
+              <h3>Share with your followers?</h3>
+              <textarea id="cookCaption" placeholder="How did it turn out? (optional)" maxlength="280" rows="3"></textarea>
+              <input type="file" id="cookPhotoInput" accept="image/*" hidden>
+              <button class="cook-photo-btn" id="cookPhotoBtn" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                Add a photo
+              </button>
+              <div class="cook-photo-preview" id="cookPhotoPreview" hidden></div>
+              <div class="cook-finish-actions">
+                <button class="cook-skip-btn" id="cookSkipBtn" type="button">Maybe later</button>
+                <button class="cook-publish-btn" id="cookPublishBtn" type="button">Share to Feed</button>
+              </div>
+            </div>
+          ` : `
+            <div class="cook-signed-out-cta">
+              <p>${isSignedIn ? "Once this recipe is in the database you'll be able to share what you cooked." : "Sign in to share what you cooked with your followers."}</p>
+              <button class="cook-skip-btn" id="cookSkipBtn" type="button">All done</button>
+            </div>
+          `}
+        </div>
+      `;
+
+      if (recipeReady) bindCookPublishHandlers();
+      else $("#cookSkipBtn").addEventListener("click", closeCookMode);
+    }
+
+    function bindCookPublishHandlers() {
+      $("#cookPhotoBtn").addEventListener("click", () => $("#cookPhotoInput").click());
+      $("#cookPhotoInput").addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        cookPublishPhoto = file;
+        const preview = $("#cookPhotoPreview");
+        preview.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+        preview.hidden = false;
+        $("#cookPhotoBtn").textContent = "Change photo";
+      });
+      $("#cookSkipBtn").addEventListener("click", closeCookMode);
+      $("#cookPublishBtn").addEventListener("click", async () => {
+        const btn = $("#cookPublishBtn");
+        btn.disabled = true;
+        btn.textContent = "Sharing…";
+        try {
+          let photoUrl = null;
+          if (cookPublishPhoto) {
+            photoUrl = await window.RECIPY.posts.uploadPhoto(cookPublishPhoto);
+          }
+          await window.RECIPY.posts.create({
+            recipeId: recipe.id,
+            caption: ($("#cookCaption").value || "").trim(),
+            photoUrl,
+          });
+          toast("Shared to the feed!");
+          closeCookMode();
+        } catch (err) {
+          toast(err.message || "Couldn't publish — try again");
+          btn.disabled = false;
+          btn.textContent = "Share to Feed";
+        }
+      });
     }
     function prevStep() {
       if (cook.i > 0) { cook.i--; renderCookmodeStep(); }
@@ -2460,6 +2687,8 @@
        ============================================================ */
     const cmdk = {
       el: null, input: null, body: null, items: [], selected: 0,
+      mode: "recipes",
+      _peopleToken: 0,
       open() {
         this.el.classList.add("open");
         document.body.style.overflow = "hidden";
@@ -2469,11 +2698,24 @@
       },
       close() { this.el.classList.remove("open"); document.body.style.overflow = ""; },
       isOpen() { return this.el.classList.contains("open"); },
+      setMode(mode) {
+        if (this.mode === mode) return;
+        this.mode = mode;
+        $$(".cmdk-mode").forEach(b => b.classList.toggle("is-active", b.dataset.mode === mode));
+        this.input.placeholder = mode === "people"
+          ? "Search people by name or @username…"
+          : "Search recipes, authors, or try 'duck'…";
+        this.render();
+      },
       render() {
+        if (this.mode === "people") return this.renderPeople();
+        this.renderRecipes();
+      },
+      renderRecipes() {
         const q = this.input.value.trim().toLowerCase();
         const results = q
           ? recipes.map((r, i) => ({ r, i })).filter(({ r }) =>
-              r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q)))
+              r.title.toLowerCase().includes(q) || (r.author || "").toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q)))
           : recipes.map((r, i) => ({ r, i })).slice(0, 6);
 
         const recipeList = results.length === 0
@@ -2481,7 +2723,7 @@
           : `<div class="cmdk-section">
               <h5>${q ? `${results.length} ${results.length === 1 ? "match" : "matches"}` : "Other recipes"}</h5>
               ${results.slice(0, 8).map(({ r, i }) => `
-                <a class="cmdk-item" href="recipe.html?id=${i}">
+                <a class="cmdk-item" href="${r.slug ? `recipe.html?slug=${encodeURIComponent(r.slug)}` : `recipe.html?id=${i}`}">
                   <span class="cmdk-item-thumb"><img src="${photoUrl(r, 200)}" onerror="this.onerror=null;this.src='${fallbackPhoto}'" alt="" /></span>
                   <div class="cmdk-item-main">
                     <div class="cmdk-item-title">${escapeHtml(r.title)}</div>
@@ -2521,6 +2763,50 @@
         this.selected = 0;
         this.updateSelection();
       },
+      async renderPeople() {
+        const q = this.input.value.trim();
+        const configured = !!(window.RECIPY && window.RECIPY.configured);
+        if (!configured) {
+          this.body.innerHTML = `<div class="cmdk-section"><h5>People search needs Supabase</h5><div style="padding:8px 12px;font:400 13px var(--sans);color:var(--text-soft)">Set up your project in <code>config.js</code> to find other cooks.</div></div>`;
+          this.items = []; this.selected = 0;
+          return;
+        }
+        if (!q) {
+          this.body.innerHTML = `<div class="cmdk-section"><h5>Find people</h5><div style="padding:8px 12px;font:400 13px var(--sans);color:var(--text-soft)">Type a name or @username above.</div></div>`;
+          this.items = []; this.selected = 0;
+          return;
+        }
+        const token = ++this._peopleToken;
+        this.body.innerHTML = `<div class="cmdk-section"><h5>Searching…</h5></div>`;
+        const results = await window.RECIPY.profiles.search(q, 12);
+        if (token !== this._peopleToken) return;
+        if (!results.length) {
+          this.body.innerHTML = `<div class="cmdk-section"><h5>No matches</h5><div style="padding:8px 12px;font:400 13px var(--sans);color:var(--text-soft)">No one called "${escapeHtml(q)}" yet.</div></div>`;
+          this.items = []; this.selected = 0;
+          return;
+        }
+        this.body.innerHTML = `
+          <div class="cmdk-section">
+            <h5>${results.length} ${results.length === 1 ? "person" : "people"}</h5>
+            ${results.map(p => {
+              const avatar = p.avatar_url
+                ? `<span class="cmdk-item-avatar"><img src="${escapeHtml(p.avatar_url)}" alt="" /></span>`
+                : `<span class="cmdk-item-avatar">${escapeHtml((p.display_name || p.username || "U")[0].toUpperCase())}</span>`;
+              return `
+                <a class="cmdk-item" href="profile.html?u=${encodeURIComponent(p.username)}">
+                  ${avatar}
+                  <div class="cmdk-item-main">
+                    <div class="cmdk-item-title">${escapeHtml(p.display_name || p.username)}</div>
+                    <div class="cmdk-item-sub">@${escapeHtml(p.username)}${p.bio ? ` · ${escapeHtml(p.bio.slice(0, 60))}` : ""}</div>
+                  </div>
+                  <span class="cmdk-item-meta">View →</span>
+                </a>`;
+            }).join("")}
+          </div>`;
+        this.items = $$(".cmdk-item", this.body);
+        this.selected = 0;
+        this.updateSelection();
+      },
       updateSelection() {
         this.items.forEach((el, i) => el.classList.toggle("is-selected", i === this.selected));
         const sel = this.items[this.selected];
@@ -2543,6 +2829,7 @@
       cmdk.body = $("#cmdkBody");
       $("#cmdkTrigger").addEventListener("click", () => cmdk.open());
       $("#cmdkEsc").addEventListener("click", () => cmdk.close());
+      $$(".cmdk-mode").forEach(b => b.addEventListener("click", () => cmdk.setMode(b.dataset.mode)));
       let t;
       cmdk.input.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => cmdk.render(), 100); });
       cmdk.input.addEventListener("keydown", (e) => {
@@ -2580,8 +2867,18 @@
     /* ============================================================
        Boot
        ============================================================ */
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       initTheme();
+      try {
+        await resolveRecipe();
+        /* If Supabase is configured, load the full list for related + cmdk */
+        if (window.RECIPY && window.RECIPY.configured) {
+          recipes = await window.RECIPY.recipes.getAll();
+        }
+      } catch (err) {
+        console.error(err);
+        return;
+      }
       renderHero();
       renderIngredients();
       initServingsStepper();
@@ -2596,7 +2893,28 @@
       initCookMode();
       initCmdk();
       initKeyboard();
+      initAuthOnRecipePage();
     });
+
+    /* Hydrate signed-in state so the recipe-page bookmark mirror works */
+    async function hydrateUser(user) {
+      currentUser = user || null;
+      if (!user) return;
+      try {
+        const remote = await window.RECIPY.bookmarks.list();
+        const local  = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]");
+        const merged = new Set([...local, ...remote]);
+        localStorage.setItem(BOOKMARK_KEY, JSON.stringify([...merged]));
+        updateBookmarkBadge();
+        syncSaveButtons();
+      } catch (_) {}
+    }
+    async function initAuthOnRecipePage() {
+      if (!window.RECIPY || !window.RECIPY.configured) return;
+      window.RECIPY.auth.onChange((u) => hydrateUser(u));
+      const user = await window.RECIPY.auth.getUser();
+      await hydrateUser(user);
+    }
   </script>
 </body>
 </html>

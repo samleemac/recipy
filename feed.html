@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feed · Recipy</title>
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    .feed-tabs {
+      display: flex; gap: 6px;
+      margin-bottom: 24px;
+      background: var(--bg-soft);
+      padding: 4px;
+      border-radius: 100px;
+      width: max-content;
+    }
+    .feed-tab {
+      padding: 8px 18px;
+      font: 600 13px var(--sans);
+      color: var(--text-soft);
+      border-radius: 100px;
+      transition: background .15s, color .15s;
+    }
+    .feed-tab.is-active { background: var(--green); color: var(--white); }
+
+    .feed-list { display: grid; gap: 18px; max-width: 600px; margin: 0 auto; }
+    .feed-card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      animation: feedIn .35s ease both;
+    }
+    @keyframes feedIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .feed-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 18px 12px;
+    }
+    .feed-head a { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .feed-head .name  { font: 700 14px var(--sans); color: var(--text); }
+    .feed-head .meta  { font: 400 12px var(--sans); color: var(--text-soft); margin-top: 2px; }
+    .feed-photo {
+      width: 100%; aspect-ratio: 4/3;
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+    }
+    .feed-body { padding: 12px 18px 16px; }
+    .feed-caption { font: 400 15px/1.45 var(--sans); color: var(--text); margin: 0; }
+    .feed-recipe-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font: 500 13px var(--sans);
+    }
+    .feed-recipe-row a { color: var(--green-dark); font-weight: 700; }
+    .feed-actions {
+      display: flex; gap: 6px;
+      padding: 4px 12px 14px;
+    }
+    .feed-action {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font: 600 13px var(--sans);
+      color: var(--text-soft);
+      transition: background .15s, color .15s;
+    }
+    .feed-action:hover { background: var(--bg); color: var(--text); }
+    .feed-action.is-liked { color: #e11d48; }
+    .feed-new-banner {
+      position: sticky; top: 80px; z-index: 5;
+      display: none; margin-bottom: 16px;
+      text-align: center;
+    }
+    .feed-new-banner.show { display: block; }
+    .feed-new-banner button {
+      background: var(--text); color: var(--bg);
+      padding: 8px 16px; border-radius: 100px;
+      font: 700 13px var(--sans);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+      animation: feedIn .35s ease both;
+    }
+
+    /* People search */
+    .people-search {
+      margin: 0 0 20px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+    .people-search-bar {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .people-search-bar svg { color: var(--text-soft); flex-shrink: 0; }
+    .people-search-bar input {
+      flex: 1;
+      padding: 8px 4px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font: 500 14px var(--sans);
+    }
+    .people-search-bar input:focus { outline: none; }
+    .people-results {
+      display: grid; gap: 10px;
+      margin-top: 12px;
+    }
+    .people-results:empty { display: none; }
+    .people-row {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .people-row:hover { background: var(--bg-soft); }
+    .people-row .avatar-md { width: 44px; height: 44px; font-size: 16px; }
+    .people-row-name { font: 700 14px var(--sans); color: var(--text); }
+    .people-row-sub  { font: 400 12px var(--sans); color: var(--text-soft); margin-top: 2px; }
+    .people-row-bio  { font: 400 12px var(--sans); color: var(--text-soft); margin-top: 4px;
+                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .people-follow-btn {
+      padding: 8px 14px;
+      border-radius: 100px;
+      font: 700 12px var(--sans);
+      transition: background .12s, color .12s;
+    }
+    .people-follow-btn.is-following {
+      background: var(--bg-soft);
+      color: var(--text-soft);
+      border: 1.5px solid var(--border);
+    }
+    .people-follow-btn:not(.is-following) {
+      background: var(--green);
+      color: var(--white);
+    }
+    .people-follow-btn:not(.is-following):hover { background: var(--green-dark); }
+    .people-empty {
+      padding: 14px 4px;
+      font: 400 13px var(--sans);
+      color: var(--text-soft);
+    }
+  </style>
+</head>
+<body>
+  <header class="app-nav"><div id="appNav"></div></header>
+
+  <main class="app-container tight">
+    <h1 class="page-title">Feed</h1>
+    <p class="page-sub">What people are cooking right now.</p>
+
+    <section class="people-search" aria-label="Find people">
+      <div class="people-search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="peopleSearchInput" type="text" placeholder="Find people on Recipy — username or display name" autocomplete="off" />
+      </div>
+      <div class="people-results" id="peopleResults"></div>
+    </section>
+
+    <div class="feed-tabs" role="tablist">
+      <button class="feed-tab is-active" data-scope="following">Following</button>
+      <button class="feed-tab"             data-scope="everyone">Everyone</button>
+    </div>
+
+    <div class="feed-new-banner" id="newBanner"><button id="newBannerBtn">↑ New posts — tap to load</button></div>
+    <div id="feedRoot"><div class="empty-state"><span class="spinner"></span></div></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js"></script>
+  <script>
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+    let scope = "following";
+    let viewer = null;
+    let unsubRealtime = null;
+    let newCount = 0;
+
+    function escapeHtml(s) {
+      return String(s||"").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+    function timeAgo(iso) {
+      const d = new Date(iso);
+      const sec = (Date.now() - d.getTime()) / 1000;
+      if (sec < 60)     return "just now";
+      if (sec < 3600)   return Math.floor(sec / 60) + "m";
+      if (sec < 86400)  return Math.floor(sec / 3600) + "h";
+      if (sec < 604800) return Math.floor(sec / 86400) + "d";
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+    function initialsFrom(p) {
+      const name = p?.display_name || p?.username || "U";
+      return name.trim().split(/\s+/).map(s => s[0]).slice(0, 2).join("").toUpperCase();
+    }
+
+    function renderFeed(posts) {
+      const root = $("#feedRoot");
+      if (!posts.length) {
+        if (scope === "following" && viewer) {
+          root.innerHTML = `<div class="empty-state"><h3>Your feed is quiet.</h3><p>Follow some cooks from <a href="index.html">recipe pages</a> to see their posts here, or switch to <strong>Everyone</strong>.</p></div>`;
+        } else if (!viewer) {
+          root.innerHTML = `<div class="empty-state"><h3>Sign in to follow people.</h3><p>Then your feed fills up with whatever they're cooking.</p></div>`;
+        } else {
+          root.innerHTML = `<div class="empty-state"><h3>No posts yet.</h3><p>Be the first — finish a recipe in cook mode and tap "Share to Feed".</p></div>`;
+        }
+        return;
+      }
+      root.innerHTML = `<div class="feed-list">${posts.map(renderCard).join("")}</div>`;
+      $$(".feed-like").forEach(el => el.addEventListener("click", onLike));
+    }
+
+    function renderCard(p) {
+      const photo = p.photoUrl || (p.recipe && p.recipe.photo_url) || "";
+      const author = p.author || { username: "someone", display_name: "Someone" };
+      const profileHref = `profile.html?u=${encodeURIComponent(author.username || "")}`;
+      const recipeHref  = p.recipe ? `recipe.html?slug=${encodeURIComponent(p.recipe.slug)}` : "#";
+      const photoBlock  = photo
+        ? `<div class="feed-photo" style="background-image:url(${escapeHtml(photo + '?auto=format&fit=crop&w=900&q=78')})"></div>`
+        : "";
+      const avatarBlock = author.avatar_url
+        ? `<img class="avatar-md" style="object-fit:cover" src="${escapeHtml(author.avatar_url)}" alt="${escapeHtml(author.display_name || author.username)}" />`
+        : `<span class="avatar-md">${escapeHtml(initialsFrom(author))}</span>`;
+      return `
+        <article class="feed-card" data-id="${escapeHtml(p.id)}">
+          <header class="feed-head">
+            <a href="${profileHref}">
+              ${avatarBlock}
+              <div>
+                <div class="name">${escapeHtml(author.display_name || author.username)}</div>
+                <div class="meta">cooked · ${timeAgo(p.createdAt)}</div>
+              </div>
+            </a>
+          </header>
+          ${photoBlock}
+          <div class="feed-body">
+            ${p.caption ? `<p class="feed-caption">${escapeHtml(p.caption)}</p>` : ""}
+            <div class="feed-recipe-row">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><line x1="3" y1="11" x2="21" y2="11"></line></svg>
+              <span style="flex:1">${p.recipe ? escapeHtml(p.recipe.title) : 'A recipe'}</span>
+              ${p.recipe ? `<a href="${recipeHref}">View →</a>` : ""}
+            </div>
+          </div>
+          <div class="feed-actions">
+            <button class="feed-action feed-like ${p.likedByMe ? 'is-liked' : ''}" data-id="${escapeHtml(p.id)}" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="${p.likedByMe ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              <span class="likeCount">${p.likes}</span>
+            </button>
+          </div>
+        </article>
+      `;
+    }
+
+    async function onLike(e) {
+      const btn = e.currentTarget;
+      if (!viewer) { window.AppShell.openAuthModal("signin"); return; }
+      btn.disabled = true;
+      try {
+        const liked = await window.RECIPY.posts.likeToggle(btn.dataset.id);
+        btn.classList.toggle("is-liked", liked);
+        const svg = btn.querySelector("svg");
+        if (svg) svg.setAttribute("fill", liked ? "currentColor" : "none");
+        const countEl = btn.querySelector(".likeCount");
+        countEl.textContent = parseInt(countEl.textContent || "0", 10) + (liked ? 1 : -1);
+      } catch (err) {
+        window.AppShell.toast(err.message || "Couldn't like — try again");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function loadFeed() {
+      $("#feedRoot").innerHTML = `<div class="empty-state"><span class="spinner"></span></div>`;
+      if (!window.RECIPY || !window.RECIPY.configured) {
+        $("#feedRoot").innerHTML = `<div class="empty-state"><h3>Feed needs Supabase.</h3><p>Set up your project in <code>config.js</code>.</p></div>`;
+        return;
+      }
+      const posts = await window.RECIPY.posts.feed({ scope });
+      renderFeed(posts);
+    }
+
+    function setupRealtime() {
+      if (unsubRealtime) unsubRealtime();
+      newCount = 0;
+      $("#newBanner").classList.remove("show");
+      unsubRealtime = window.RECIPY.posts.subscribe((newPost) => {
+        // Only badge if it would belong in this scope view; cheap heuristic
+        newCount += 1;
+        const btn = $("#newBannerBtn");
+        btn.textContent = `↑ ${newCount} new post${newCount === 1 ? "" : "s"} — tap to load`;
+        $("#newBanner").classList.add("show");
+      });
+    }
+
+    function bindTabs() {
+      $$(".feed-tab").forEach(t => t.addEventListener("click", async () => {
+        scope = t.dataset.scope;
+        $$(".feed-tab").forEach(b => b.classList.toggle("is-active", b === t));
+        await loadFeed();
+      }));
+      $("#newBannerBtn").addEventListener("click", async () => {
+        await loadFeed();
+        $("#newBanner").classList.remove("show");
+        newCount = 0;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+
+    /* ===========================================================
+       People search
+       =========================================================== */
+    let peopleSearchTimer = null;
+    let peopleFollowState = {};  /* profileId -> true if viewer follows */
+
+    async function refreshFollowState(ids) {
+      if (!viewer || !ids.length) return;
+      const remote = await window.RECIPY.follows.followeeIds(viewer.id);
+      peopleFollowState = {};
+      remote.forEach(id => peopleFollowState[id] = true);
+    }
+
+    function renderPeopleResults(results) {
+      const root = $("#peopleResults");
+      if (!results) { root.innerHTML = ""; return; }
+      if (!results.length) {
+        root.innerHTML = `<div class="people-empty">No one matches that search.</div>`;
+        return;
+      }
+      root.innerHTML = results.map(p => {
+        const isSelf = viewer && p.id === viewer.id;
+        const following = !!peopleFollowState[p.id];
+        const avatar = p.avatar_url
+          ? `<img class="avatar-md" style="object-fit:cover" src="${escapeHtml(p.avatar_url)}" alt="" />`
+          : `<span class="avatar-md">${escapeHtml(initialsFrom(p))}</span>`;
+        const followBtn = isSelf
+          ? `<span class="people-row-sub" style="margin:0">that's you</span>`
+          : viewer
+            ? `<button class="people-follow-btn ${following ? 'is-following' : ''}" data-id="${escapeHtml(p.id)}" type="button">${following ? 'Following' : 'Follow'}</button>`
+            : `<button class="people-follow-btn" data-action="signin" type="button">Follow</button>`;
+        return `
+          <div class="people-row" data-username="${escapeHtml(p.username)}" data-id="${escapeHtml(p.id)}">
+            ${avatar}
+            <div style="min-width:0">
+              <div class="people-row-name">${escapeHtml(p.display_name || p.username)}</div>
+              <div class="people-row-sub">@${escapeHtml(p.username)}</div>
+              ${p.bio ? `<div class="people-row-bio">${escapeHtml(p.bio)}</div>` : ""}
+            </div>
+            <div>${followBtn}</div>
+          </div>
+        `;
+      }).join("");
+
+      $$(".people-row", root).forEach(row => {
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".people-follow-btn")) return;
+          location.href = `profile.html?u=${encodeURIComponent(row.dataset.username)}`;
+        });
+      });
+      $$(".people-follow-btn[data-id]", root).forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          if (!viewer) { window.AppShell.openAuthModal("signin"); return; }
+          btn.disabled = true;
+          try {
+            const now = await window.RECIPY.follows.toggle(btn.dataset.id);
+            peopleFollowState[btn.dataset.id] = now;
+            btn.textContent = now ? "Following" : "Follow";
+            btn.classList.toggle("is-following", now);
+          } catch (err) {
+            window.AppShell.toast(err.message || "Couldn't update follow");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+      $$(".people-follow-btn[data-action='signin']", root).forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.AppShell.openAuthModal("signin");
+        });
+      });
+    }
+
+    async function runPeopleSearch(q) {
+      if (!window.RECIPY || !window.RECIPY.configured) {
+        $("#peopleResults").innerHTML = `<div class="people-empty">People search needs Supabase.</div>`;
+        return;
+      }
+      const results = await window.RECIPY.profiles.search(q, 12);
+      await refreshFollowState(results.map(r => r.id));
+      renderPeopleResults(results);
+    }
+
+    function bindPeopleSearch() {
+      const input = $("#peopleSearchInput");
+      input.addEventListener("input", () => {
+        const q = input.value.trim();
+        clearTimeout(peopleSearchTimer);
+        if (!q) {
+          $("#peopleResults").innerHTML = "";
+          return;
+        }
+        peopleSearchTimer = setTimeout(() => runPeopleSearch(q), 200);
+      });
+    }
+
+    bindTabs();
+    bindPeopleSearch();
+    window.AppShell.onAuth(async (user) => {
+      viewer = user;
+      await loadFeed();
+      if (window.RECIPY && window.RECIPY.configured) setupRealtime();
+      /* If a search is active when auth state changes, re-run it so follow buttons update */
+      const q = $("#peopleSearchInput").value.trim();
+      if (q) runPeopleSearch(q);
+    });
+  </script>
+</body>
+</html>

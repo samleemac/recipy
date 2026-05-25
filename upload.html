@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Submit a recipe · Recipy</title>
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    .upload-form { display: grid; gap: 26px; }
+    .section {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 24px;
+    }
+    .section h2 {
+      font: 700 18px var(--sans);
+      margin-bottom: 4px;
+    }
+    .section .section-sub {
+      font: 400 13px var(--sans);
+      color: var(--text-soft);
+      margin-bottom: 18px;
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+
+    .repeatable { display: grid; gap: 12px; }
+    .group-card {
+      padding: 14px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+    }
+    .group-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .group-head input { flex: 1; }
+    .remove-btn { color: #b91c1c; font: 600 12px var(--sans); padding: 4px 8px; }
+    .remove-btn:hover { text-decoration: underline; }
+
+    .ingredient-row, .step-row {
+      display: grid;
+      grid-template-columns: 80px 80px 1fr auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .step-row { grid-template-columns: 1fr 90px auto; }
+    @media (max-width: 640px) {
+      .ingredient-row { grid-template-columns: 70px 70px 1fr auto; }
+      .step-row       { grid-template-columns: 1fr; }
+      .step-row .remove-btn { justify-self: end; }
+    }
+
+    .add-btn {
+      align-self: flex-start;
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: var(--bg);
+      border: 1.5px dashed var(--border);
+      color: var(--text-soft);
+      font: 600 13px var(--sans);
+      transition: border-color .15s, color .15s;
+    }
+    .add-btn:hover { border-color: var(--green); color: var(--green-dark); }
+
+    .photo-drop {
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 10px;
+      padding: 30px;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-soft);
+      font: 500 13px var(--sans);
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .photo-drop:hover { background: var(--bg); border-color: var(--green); }
+    .photo-preview {
+      width: 100%; height: 240px;
+      border-radius: var(--radius-md);
+      background-size: cover; background-position: center;
+      background-color: var(--border);
+      display: none;
+    }
+    .photo-preview.show { display: block; }
+
+    .submit-bar {
+      position: sticky;
+      bottom: 0; z-index: 5;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 14px 0;
+      display: flex; gap: 12px; justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .tag-input { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag-input input { flex: 1; min-width: 160px; }
+    .tag-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      border-radius: 100px;
+      font: 600 12px var(--sans);
+    }
+    .tag-chip button {
+      color: var(--green-dark);
+      font: 700 12px var(--sans);
+      padding: 0 0 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <header class="app-nav"><div id="appNav"></div></header>
+
+  <main class="app-container">
+    <h1 class="page-title">Submit a recipe</h1>
+    <p class="page-sub">Share what you cook. Submissions go into the moderation queue and appear on the site once approved.</p>
+
+    <div id="guard"><div class="empty-state"><span class="spinner"></span></div></div>
+
+    <form class="upload-form" id="uploadForm" hidden>
+      <!-- Basics -->
+      <section class="section">
+        <h2>The basics</h2>
+        <div class="section-sub">Tell us what we're cooking.</div>
+
+        <div class="form-field">
+          <label for="title">Title</label>
+          <input class="form-input" type="text" id="title" required maxlength="80" placeholder="e.g. Smashed Cucumber & Tahini Salad" />
+        </div>
+        <div class="form-field">
+          <label for="intro">Short intro</label>
+          <textarea class="form-textarea" id="intro" rows="2" maxlength="280" placeholder="A line or two about the recipe — what makes it great, when you'd cook it."></textarea>
+        </div>
+        <div class="row">
+          <div class="form-field">
+            <label for="cuisine">Cuisine</label>
+            <input class="form-input" type="text" id="cuisine" placeholder="British, Italian…" />
+          </div>
+          <div class="form-field">
+            <label for="time">Time (min)</label>
+            <input class="form-input" type="number" id="time" min="1" max="600" required value="30" />
+          </div>
+          <div class="form-field">
+            <label for="difficulty">Difficulty</label>
+            <select class="form-select" id="difficulty" required>
+              <option value="1">Easy</option>
+              <option value="2" selected>Intermediate</option>
+              <option value="3">Advanced</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-field">
+            <label for="servings">Serves</label>
+            <input class="form-input" type="number" id="servings" min="1" max="20" required value="2" />
+          </div>
+          <div class="form-field">
+            <label for="servingNoun">Per serving noun</label>
+            <input class="form-input" type="text" id="servingNoun" value="serving" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Tags</label>
+          <div class="tag-input">
+            <input class="form-input" type="text" id="tagInput" placeholder="Add a tag and press Enter (e.g. Vegan, Pasta, Light)" />
+          </div>
+          <div id="tagList" class="tag-input" style="margin-top:8px"></div>
+        </div>
+      </section>
+
+      <!-- Photo -->
+      <section class="section">
+        <h2>Hero photo</h2>
+        <div class="section-sub">A landscape photo of the finished dish. JPEG or PNG, ≤ 5 MB.</div>
+        <input type="file" id="photo" accept="image/jpeg,image/png,image/webp" hidden>
+        <label for="photo" class="photo-drop" id="photoDrop">
+          <strong>Upload a photo</strong>
+          <span>Drag &amp; drop, or click to choose</span>
+        </label>
+        <div class="photo-preview" id="photoPreview"></div>
+      </section>
+
+      <!-- Ingredients -->
+      <section class="section">
+        <h2>Ingredients</h2>
+        <div class="section-sub">Group ingredients by component (e.g. "Salad", "Dressing"). Each row is one ingredient.</div>
+
+        <div class="repeatable" id="ingredientGroups"></div>
+        <button type="button" class="add-btn" id="addGroup">+ Add a group</button>
+      </section>
+
+      <!-- Steps -->
+      <section class="section">
+        <h2>Method</h2>
+        <div class="section-sub">Break the recipe into clear steps. Include a duration if the step has a timer (e.g. simmer 20 min).</div>
+
+        <div class="repeatable" id="stepList"></div>
+        <button type="button" class="add-btn" id="addStep">+ Add a step</button>
+      </section>
+
+      <!-- Macros -->
+      <section class="section">
+        <h2>Nutrition (per serving)</h2>
+        <div class="section-sub">Best-guess is fine — leave blank if you don't know.</div>
+        <div class="row">
+          <div class="form-field"><label>Calories</label><input class="form-input" type="number" id="macroKcal" min="0"></div>
+          <div class="form-field"><label>Carbs (g)</label><input class="form-input" type="number" id="macroCarbs" min="0"></div>
+          <div class="form-field"><label>Protein (g)</label><input class="form-input" type="number" id="macroProtein" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="form-field"><label>Fat (g)</label><input class="form-input" type="number" id="macroFat" min="0"></div>
+          <div class="form-field"><label>Fibre (g)</label><input class="form-input" type="number" id="macroFibre" min="0"></div>
+          <div class="form-field"><label>Sugar (g)</label><input class="form-input" type="number" id="macroSugar" min="0"></div>
+        </div>
+      </section>
+
+      <!-- Equipment + fact -->
+      <section class="section">
+        <h2>Bonus details</h2>
+        <div class="section-sub">Optional — make the page richer.</div>
+        <div class="form-field">
+          <label>Equipment (one per line)</label>
+          <textarea class="form-textarea" id="equipment" rows="4" placeholder="Sharp knife&#10;Heavy chopping board&#10;Mixing bowl"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Did you know?</label>
+          <input class="form-input" type="text" id="factTitle" placeholder="Title (e.g. 'Why this works')" />
+        </div>
+        <div class="form-field">
+          <textarea class="form-textarea" id="factBody" rows="2" placeholder="A fun fact or technique tip readers will appreciate."></textarea>
+        </div>
+      </section>
+
+      <div class="auth-error" id="formError"></div>
+
+      <div class="submit-bar">
+        <a class="btn btn-ghost" href="index.html">Cancel</a>
+        <button class="btn btn-primary" id="submitBtn" type="submit">Submit for review</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js"></script>
+  <script>
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+    /* -------------------- repeatable groups -------------------- */
+    let ingredientGroups = [{ name: "", items: [{ amount: "", unit: "", text: "" }] }];
+    let steps           = [{ title: "", time: "", desc: "", tip: "" }];
+    let tags            = [];
+    let photoFile       = null;
+
+    function renderIngredients() {
+      const root = $("#ingredientGroups");
+      root.innerHTML = ingredientGroups.map((g, gi) => `
+        <div class="group-card" data-gi="${gi}">
+          <div class="group-head">
+            <input class="form-input" type="text" data-field="groupName" placeholder="Group name (e.g. Salad, Dressing)" value="${escapeHtml(g.name)}" />
+            ${ingredientGroups.length > 1 ? `<button type="button" class="remove-btn" data-action="removeGroup">Remove group</button>` : ""}
+          </div>
+          ${g.items.map((it, ii) => `
+            <div class="ingredient-row" data-ii="${ii}">
+              <input class="form-input" type="text" inputmode="decimal" data-field="amount" placeholder="Amt" value="${escapeHtml(it.amount)}" />
+              <input class="form-input" type="text" data-field="unit"   placeholder="g, tbsp" value="${escapeHtml(it.unit)}" />
+              <input class="form-input" type="text" data-field="text"   placeholder="ingredient" value="${escapeHtml(it.text)}" />
+              <button type="button" class="remove-btn" data-action="removeItem" ${g.items.length === 1 ? 'style="visibility:hidden"' : ""}>✕</button>
+            </div>
+          `).join("")}
+          <button type="button" class="add-btn" data-action="addItem">+ Add ingredient</button>
+        </div>
+      `).join("");
+      bindIngredientHandlers();
+    }
+
+    function bindIngredientHandlers() {
+      $$("#ingredientGroups [data-field]").forEach(el => {
+        el.addEventListener("input", (e) => {
+          const card = e.target.closest(".group-card");
+          const gi = parseInt(card.dataset.gi, 10);
+          const field = e.target.dataset.field;
+          if (field === "groupName") {
+            ingredientGroups[gi].name = e.target.value;
+          } else {
+            const row = e.target.closest(".ingredient-row");
+            const ii = parseInt(row.dataset.ii, 10);
+            ingredientGroups[gi].items[ii][field] = e.target.value;
+          }
+        });
+      });
+      $$("#ingredientGroups [data-action]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const card = e.target.closest(".group-card");
+          const gi = parseInt(card.dataset.gi, 10);
+          const action = btn.dataset.action;
+          if (action === "removeGroup") {
+            ingredientGroups.splice(gi, 1);
+          } else if (action === "addItem") {
+            ingredientGroups[gi].items.push({ amount: "", unit: "", text: "" });
+          } else if (action === "removeItem") {
+            const row = e.target.closest(".ingredient-row");
+            const ii = parseInt(row.dataset.ii, 10);
+            ingredientGroups[gi].items.splice(ii, 1);
+          }
+          renderIngredients();
+        });
+      });
+    }
+
+    function renderSteps() {
+      const root = $("#stepList");
+      root.innerHTML = steps.map((s, i) => `
+        <div class="group-card" data-i="${i}">
+          <div class="group-head">
+            <strong style="font:600 13px var(--sans);color:var(--text-soft)">Step ${i + 1}</strong>
+            ${steps.length > 1 ? `<button type="button" class="remove-btn" data-action="remove">Remove</button>` : ""}
+          </div>
+          <div class="step-row">
+            <input class="form-input" type="text"   data-field="title" placeholder="Step title (e.g. Sweat the aromatics)" value="${escapeHtml(s.title)}" />
+            <input class="form-input" type="number" data-field="time"  placeholder="min" min="0" value="${escapeHtml(s.time)}" />
+            <span></span>
+          </div>
+          <textarea class="form-textarea" data-field="desc" rows="3" placeholder="What to do, in detail.">${escapeHtml(s.desc)}</textarea>
+          <input class="form-input" type="text" data-field="tip" placeholder="Optional tip" value="${escapeHtml(s.tip)}" style="margin-top:8px" />
+        </div>
+      `).join("");
+      bindStepHandlers();
+    }
+
+    function bindStepHandlers() {
+      $$("#stepList [data-field]").forEach(el => {
+        el.addEventListener("input", (e) => {
+          const card = e.target.closest(".group-card");
+          const i = parseInt(card.dataset.i, 10);
+          steps[i][e.target.dataset.field] = e.target.value;
+        });
+      });
+      $$("#stepList [data-action='remove']").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const card = e.target.closest(".group-card");
+          const i = parseInt(card.dataset.i, 10);
+          steps.splice(i, 1);
+          renderSteps();
+        });
+      });
+    }
+
+    $("#addGroup").addEventListener("click", () => {
+      ingredientGroups.push({ name: "", items: [{ amount: "", unit: "", text: "" }] });
+      renderIngredients();
+    });
+    $("#addStep").addEventListener("click", () => {
+      steps.push({ title: "", time: "", desc: "", tip: "" });
+      renderSteps();
+    });
+
+    /* -------------------- tag input -------------------- */
+    function renderTags() {
+      $("#tagList").innerHTML = tags.map((t, i) => `
+        <span class="tag-chip">${escapeHtml(t)}<button type="button" data-i="${i}">✕</button></span>
+      `).join("");
+      $$("#tagList button").forEach(b => b.addEventListener("click", () => {
+        tags.splice(parseInt(b.dataset.i, 10), 1);
+        renderTags();
+      }));
+    }
+    $("#tagInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === ",") {
+        e.preventDefault();
+        const v = e.target.value.trim().replace(/,$/, "");
+        if (v && !tags.includes(v)) tags.push(v);
+        e.target.value = "";
+        renderTags();
+      }
+    });
+
+    /* -------------------- photo upload -------------------- */
+    const photoInput   = $("#photo");
+    const photoDrop    = $("#photoDrop");
+    const photoPreview = $("#photoPreview");
+
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        window.AppShell.toast("Photo must be 5 MB or smaller.");
+        photoInput.value = "";
+        return;
+      }
+      photoFile = file;
+      photoPreview.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
+      photoPreview.classList.add("show");
+      photoDrop.style.display = "none";
+    });
+    ["dragenter", "dragover"].forEach(ev => photoDrop.addEventListener(ev, e => { e.preventDefault(); photoDrop.style.borderColor = "var(--green)"; }));
+    ["dragleave", "drop"].forEach(ev => photoDrop.addEventListener(ev, e => { e.preventDefault(); photoDrop.style.borderColor = "var(--border)"; }));
+    photoDrop.addEventListener("drop", e => {
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        photoInput.files = dt.files;
+        photoInput.dispatchEvent(new Event("change"));
+      }
+    });
+
+    /* -------------------- submission -------------------- */
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+    function slugify(s) {
+      return (s || "").toLowerCase().normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "").slice(0, 60) || `recipe-${Date.now().toString(36)}`;
+    }
+
+    function validate() {
+      const err = $("#formError");
+      err.classList.remove("show");
+      const title = $("#title").value.trim();
+      if (!title) return setError("Add a title.");
+      if (!photoFile) return setError("Upload a hero photo.");
+      const validGroups = ingredientGroups.filter(g => g.items.some(it => it.text.trim()));
+      if (!validGroups.length) return setError("Add at least one ingredient.");
+      const validSteps  = steps.filter(s => s.desc.trim());
+      if (!validSteps.length)   return setError("Write at least one step.");
+      return { title, validGroups, validSteps };
+    }
+    function setError(msg) {
+      const err = $("#formError");
+      err.textContent = msg;
+      err.classList.add("show");
+      err.scrollIntoView({ behavior: "smooth", block: "center" });
+      return null;
+    }
+
+    $("#uploadForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const ok = validate();
+      if (!ok) return;
+      const submitBtn = $("#submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting…";
+
+      const recipe = {
+        slug: slugify($("#title").value),
+        title: $("#title").value.trim(),
+        intro: $("#intro").value.trim(),
+        cuisine: $("#cuisine").value.trim(),
+        time: parseInt($("#time").value, 10) || 0,
+        difficulty: parseInt($("#difficulty").value, 10) || 1,
+        baseServings: parseInt($("#servings").value, 10) || 2,
+        servingNoun: $("#servingNoun").value.trim() || "serving",
+        tags,
+        macros: {
+          calories: parseInt($("#macroKcal").value, 10) || 0,
+          carbs:    parseInt($("#macroCarbs").value, 10) || 0,
+          protein:  parseInt($("#macroProtein").value, 10) || 0,
+          fat:      parseInt($("#macroFat").value, 10) || 0,
+          fibre:    parseInt($("#macroFibre").value, 10) || 0,
+          sugar:    parseInt($("#macroSugar").value, 10) || 0,
+        },
+        equipment: $("#equipment").value.split("\n").map(s => s.trim()).filter(Boolean),
+        fact: $("#factBody").value.trim()
+          ? { title: $("#factTitle").value.trim() || "Did you know?", body: $("#factBody").value.trim() }
+          : null,
+        ingredientGroups: ok.validGroups.map(g => ({
+          name: g.name.trim(),
+          items: g.items.filter(it => it.text.trim()).map(it => ({
+            amount: it.amount === "" ? "" : (isNaN(parseFloat(it.amount)) ? it.amount : parseFloat(it.amount)),
+            unit: it.unit.trim(),
+            text: it.text.trim(),
+          })),
+        })),
+        steps: ok.validSteps.map(s => ({
+          title: s.title.trim() || "Step",
+          time: parseInt(s.time, 10) || 0,
+          desc: s.desc.trim(),
+          tip: s.tip.trim(),
+        })),
+      };
+
+      try {
+        await window.RECIPY.recipes.submit(recipe, photoFile);
+        window.AppShell.toast("Submitted — we'll review it shortly.");
+        setTimeout(() => {
+          const profile = window.AppShell.profile();
+          if (profile) location.href = `profile.html?u=${encodeURIComponent(profile.username)}`;
+          else location.href = "index.html";
+        }, 900);
+      } catch (err) {
+        setError(err.message || "Something went wrong submitting your recipe.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit for review";
+      }
+    });
+
+    /* -------------------- gate by sign-in -------------------- */
+    window.AppShell.onAuth((user) => {
+      const guard = $("#guard");
+      const form  = $("#uploadForm");
+      if (!window.RECIPY || !window.RECIPY.configured) {
+        guard.innerHTML = `<div class="empty-state"><h3>Uploads need Supabase.</h3><p>Set up your project in <code>config.js</code> first.</p></div>`;
+        form.hidden = true;
+        return;
+      }
+      if (!user) {
+        guard.innerHTML = `<div class="empty-state"><h3>Sign in to submit a recipe.</h3><button class="btn btn-primary" id="goSignIn" style="margin-top:12px">Sign in</button></div>`;
+        form.hidden = true;
+        $("#goSignIn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
+        return;
+      }
+      guard.innerHTML = "";
+      form.hidden = false;
+      renderIngredients();
+      renderSteps();
+      renderTags();
+    });
+  </script>
+</body>
+</html>
