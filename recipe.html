@@ -2672,9 +2672,12 @@
       $("#cookmodePrev").addEventListener("click", prevStep);
       window.addEventListener("keydown", (e) => {
         if (!$("#cookmode").classList.contains("open")) return;
+        /* Don't intercept keys when user is typing in an input or textarea */
+        const tag = document.activeElement?.tagName;
+        const typing = tag === "INPUT" || tag === "TEXTAREA";
         if (e.key === "Escape")     { closeCookMode(); }
-        else if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); nextStep(); }
-        else if (e.key === "ArrowLeft") { prevStep(); }
+        else if ((e.key === "ArrowRight" || e.key === " ") && !typing) { e.preventDefault(); nextStep(); }
+        else if (e.key === "ArrowLeft" && !typing) { prevStep(); }
       });
     }
 
