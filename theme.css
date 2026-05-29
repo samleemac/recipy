@@ -38,13 +38,20 @@
 }
 
 [data-theme="dark"] {
-  --bg:        #0e1110;
-  --bg-soft:   #1a1e1c;
-  --text:      #f0f2ee;
-  --text-soft: #9aa097;
-  --border:    #2a2f2c;
-  --cream:     #1a1e1c;
-  --green-soft:rgba(180, 181, 107, 0.14);
+  /* Dark Mode Style Guide tokens */
+  --bg:        #1E1B18;
+  --bg-soft:   #2A2622;
+  --text:      #FAF6F0;
+  --text-soft: #B5AD9E;
+  --border:    #3A352F;
+  --cream:     #2A2622;
+  --surface:   #2A2622;
+  /* Muted sage for dark mode (per style guide) */
+  --sage: #A2A45C;
+  --sage-dark: #8B8D4A;
+  --green: var(--sage);
+  --green-dark: var(--sage-dark);
+  --green-soft: rgba(162, 164, 92, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -79,8 +86,8 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 700; letter-
   --border: rgba(255, 255, 255, 0.10);
 }
 [data-theme="dark"] .app-nav {
-  background: rgba(14, 9, 5, 0.90);
-  border-bottom-color: rgba(255, 255, 255, 0.07);
+  background: rgba(30, 27, 24, 0.94);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 .app-nav-inner {
   max-width: 1200px;

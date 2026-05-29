@@ -60,18 +60,24 @@
     }
 
     [data-theme="dark"] {
-      --bg: #100A07;
-      --bg-soft: #1A120E;
-      --bg-grain: rgba(255, 246, 229, 0.04);
-      --text: #F4ECDF;
-      --text-soft: #A89E91;
-      --surface: #1A120E;
-      --surface-2: #221813;
-      --border: rgba(244, 236, 223, 0.10);
-      --tape: rgba(255, 194, 34, 0.35);
+      /* Dark Mode Style Guide tokens */
+      --bg: #1E1B18;
+      --bg-soft: #2A2622;
+      --bg-grain: rgba(250, 246, 240, 0.03);
+      --text: #FAF6F0;
+      --text-soft: #B5AD9E;
+      --surface: #2A2622;
+      --surface-2: #3A352F;
+      --border: #3A352F;
+      --tape: rgba(212, 163, 115, 0.35);
       --shadow-color: 0, 0, 0;
-      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
-      --shadow-lg: 0 24px 50px rgba(0, 0, 0, 0.6);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.50);
+      --shadow-lg: 0 24px 50px rgba(0, 0, 0, 0.65);
+      /* Muted sage for dark mode (per style guide) */
+      --sage: #A2A45C;
+      --sage-dark: #8B8D4A;
+      --green: var(--sage);
+      --green-dark: var(--sage-dark);
     }
 
     /* ============================================================
@@ -176,8 +182,8 @@
       --border: rgba(255, 255, 255, 0.10);
     }
     [data-theme="dark"] .nav {
-      background: rgba(14, 9, 5, 0.78);
-      border-color: rgba(255, 255, 255, 0.07);
+      background: rgba(30, 27, 24, 0.88);
+      border-color: rgba(255, 255, 255, 0.08);
       box-shadow:
         0 12px 40px rgba(0, 0, 0, 0.50),
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -189,7 +195,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     [data-theme="dark"] .nav-wrap.is-stuck .nav {
-      background: rgba(14, 9, 5, 0.95);
+      background: rgba(30, 27, 24, 0.96);
       box-shadow:
         0 18px 50px rgba(0, 0, 0, 0.60),
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -1361,6 +1367,16 @@
       padding: 0 14px;
       gap: 6px;
     }
+    #paginationContainer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .page-ellipsis {
+      color: var(--text-soft);
+      padding: 0 4px;
+      user-select: none;
+    }
     .page-btn.nav-btn:hover { color: var(--green-dark); background: var(--bg-soft); }
     .page-btn.nav-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
     .page-ellipsis { color: var(--text-soft); padding: 0 6px; }
@@ -2008,16 +2024,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
         <span>Previous</span>
       </button>
-      <button class="page-btn is-active" type="button" aria-current="page">
-        <span>1</span>
-        <svg class="scribble" viewBox="0 0 50 50" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M25 5 C 39 4, 46 14, 46 25 C 46 39, 35 47, 24 46 C 9 45, 4 34, 5 22 C 6 12, 14 4, 27 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path>
-        </svg>
-      </button>
-      <button class="page-btn" type="button">2</button>
-      <button class="page-btn" type="button">3</button>
-      <span class="page-ellipsis" aria-hidden="true">…</span>
-      <button class="page-btn" type="button">10</button>
+      <div id="paginationContainer"></div>
       <button class="page-btn nav-btn" type="button" aria-label="Next page" id="nextPage">
         <span>Next</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -2309,14 +2316,16 @@
     /* ============================================================
        Render cards
        ============================================================ */
-    function renderCards() {
+    function renderCards(recipeList) {
+      /* recipeList is an array of { recipe, idx } objects from filterRecipes */
+      const list = recipeList || recipes.map((r, i) => ({ recipe: r, idx: i }));
       const grid = $("#recipeGrid");
       const bookmarks = getBookmarks();
-      grid.innerHTML = recipes.map((r, i) => {
+      grid.innerHTML = list.map(({ recipe: r, idx: i }, cardIndex) => {
         const photoUrl = (r.photo || "").includes("unsplash") ? `${r.photo}?auto=format&fit=crop&w=900&q=72` : (r.photo || fallbackPhoto);
         const role = r.role || "";
-        const delay = (i * 45) + "ms";
-        const tilt = ((i % 5) - 2) * 0.3; /* -0.6 → +0.6 deg */
+        const delay = (cardIndex * 45) + "ms";
+        const tilt = ((cardIndex % 5) - 2) * 0.3; /* -0.6 → +0.6 deg */
         const stableId = String(r.id != null ? r.id : i);
         const saved = bookmarks.has(stableId);
         const primaryTag = r.tags[0];
@@ -2475,6 +2484,10 @@
     /* ============================================================
        Filtering / search / saved-only
        ============================================================ */
+    const RECIPES_PER_PAGE = 20;
+    let filteredRecipes = [];
+    let currentPage = 1;
+
     const state = {
       filters: new Set(),
       query: "",
@@ -2483,29 +2496,18 @@
     };
 
     function applySort() {
-      /* Visual sort: reorder cards in the DOM */
-      const grid = $("#recipeGrid");
-      const cards = $$(".card", grid);
-      const indexed = cards.map((el, i) => ({ el, recipe: recipes[parseInt(el.dataset.id, 10)] }));
-      let sorted;
-      if (state.sort === "quickest")   sorted = indexed.slice().sort((a,b) => a.recipe.time - b.recipe.time);
-      else if (state.sort === "easiest") sorted = indexed.slice().sort((a,b) => a.recipe.difficulty - b.recipe.difficulty);
-      else                              sorted = indexed.slice().sort((a,b) => parseInt(a.el.dataset.id) - parseInt(b.el.dataset.id));
-      sorted.forEach(({ el }) => grid.appendChild(el));
+      /* Sorting is now handled in filterRecipes() — just re-filter */
+      filterRecipes();
     }
 
-    function filterRecipes() {
-      const cards = $$(".card");
+    function filterRecipes(resetPage = true) {
       const bookmarks = getBookmarks();
       const q = state.query.trim().toLowerCase();
-      let visible = 0;
 
-      cards.forEach(card => {
-        const id = card.dataset.id;
-        const r = recipes[parseInt(id, 10)];
-        if (!r) return;
-        const bookmarkKey = card.dataset.recipeId || id;
-        const tags = card.dataset.tags.split(",");
+      /* Build filtered list */
+      filteredRecipes = recipes.map((r, i) => ({ recipe: r, idx: i })).filter(({ recipe: r, idx: i }) => {
+        const bookmarkKey = String(r.id != null ? r.id : i);
+        const tags = r.tags || [];
         const matchSearch = !q
           || r.title.toLowerCase().includes(q)
           || (r.author || "").toLowerCase().includes(q)
@@ -2513,12 +2515,31 @@
         const matchFilter = state.filters.size === 0
           || [...state.filters].some(f => tags.includes(f));
         const matchSaved = !state.showSavedOnly || bookmarks.has(bookmarkKey);
-        const show = matchSearch && matchFilter && matchSaved;
-        card.classList.toggle("is-hidden", !show);
-        if (show) visible++;
+        return matchSearch && matchFilter && matchSaved;
       });
 
+      /* Apply sort */
+      if (state.sort === "quickest") {
+        filteredRecipes.sort((a, b) => a.recipe.time - b.recipe.time);
+      } else if (state.sort === "easiest") {
+        filteredRecipes.sort((a, b) => a.recipe.difficulty - b.recipe.difficulty);
+      }
+
+      /* Reset to page 1 when filters change */
+      if (resetPage) currentPage = 1;
+
+      /* Clamp current page */
+      const totalPages = Math.max(1, Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      /* Render only the current page slice */
+      const start = (currentPage - 1) * RECIPES_PER_PAGE;
+      const pageRecipes = filteredRecipes.slice(start, start + RECIPES_PER_PAGE);
+      renderCards(pageRecipes);
+      renderPagination(filteredRecipes.length, currentPage);
+
       const total = recipes.length;
+      const visible = filteredRecipes.length;
       const countEl = $("#resultCount");
       const filterTxt = state.showSavedOnly ? "saved" : "";
       countEl.innerHTML = `Showing <strong>${visible}</strong> of <strong>${total}</strong> ${filterTxt ? `<em style="font-style:normal;color:var(--green-dark)">${filterTxt}</em> ` : ""}recipes`;
@@ -2534,6 +2555,49 @@
       $$(".pill").forEach(p => p.classList.remove("is-active"));
       $("#navBookmark").classList.remove("is-active");
       filterRecipes();
+    }
+
+    function renderPagination(totalItems, page) {
+      const container = $("#paginationContainer");
+      if (!container) return;
+      const totalPages = Math.max(1, Math.ceil(totalItems / RECIPES_PER_PAGE));
+
+      /* Hide pagination if only 1 page */
+      container.closest(".pagination").hidden = totalPages <= 1;
+      if (totalPages <= 1) return;
+
+      /* Build page numbers: show first, last, and neighbors of current */
+      const pages = [];
+      for (let p = 1; p <= totalPages; p++) {
+        if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+          pages.push(p);
+        } else if (pages[pages.length - 1] !== "…") {
+          pages.push("…");
+        }
+      }
+
+      const scribbleSvg = `<svg class="scribble" viewBox="0 0 50 50" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M25 5 C 39 4, 46 14, 46 25 C 46 39, 35 47, 24 46 C 9 45, 4 34, 5 22 C 6 12, 14 4, 27 5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path>
+      </svg>`;
+
+      container.innerHTML = pages.map(p => {
+        if (p === "…") return `<span class="page-ellipsis" aria-hidden="true">…</span>`;
+        const isActive = p === page;
+        return `<button class="page-btn ${isActive ? 'is-active' : ''}" type="button" data-page="${p}" ${isActive ? 'aria-current="page"' : ''}>
+          <span>${p}</span>
+          ${isActive ? scribbleSvg : ""}
+        </button>`;
+      }).join("");
+
+      /* Prev/Next state */
+      $("#prevPage").disabled = page <= 1;
+      $("#nextPage").disabled = page >= totalPages;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      filterRecipes(false);
+      window.scrollTo({ top: $("#filterBar").offsetTop - 80, behavior: "smooth" });
     }
 
     /* ============================================================
@@ -3087,14 +3151,24 @@
     }
 
     function initPagination() {
-      const pageBtns = $$(".pagination .page-btn:not(.nav-btn)");
-      pageBtns.forEach(b => {
-        b.addEventListener("click", () => {
-          pageBtns.forEach(x => { x.classList.remove("is-active"); x.removeAttribute("aria-current"); });
-          b.classList.add("is-active");
-          b.setAttribute("aria-current", "page");
-          window.scrollTo({ top: $("#filterBar").offsetTop - 80, behavior: "smooth" });
+      /* Event delegation for dynamic page buttons */
+      const container = $("#paginationContainer");
+      if (container) {
+        container.addEventListener("click", (e) => {
+          const btn = e.target.closest(".page-btn");
+          if (!btn) return;
+          const page = parseInt(btn.dataset.page, 10);
+          if (!isNaN(page)) goToPage(page);
         });
+      }
+
+      /* Prev/Next buttons */
+      $("#prevPage").addEventListener("click", () => {
+        if (currentPage > 1) goToPage(currentPage - 1);
+      });
+      $("#nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);
+        if (currentPage < totalPages) goToPage(currentPage + 1);
       });
     }
 
@@ -3308,7 +3382,7 @@
         setSignedInBody(false, null);
       }
       updateBookmarkBadge();
-      renderCards();
+      filterRecipes(false);
     }
 
     function _fallbackProfile(user) {
@@ -3412,7 +3486,6 @@
       setHeroGreeting();
       await loadRecipes();
       setHeroPick();
-      renderCards();
       filterRecipes();
       updateBookmarkBadge();
       initPills();
