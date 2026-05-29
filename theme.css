@@ -5,17 +5,25 @@
    ============================================================ */
 :root {
   /* Colour ----------------------------------------------------- */
-  --bg:        #fefcf8;
-  --bg-soft:   #f3efe7;
-  --text:      #1b1d1b;
-  --text-soft: #6b6f6a;
-  --border:    #e3ddd0;
-  --cream:     #faf3e0;
-  --green:     #3bb812;
-  --green-dark:#2e9a0a;
-  --green-soft:#e2f5d8;
-  --blue:      #4f8bd6;
-  --blue-soft: #e4eef8;
+  /* Warm palette (style guide) */
+  --sage:      #B4B56B;
+  --sage-dark: #9A9B54;
+  --sage-soft: #EDEEDC;
+  --ochre:     #D4A373;
+  --ochre-dark:#BE8A57;
+  --ochre-soft:#F3E6D6;
+
+  --bg:        #FAF6F0;
+  --bg-soft:   #F2ECE2;
+  --text:      #2E2A25;
+  --text-soft: #7A7265;
+  --border:    #E6DFD5;
+  --cream:     #FAF6F0;
+  --green:     var(--sage);
+  --green-dark:var(--sage-dark);
+  --green-soft:var(--sage-soft);
+  --blue:      var(--sage);
+  --blue-soft: var(--sage-soft);
   --white:     #ffffff;
 
   /* Type ------------------------------------------------------- */
@@ -36,7 +44,7 @@
   --text-soft: #9aa097;
   --border:    #2a2f2c;
   --cream:     #1a1e1c;
-  --green-soft:#1b3010;
+  --green-soft:rgba(180, 181, 107, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -79,7 +87,7 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 700; letter-
 }
 .app-logo .dot {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--green);
+  background: var(--ochre);
   flex-shrink: 0;
 }
 .app-nav-links {
@@ -203,8 +211,8 @@ body.is-admin     [data-auth="admin"] { display: flex; }
   font: 700 14px var(--sans);
   transition: background .15s, color .15s, border-color .15s;
 }
-.btn-primary { background: var(--green); color: var(--white); }
-.btn-primary:hover { background: var(--green-dark); }
+.btn-primary { background: var(--ochre); color: var(--white); }
+.btn-primary:hover { background: var(--ochre-dark); }
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-secondary {
   background: var(--bg-soft);

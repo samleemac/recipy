@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recipy — Recipes</title>
   <meta name="description" content="A cookbook for the curious. Hand-picked recipes from cookbook authors, home cooks and seasonal favorites." />
-  <meta name="theme-color" content="#3BB812" />
+  <meta name="theme-color" content="#B4B56B" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
@@ -15,27 +15,36 @@
        Tokens
        ============================================================ */
     :root {
-      --green: #3BB812;
-      --green-dark: #005512;
-      --orange: #FF7A00;
-      --cream: #FFF6E5;
-      --ink: #170805;
-      --gray: #555555;
-      --light-blue: #E6F1FC;
-      --yellow: #FFC222;
+      /* Warm palette (style guide) */
+      --sage: #B4B56B;
+      --sage-dark: #9A9B54;
+      --sage-soft: #EDEEDC;
+      --ochre: #D4A373;
+      --ochre-dark: #BE8A57;
+      --ochre-soft: #F3E6D6;
+
+      /* Legacy accent aliases mapped onto the warm tokens */
+      --green: var(--sage);
+      --green-dark: var(--sage-dark);
+      --orange: var(--ochre);
+      --cream: #FAF6F0;
+      --ink: #2E2A25;
+      --gray: #7A7265;
+      --light-blue: #EDEEDC;
+      --yellow: #E0B25C;
       --white: #FFFFFF;
 
       /* themable */
-      --bg: #FFFFFF;
-      --bg-soft: #FFF6E5;
-      --bg-grain: rgba(23, 8, 5, 0.035);
-      --text: #170805;
-      --text-soft: #555555;
+      --bg: #FAF6F0;
+      --bg-soft: #F2ECE2;
+      --bg-grain: rgba(46, 42, 37, 0.035);
+      --text: #2E2A25;
+      --text-soft: #7A7265;
       --surface: #FFFFFF;
-      --surface-2: #FFF6E5;
-      --border: rgba(23, 8, 5, 0.10);
-      --tape: rgba(255, 194, 34, 0.55);
-      --shadow-color: 23, 8, 5;
+      --surface-2: #F2ECE2;
+      --border: #E6DFD5;
+      --tape: rgba(212, 163, 115, 0.5);
+      --shadow-color: 46, 42, 37;
 
       --serif: "Playfair Display", "Canela Text Trial", Georgia, serif;
       --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -128,7 +137,7 @@
       background: var(--green);
       z-index: 200;
       transition: width .08s linear;
-      box-shadow: 0 0 10px rgba(59, 184, 18, 0.6);
+      box-shadow: 0 0 10px rgba(180, 181, 107, 0.6);
     }
 
     /* ============================================================
@@ -232,13 +241,13 @@
     .nav-issue .pulse {
       width: 6px; height: 6px; border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 0 0 rgba(59, 184, 18, 0.6);
+      box-shadow: 0 0 0 0 rgba(180, 181, 107, 0.6);
       animation: livePulse 2.2s ease-out infinite;
     }
     @keyframes livePulse {
-      0%   { box-shadow: 0 0 0 0 rgba(59, 184, 18, 0.55); }
-      70%  { box-shadow: 0 0 0 8px rgba(59, 184, 18, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(59, 184, 18, 0); }
+      0%   { box-shadow: 0 0 0 0 rgba(180, 181, 107, 0.55); }
+      70%  { box-shadow: 0 0 0 8px rgba(180, 181, 107, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(180, 181, 107, 0); }
     }
 
     .nav-links {
@@ -578,8 +587,8 @@
       position: absolute; inset: 0;
       pointer-events: none;
       background-image:
-        radial-gradient(circle at 18% 30%, rgba(255,122,0,.16), transparent 32%),
-        radial-gradient(circle at 80% 75%, rgba(59,184,18,.18), transparent 36%);
+        radial-gradient(circle at 18% 30%, rgba(212,163,115,.20), transparent 32%),
+        radial-gradient(circle at 80% 75%, rgba(180,181,107,.20), transparent 36%);
       mix-blend-mode: screen;
       z-index: -1;
     }
@@ -898,22 +907,22 @@
       backdrop-filter: blur(4px);
     }
     .chip svg { width: 12px; height: 12px; }
-    .chip.green { background: var(--green); color: var(--white); }
-    .chip.vegan { background: var(--green); color: var(--white); }
-    .chip.veg { background: rgba(59, 184, 18, 0.92); color: var(--white); }
-    .chip.protein { background: var(--orange); color: var(--white); }
-    .chip.breakfast { background: var(--yellow); color: var(--ink); }
-    .chip.light { background: rgba(255, 255, 255, 0.96); color: var(--ink); }
-    .chip.curry { background: #C53A2C; color: var(--white); }
-    .chip.pasta { background: #4F8BD6; color: var(--white); }
-    .chip.spicy { background: #E7472B; color: var(--white); }
-    .chip.comfort { background: #7E5BEF; color: var(--white); }
-    .chip.quick { background: #1F2A36; color: var(--white); }
-    .chip.mediterranean { background: #287285; color: var(--white); }
-    .chip.italian { background: #2E7D32; color: var(--white); }
-    .chip.asian { background: #C53A2C; color: var(--white); }
-    .chip.mexican { background: #FF7A00; color: var(--white); }
-    .chip.british { background: #6E4F32; color: var(--white); }
+    .chip.green { background: var(--sage); color: var(--white); }
+    .chip.vegan { background: var(--sage); color: var(--white); }
+    .chip.veg { background: #A7A95E; color: var(--white); }
+    .chip.protein { background: #C97B5A; color: var(--white); }
+    .chip.breakfast { background: #E0B25C; color: var(--ink); }
+    .chip.light { background: #FFFFFF; color: var(--ink); }
+    .chip.curry { background: #B5613C; color: var(--white); }
+    .chip.pasta { background: #C9A24B; color: var(--ink); }
+    .chip.spicy { background: #A8442E; color: var(--white); }
+    .chip.comfort { background: #9C7C84; color: var(--white); }
+    .chip.quick { background: #2E2A25; color: var(--white); }
+    .chip.mediterranean { background: #8A8F4E; color: var(--white); }
+    .chip.italian { background: #6E7A3A; color: var(--white); }
+    .chip.asian { background: #B0573A; color: var(--white); }
+    .chip.mexican { background: #C87B3D; color: var(--white); }
+    .chip.british { background: #7A5A40; color: var(--white); }
 
     .card-cuisine {
       font: 600 12px var(--sans);
@@ -1437,7 +1446,7 @@
     }
     .subscribe-form:focus-within {
       border-color: var(--green);
-      box-shadow: 0 0 0 4px rgba(59, 184, 18, 0.12);
+      box-shadow: 0 0 0 4px rgba(180, 181, 107, 0.18);
     }
     .subscribe-form input {
       border: none; outline: none;
@@ -1451,7 +1460,7 @@
     .subscribe-form button {
       width: 38px; height: 38px;
       border-radius: 50%;
-      background: var(--green);
+      background: var(--ochre);
       color: var(--white);
       display: inline-flex;
       align-items: center;
@@ -1459,9 +1468,9 @@
       transition: background .3s var(--easing), transform .3s var(--easing), width .35s var(--easing);
       flex: 0 0 auto;
     }
-    .subscribe-form button:hover { background: var(--green-dark); transform: translateX(2px); }
+    .subscribe-form button:hover { background: var(--ochre-dark); transform: translateX(2px); }
     .subscribe-form.success button {
-      background: var(--green);
+      background: var(--ochre);
       transform: scale(1.05);
     }
     .subscribe-form.success input { color: transparent; pointer-events: none; }
@@ -1742,11 +1751,11 @@
     .auth-submit {
       margin-top: 4px; padding: 12px;
       border-radius: 100px;
-      background: var(--green); color: var(--white);
+      background: var(--ochre); color: var(--white);
       font: 700 14px var(--sans);
       transition: background .2s;
     }
-    .auth-submit:hover { background: var(--green-dark); }
+    .auth-submit:hover { background: var(--ochre-dark); }
     .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
     .auth-error {
       font: 500 13px var(--sans); color: #ef4444;
