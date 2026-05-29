@@ -27,8 +27,8 @@
   --white:     #ffffff;
 
   /* Type ------------------------------------------------------- */
-  --sans:  -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  --serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --sans:  "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: Georgia, "Times New Roman", serif;
 
   /* Radius & motion ------------------------------------------- */
   --radius-pill: 100px;

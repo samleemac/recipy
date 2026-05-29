@@ -300,10 +300,24 @@
     if (user && window.RECIPY && window.RECIPY.configured) {
       currentProfile = await window.RECIPY.auth.getProfile(user);
     }
-    applyUserState(currentProfile);
+    /* Always call applyUserState with currentUser as fallback so a user
+       with a pending profile row doesn't appear signed out */
+    applyUserState(currentProfile || (currentUser ? _fallbackProfile(currentUser) : null));
     authListeners.forEach((cb) => {
       try { cb(currentUser, currentProfile); } catch (_) {}
     });
+  }
+
+  function _fallbackProfile(user) {
+    const meta = user.user_metadata || {};
+    return {
+      id:           user.id,
+      username:     (meta.username || user.email?.split("@")[0] || "u").toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+      display_name: meta.full_name || meta.name || meta.display_name || user.email || "User",
+      avatar_url:   meta.picture || meta.avatar_url || null,
+      bio:          "",
+      role:         "user",
+    };
   }
 
   function mount() {
@@ -318,7 +332,14 @@
 
     if (window.RECIPY && window.RECIPY.configured) {
       window.RECIPY.auth.onChange(handleAuthChange);
-      window.RECIPY.auth.getUser().then(handleAuthChange);
+      /* getSession is synchronous/cached — catches the OAuth redirect token
+         immediately; getUser follows to fully validate */
+      window.RECIPY.auth.getSession().then(session => {
+        if (session?.user) handleAuthChange(session.user);
+      });
+      window.RECIPY.auth.getUser().then(user => {
+        if (user) handleAuthChange(user);
+      });
     } else {
       applyUserState(null);
     }

@@ -6,9 +6,6 @@
   <title>Recipy — Recipes</title>
   <meta name="description" content="A cookbook for the curious. Hand-picked recipes from cookbook authors, home cooks and seasonal favorites." />
   <meta name="theme-color" content="#B4B56B" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet" />
 
   <style>
     /* ============================================================
@@ -46,8 +43,8 @@
       --tape: rgba(212, 163, 115, 0.5);
       --shadow-color: 46, 42, 37;
 
-      --serif: "Playfair Display", "Canela Text Trial", Georgia, serif;
-      --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 
       --radius-sm: 8px;
       --radius-md: 14px;
@@ -3302,7 +3299,8 @@
       currentUser = user || null;
       if (user && isSupabaseConfigured()) {
         currentProfile = await window.RECIPY.auth.getProfile(user);
-        setSignedInBody(true, currentProfile);
+        /* Show as signed-in even if profile row not yet committed */
+        setSignedInBody(true, currentProfile || _fallbackProfile(user));
         await syncBookmarksFromSupabase();
       } else {
         currentProfile = null;
@@ -3310,6 +3308,18 @@
       }
       updateBookmarkBadge();
       renderCards();
+    }
+
+    function _fallbackProfile(user) {
+      const meta = user.user_metadata || {};
+      return {
+        id:           user.id,
+        username:     (meta.username || (user.email || "").split("@")[0] || "u").toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+        display_name: meta.full_name || meta.name || meta.display_name || user.email || "User",
+        avatar_url:   meta.picture || meta.avatar_url || null,
+        bio:          "",
+        role:         "user",
+      };
     }
 
     function initAuth() {
@@ -3345,7 +3355,12 @@
         $("#menuSignIn").addEventListener("click", () => openAuthModal("signin"));
       } else {
         window.RECIPY.auth.onChange(handleAuthChange);
-        window.RECIPY.auth.getUser().then(handleAuthChange);
+        window.RECIPY.auth.getSession().then(session => {
+          if (session?.user) handleAuthChange(session.user);
+        });
+        window.RECIPY.auth.getUser().then(user => {
+          if (user) handleAuthChange(user);
+        });
       }
     }
 

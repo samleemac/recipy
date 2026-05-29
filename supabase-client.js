@@ -262,20 +262,45 @@
   ------------------------------------------------------------ */
   async function authGetUser() {
     if (!CONFIGURED) return null;
+    /* getSession is synchronous/cached — check it first, then validate */
+    const { data: sd } = await sb.auth.getSession();
+    if (sd?.session?.user) return sd.session.user;
     const { data } = await sb.auth.getUser();
     return data?.user || null;
+  }
+
+  async function authGetSession() {
+    if (!CONFIGURED) return null;
+    const { data } = await sb.auth.getSession();
+    return data?.session || null;
   }
 
   async function authGetProfile(user) {
     if (!CONFIGURED) return null;
     const u = user || (await authGetUser());
     if (!u) return null;
-    const { data } = await sb
-      .from("profiles")
-      .select("id, username, display_name, avatar_url, bio, role")
-      .eq("id", u.id)
-      .maybeSingle();
-    return data || null;
+    /* Retry up to 3 times with a short delay — on first Google sign-up
+       the handle_new_user trigger may not have committed yet when this runs */
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 800));
+      const { data } = await sb
+        .from("profiles")
+        .select("id, username, display_name, avatar_url, bio, role")
+        .eq("id", u.id)
+        .maybeSingle();
+      if (data) return data;
+    }
+    /* Still no profile — synthesise a minimal one from auth metadata so
+       the user doesn't appear signed out while the trigger catches up */
+    const meta = u.user_metadata || {};
+    return {
+      id:           u.id,
+      username:     (meta.username || u.email?.split("@")[0] || "user").toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+      display_name: meta.full_name || meta.name || meta.display_name || u.email || "User",
+      avatar_url:   meta.picture || meta.avatar_url || null,
+      bio:          "",
+      role:         "user",
+    };
   }
 
   async function authSignUp(email, password, username, displayName) {
@@ -305,10 +330,13 @@
 
   async function authSignInWithGoogle() {
     if (!CONFIGURED) throw new Error("Supabase is not configured.");
+    /* Use only the page's origin + pathname — no query/hash — so the URL
+       is predictable and matches the Supabase Redirect URLs allow-list */
+    const redirectTo = window.location.origin + window.location.pathname;
     const { data, error } = await sb.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.href,
+        redirectTo,
         queryParams: { access_type: "offline", prompt: "select_account" },
       },
     });
@@ -648,11 +676,12 @@
     auth: {
       getUser:    authGetUser,
       getProfile: authGetProfile,
-      signUp:     authSignUp,
-      signIn:     authSignIn,
+      signUp:       authSignUp,
+      signIn:       authSignIn,
       signInWithGoogle: authSignInWithGoogle,
-      signOut:    authSignOut,
-      onChange:   authOnChange,
+      signOut:      authSignOut,
+      getSession:   authGetSession,
+      onChange:     authOnChange,
     },
 
     recipes: {
