@@ -2354,51 +2354,43 @@
     const cook = { i: 0 };
 
     /**
-     * Find ingredient groups that were fully used (all items) in earlier steps.
-     * These represent "sub-recipes" like sauces that were already made.
+     * Find all ingredient keys that were used in earlier steps.
+     * Returns a Set of keys like "0-2", "1-0" etc.
      */
-    function getCompletedGroups(stepIndex) {
-      const completed = new Set();
+    function getUsedIngredientKeys(stepIndex) {
+      const used = new Set();
       for (let i = 0; i < stepIndex; i++) {
         const prev = steps[i];
-        // Check if step explicitly used a whole group by name
+        // Explicit ingredientKeys
+        if (prev.ingredientKeys?.length) {
+          for (const key of prev.ingredientKeys) used.add(String(key));
+        }
+        // Explicit ingredientGroupNames - mark all items in those groups as used
         if (prev.ingredientGroupNames?.length) {
           for (const name of prev.ingredientGroupNames) {
             const gi = ingredientGroups.findIndex(g => 
               (g.name || "").toLowerCase() === String(name).toLowerCase()
             );
-            if (gi !== -1) completed.add(gi);
-          }
-        }
-        // Check if step used ALL items from a group via ingredientKeys
-        if (prev.ingredientKeys?.length) {
-          const usedByGroup = new Map();
-          for (const key of prev.ingredientKeys) {
-            const [gi] = String(key).split("-").map(Number);
-            if (!usedByGroup.has(gi)) usedByGroup.set(gi, new Set());
-            usedByGroup.get(gi).add(key);
-          }
-          for (const [gi, keys] of usedByGroup) {
-            const group = ingredientGroups[gi];
-            if (group && keys.size === group.items.length) {
-              completed.add(gi);
+            if (gi !== -1) {
+              ingredientGroups[gi].items.forEach((_, ii) => used.add(`${gi}-${ii}`));
             }
           }
         }
       }
-      return completed;
+      return used;
     }
 
     /* Match ingredients to a step: explicit keys → group names → group title in text → keyword match */
     function ingredientsForStep(step, stepIndex = 0) {
       const factor = servings / baseServings;
       const matched = [];
-      // Track groups that were already "made" in earlier steps (e.g., sauces)
-      const completedGroups = stepIndex > 0 ? getCompletedGroups(stepIndex) : new Set();
+      // Track ingredients already used in earlier steps
+      const usedKeys = stepIndex > 0 ? getUsedIngredientKeys(stepIndex) : new Set();
       
-      const pushItem = (item, groupIndex) => {
-        // Skip items from groups that were already combined in a previous step
-        if (completedGroups.has(groupIndex)) return false;
+      const pushItem = (item, groupIndex, itemIndex) => {
+        const key = `${groupIndex}-${itemIndex}`;
+        // Skip ingredients that were already used in a previous step
+        if (usedKeys.has(key)) return false;
         const scaled = item.amount * factor;
         const amountStr = scaled > 0
           ? `${formatAmount(scaled)}${item.unit ? "\u202f" + item.unit : ""}`
@@ -2411,7 +2403,7 @@
         for (const key of step.ingredientKeys) {
           const [gi, ii] = String(key).split("-").map(Number);
           const item = ingredientGroups[gi]?.items[ii];
-          if (item) pushItem(item, gi);
+          if (item) pushItem(item, gi, ii);
         }
         if (matched.length) return matched;
       }
@@ -2421,7 +2413,7 @@
         for (let gi = 0; gi < ingredientGroups.length; gi++) {
           const group = ingredientGroups[gi];
           if (!names.has((group.name || "").toLowerCase())) continue;
-          for (const item of group.items) pushItem(item, gi);
+          group.items.forEach((item, ii) => pushItem(item, gi, ii));
         }
         if (matched.length) return matched;
       }
@@ -2438,18 +2430,18 @@
         const group = ingredientGroups[gi];
         const gname = (group.name || "").toLowerCase();
         if (gname.length >= 5 && haystack.includes(gname)) {
-          for (const item of group.items) pushItem(item, gi);
+          group.items.forEach((item, ii) => pushItem(item, gi, ii));
         }
       }
       if (matched.length) return matched;
 
       for (let gi = 0; gi < ingredientGroups.length; gi++) {
         const group = ingredientGroups[gi];
-        for (const item of group.items) {
+        group.items.forEach((item, ii) => {
           const cleanText = item.text.toLowerCase().replace(/,.*$/, "");
           const words = cleanText.split(/[\s\-\/]+/)
             .filter((w) => w.length >= 4 && !stopWords.has(w) && !/^\d/.test(w));
-          if (words.length === 0) continue;
+          if (words.length === 0) return;
 
           const hit = words.some((w) => {
             const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -2457,8 +2449,8 @@
             if (w.length >= 5 && haystack.includes(w.replace(/s$/, ""))) return true;
             return false;
           });
-          if (hit) pushItem(item, gi);
-        }
+          if (hit) pushItem(item, gi, ii);
+        });
       }
       return matched;
     }

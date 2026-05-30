@@ -112,11 +112,12 @@
   /* ------------------------------------------------------------
      Session-scoped cache for the published recipe list.
   ------------------------------------------------------------ */
-  const CACHE_KEY = "recipy.cache.recipes.v3";
+  const CACHE_KEY = "recipy.cache.recipes.v4";
   let recipesCache = null;
   try {
     sessionStorage.removeItem("recipy.cache.recipes.v1");
     sessionStorage.removeItem("recipy.cache.recipes.v2");
+    sessionStorage.removeItem("recipy.cache.recipes.v3");
   } catch (_) {}
 
   function readCache() {
