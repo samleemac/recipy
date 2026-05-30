@@ -60,6 +60,32 @@
       author:          author?.display_name || author?.username || "Recipy",
       role:            author?.bio || "Recipe Developer",
       publishedAt:     row.published_at,
+      createdAt:       row.created_at,
+    };
+  }
+
+  async function statsGetSiteStats() {
+    if (!CONFIGURED) {
+      const list = window.RECIPES || [];
+      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const newThisWeek = list.filter(r => {
+        const t = r.createdAt ? new Date(r.createdAt).getTime() : 0;
+        return t >= weekAgo;
+      }).length;
+      return { recipeCount: list.length, cookCount: 0, newThisWeek };
+    }
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const [recipesRes, profilesRes, newRes] = await Promise.all([
+      sb.from("recipes").select("*", { count: "exact", head: true }).eq("status", "published"),
+      sb.from("profiles").select("*", { count: "exact", head: true }),
+      sb.from("recipes").select("*", { count: "exact", head: true })
+        .eq("status", "published")
+        .gte("created_at", weekAgo),
+    ]);
+    return {
+      recipeCount: recipesRes.count ?? 0,
+      cookCount:   profilesRes.count ?? 0,
+      newThisWeek: newRes.count ?? 0,
     };
   }
 
@@ -721,6 +747,10 @@
       byUser:      postsByUser,
       likeToggle:  postsLikeToggle,
       subscribe:   postsSubscribe,
+    },
+
+    stats: {
+      getSiteStats: statsGetSiteStats,
     },
   };
 })();

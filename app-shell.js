@@ -1,81 +1,123 @@
 /* ============================================================
-   Recipy — shared app shell for profile / feed / upload / admin.
+   Recipy — shared app shell (pill nav, auth modal, account menu)
 
-   On load:
-   - Mounts the top nav into <div id="appNav">
-   - Mounts the auth modal into <body>
-   - Wires up auth state, theme, account dropdown, sign in / sign up
-
-   Each consuming page can call window.AppShell.requireAuth(cb)
-   to block its content until the user is signed in (the auth modal
-   opens automatically if they're signed out).
+   Mount: AppShell.mount({ page: 'home'|'feed'|'recipe'|'profile'|'upload'|'admin', recipeTitle })
+   Or set <body data-page="feed"> and call mount() on DOMContentLoaded.
    ============================================================ */
 (function () {
   "use strict";
 
   const THEME_KEY = "recipy.theme";
+  const SVG_SUN = `<svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`;
+  const SVG_MOON = `<svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
-  /* Theme bootstrap (matches index.html) ------------------- */
-  (function initTheme() {
+  (function initThemeBootstrap() {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === "dark") document.documentElement.setAttribute("data-theme", "dark");
   })();
 
   let currentUser = null;
   let currentProfile = null;
+  let mountOptions = { page: "home", recipeTitle: "" };
   const authListeners = [];
 
-  /* ---------------------------------------------------------
-     DOM templates
-  --------------------------------------------------------- */
-  function navHtml() {
+  function $(s, root = document) { return root.querySelector(s); }
+
+  function navLink(href, label, pageKey, activePage) {
+    const active = pageKey === activePage;
+    return `<li><a href="${href}" class="${active ? "is-active" : ""}" ${active ? 'aria-current="page"' : ""}>${label}</a></li>`;
+  }
+
+  function pillNavHtml(opts) {
+    const page = opts.page || "home";
+    const isRecipe = page === "recipe";
+    const showIssue = page === "home";
+    const showCmdk = page === "home" || page === "recipe";
+    const showBookmark = page === "home" || page === "recipe";
+    const recipeTitle = opts.recipeTitle || "…";
+
+    const brand = isRecipe
+      ? `<a href="index.html" class="back-btn" aria-label="Back to recipes">
+           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+         </a>
+         <a href="index.html" class="logo" aria-label="Recipy home">RECIPY<span class="logo-dot" aria-hidden="true"></span></a>`
+      : `<a href="index.html" class="logo" id="brandLogo" aria-label="Recipy home">RECIPY<span class="logo-dot" aria-hidden="true"></span></a>
+         ${showIssue ? `<span class="nav-issue" id="navIssue" aria-hidden="true"><span class="pulse"></span><span>Nº47 · Live</span></span>` : ""}`;
+
     return `
-      <nav class="app-nav-inner">
-        <a class="app-logo" href="index.html"><span>RECIPY</span><span class="dot" aria-hidden="true"></span></a>
-        <ul class="app-nav-links">
-          <li><a href="index.html">Recipes</a></li>
-          <li data-auth="user"><a href="feed.html">Feed</a></li>
-          <li><a href="upload.html">Submit</a></li>
-          <li data-auth="admin"><a href="admin.html">Admin</a></li>
-        </ul>
-        <div class="app-nav-spacer"></div>
-
-        <button class="btn btn-secondary" data-auth="guest" id="shellSignIn" type="button">Sign in</button>
-
-        <div class="account-wrap" data-auth="user">
-          <button class="account-btn" id="shellAccountBtn" aria-haspopup="menu" aria-expanded="false" aria-label="Account">
-            <span id="shellAccountInitial">U</span>
-          </button>
-          <div class="account-menu" id="shellAccountMenu" role="menu">
-            <div class="account-menu-head">
-              <div class="account-menu-name" id="shellAccountName">—</div>
-              <div class="account-menu-sub"  id="shellAccountSub">@—</div>
+      <nav class="nav" aria-label="Primary">
+        <div class="nav-brand">${brand}</div>
+        ${isRecipe
+          ? `<div class="nav-crumb"><a href="index.html">Recipes</a> · <strong id="navCrumbTitle">${escapeHtml(recipeTitle)}</strong></div>`
+          : `<ul class="nav-links">
+              ${navLink("index.html", "Recipes", "home", page)}
+              <li data-auth="user">${innerNavLink("feed.html", "Feed", "feed", page)}</li>
+              <li data-auth="user">${innerNavLink("upload.html", "Submit", "upload", page)}</li>
+              <li data-auth="admin">${innerNavLink("admin.html", "Admin", "admin", page)}</li>
+            </ul>`}
+        <div class="nav-right">
+          ${showCmdk ? `
+          <button class="cmdk-trigger" id="cmdkTrigger" type="button" aria-label="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span class="label">Search…</span>
+            <span class="kbd" aria-hidden="true"><span id="kbdKey">⌘K</span></span>
+          </button>` : ""}
+          <div class="nav-icons">
+            <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">${SVG_SUN}${SVG_MOON}</button>
+            ${showBookmark ? `
+            <button class="icon-btn" id="navBookmark" type="button" aria-label="Show saved recipes">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+              <span class="badge" id="bookmarkBadge" aria-hidden="true">0</span>
+            </button>` : ""}
+            <div class="account-wrap">
+              <button class="account-btn" id="accountBtn" type="button" aria-label="Account" aria-haspopup="menu" aria-expanded="false">
+                <svg id="accountIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span class="avatar-letter" id="accountInitial" hidden></span>
+              </button>
+              <div class="account-menu" id="accountMenu" role="menu">
+                <div class="account-menu-head" data-auth="user">
+                  <div class="account-menu-name" id="accountMenuName">—</div>
+                  <div class="account-menu-sub" id="accountMenuSub">@—</div>
+                </div>
+                <a data-auth="guest" href="#" id="menuSignIn">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                  Sign in or sign up
+                </a>
+                <a data-auth="user" href="#" id="menuProfile">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Your profile
+                </a>
+                <a data-auth="user" href="feed.html">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle></svg>
+                  Feed
+                </a>
+                <a data-auth="user" href="upload.html">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  Upload a recipe
+                </a>
+                <a data-auth="admin" href="admin.html">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                  Admin queue
+                </a>
+                <hr data-auth="user">
+                <button class="danger" data-auth="user" id="menuSignOut" type="button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  Sign out
+                </button>
+              </div>
             </div>
-            <a href="#" id="shellMenuProfile">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              Your profile
-            </a>
-            <a href="feed.html">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle></svg>
-              Feed
-            </a>
-            <a href="upload.html">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Upload a recipe
-            </a>
-            <a href="admin.html" data-auth="admin">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
-              Admin queue
-            </a>
-            <hr>
-            <button class="danger" id="shellMenuSignOut" type="button">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-              Sign out
-            </button>
           </div>
         </div>
-      </nav>
-    `;
+      </nav>`;
+  }
+
+  function innerNavLink(href, label, pageKey, activePage) {
+    const active = pageKey === activePage;
+    return `<a href="${href}" class="${active ? "is-active" : ""}" ${active ? 'aria-current="page"' : ""}>${label}</a>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   function authModalHtml() {
@@ -94,7 +136,7 @@
         </div>
         <div class="auth-tabs" role="tablist">
           <button class="auth-tab is-active" id="tabSignin" type="button">Sign in</button>
-          <button class="auth-tab"           id="tabSignup" type="button">Create account</button>
+          <button class="auth-tab" id="tabSignup" type="button">Create account</button>
         </div>
         <div class="auth-oauth">
           <button type="button" class="btn-google" id="authGoogleBtn">
@@ -137,17 +179,15 @@
     return `<div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>`;
   }
 
-  /* ---------------------------------------------------------
-     Behaviours
-  --------------------------------------------------------- */
-  function $(s, root = document) { return root.querySelector(s); }
-
   function applyUserState(profile) {
     document.body.classList.toggle("is-signed-in", !!profile);
     document.body.classList.toggle("is-admin", !!(profile && profile.role === "admin"));
+
+    const btn = $("#accountBtn");
+    const initEl = $("#accountInitial");
+    const iconEl = $("#accountIcon");
+
     if (profile) {
-      const initEl = $("#shellAccountInitial");
-      const btn = $("#shellAccountBtn");
       if (btn) btn.classList.add("is-signed-in");
       if (profile.avatar_url) {
         if (btn) {
@@ -155,74 +195,89 @@
           btn.style.backgroundSize = "cover";
           btn.style.backgroundPosition = "center";
         }
-        if (initEl) initEl.textContent = "";
+        if (initEl) initEl.hidden = true;
+        if (iconEl) iconEl.hidden = true;
       } else {
         if (btn) btn.style.backgroundImage = "";
-        if (initEl) initEl.textContent = (profile.display_name || profile.username || "U")[0].toUpperCase();
+        if (initEl) {
+          initEl.hidden = false;
+          initEl.textContent = (profile.display_name || profile.username || "U")[0].toUpperCase();
+        }
+        if (iconEl) iconEl.hidden = true;
       }
-      const name = $("#shellAccountName");
-      const sub  = $("#shellAccountSub");
+      const name = $("#accountMenuName");
+      const sub = $("#accountMenuSub");
       if (name) name.textContent = profile.display_name || profile.username;
-      if (sub)  sub.textContent  = "@" + profile.username;
-      const profileLink = $("#shellMenuProfile");
+      if (sub) sub.textContent = "@" + profile.username;
+      const profileLink = $("#menuProfile");
       if (profileLink) profileLink.href = `profile.html?u=${encodeURIComponent(profile.username)}`;
     } else {
-      const btn = $("#shellAccountBtn");
-      if (btn) { btn.classList.remove("is-signed-in"); btn.style.backgroundImage = ""; }
+      if (btn) {
+        btn.classList.remove("is-signed-in");
+        btn.style.backgroundImage = "";
+      }
+      if (initEl) initEl.hidden = true;
+      if (iconEl) iconEl.hidden = false;
     }
   }
 
   function openAccountMenu(open) {
-    const menu = $("#shellAccountMenu");
+    const menu = $("#accountMenu");
     if (!menu) return;
     menu.classList.toggle("open", !!open);
-    const btn = $("#shellAccountBtn");
+    const btn = $("#accountBtn");
     if (btn) btn.setAttribute("aria-expanded", !!open);
   }
 
   function switchAuthTab(mode) {
     const signin = mode === "signin";
-    $("#tabSignin").classList.toggle("is-active", signin);
-    $("#tabSignup").classList.toggle("is-active", !signin);
-    $("#fieldUsername").hidden = signin;
-    $("#fieldDisplay").hidden  = signin;
-    $("#authSubmit").textContent = signin ? "Sign in" : "Create account";
-    $("#authTitle").textContent  = signin ? "Welcome back" : "Join Recipy";
-    $("#authSub").textContent    = signin
+    $("#tabSignin")?.classList.toggle("is-active", signin);
+    $("#tabSignup")?.classList.toggle("is-active", !signin);
+    const fu = $("#fieldUsername");
+    const fd = $("#fieldDisplay");
+    if (fu) fu.hidden = signin;
+    if (fd) fd.hidden = signin;
+    const submit = $("#authSubmit");
+    if (submit) submit.textContent = signin ? "Sign in" : "Create account";
+    const title = $("#authTitle");
+    const sub = $("#authSub");
+    if (title) title.textContent = signin ? "Welcome back" : "Join Recipy";
+    if (sub) sub.textContent = signin
       ? "Sign in to save recipes, follow friends and share what you cook."
       : "Create an account to save recipes, follow cooks and share your own.";
   }
 
   function openAuthModal(mode = "signin") {
-    $("#authBackdrop").classList.add("open");
-    $("#authModal").classList.add("open");
-    $("#authConfigWarning").hidden = !!(window.RECIPY && window.RECIPY.configured);
+    $("#authBackdrop")?.classList.add("open");
+    $("#authModal")?.classList.add("open");
+    const warn = $("#authConfigWarning");
+    if (warn) warn.hidden = !!(window.RECIPY && window.RECIPY.configured);
     switchAuthTab(mode);
-    $("#authError").classList.remove("show");
+    $("#authError")?.classList.remove("show");
   }
+
   function closeAuthModal() {
-    $("#authBackdrop").classList.remove("open");
-    $("#authModal").classList.remove("open");
+    $("#authBackdrop")?.classList.remove("open");
+    $("#authModal")?.classList.remove("open");
   }
 
   async function handleAuthSubmit(e) {
     e.preventDefault();
     const error = $("#authError");
-    error.classList.remove("show");
+    error?.classList.remove("show");
     if (!window.RECIPY || !window.RECIPY.configured) {
-      error.textContent = "Set up Supabase in config.js to enable accounts.";
-      error.classList.add("show");
+      if (error) { error.textContent = "Set up Supabase in config.js to enable accounts."; error.classList.add("show"); }
       return;
     }
-    const mode = $("#tabSignin").classList.contains("is-active") ? "signin" : "signup";
-    const email = $("#authEmail").value.trim();
-    const password = $("#authPassword").value;
+    const mode = $("#tabSignin")?.classList.contains("is-active") ? "signin" : "signup";
+    const email = $("#authEmail")?.value.trim();
+    const password = $("#authPassword")?.value;
     const submit = $("#authSubmit");
-    submit.disabled = true;
+    if (submit) submit.disabled = true;
     try {
       if (mode === "signup") {
-        const username = $("#authUsername").value.trim().toLowerCase();
-        const display  = $("#authDisplay").value.trim() || username;
+        const username = $("#authUsername")?.value.trim().toLowerCase();
+        const display = $("#authDisplay")?.value.trim() || username;
         await window.RECIPY.auth.signUp(email, password, username, display);
         toast("Account created — check your inbox if email confirmation is on.");
       } else {
@@ -230,12 +285,28 @@
         toast("Welcome back");
       }
       closeAuthModal();
-      $("#authForm").reset();
+      $("#authForm")?.reset();
     } catch (err) {
-      error.textContent = err.message || "Something went wrong.";
-      error.classList.add("show");
+      if (error) { error.textContent = err.message || "Something went wrong."; error.classList.add("show"); }
     } finally {
-      submit.disabled = false;
+      if (submit) submit.disabled = false;
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    const error = $("#authError");
+    error?.classList.remove("show");
+    if (!window.RECIPY || !window.RECIPY.configured) {
+      if (error) { error.textContent = "Set up Supabase in config.js to enable accounts."; error.classList.add("show"); }
+      return;
+    }
+    const btn = $("#authGoogleBtn");
+    if (btn) btn.disabled = true;
+    try {
+      await window.RECIPY.auth.signInWithGoogle();
+    } catch (err) {
+      if (error) { error.textContent = err.message || "Couldn't start Google sign in."; error.classList.add("show"); }
+      if (btn) btn.disabled = false;
     }
   }
 
@@ -251,19 +322,60 @@
     setTimeout(() => el.remove(), 3000);
   }
 
+  function initThemeToggle() {
+    const btn = $("#themeToggle");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const root = document.documentElement;
+      const next = root.dataset.theme === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      localStorage.setItem(THEME_KEY, next);
+      toast(next === "dark" ? "Lights down. Cozy mode." : "Lights up.");
+    });
+  }
+
+  function initNavScroll() {
+    const navWrap = $("#navWrap");
+    const progress = $("#scrollProgress");
+    if (!navWrap) return;
+    const onScroll = () => {
+      navWrap.classList.toggle("is-stuck", window.scrollY > 8);
+      if (progress) {
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = h > 0 ? (window.scrollY / h * 100).toFixed(2) + "%" : "0%";
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  function setHeroIssue() {
+    const el = $("#navIssue");
+    if (!el) return;
+    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const now = new Date();
+    const issueNum = 47 + now.getMonth();
+    const span = el.querySelector("span:last-child");
+    if (span) span.textContent = `Nº${issueNum} · ${months[now.getMonth()].toUpperCase()}`;
+  }
+
   function bindShell() {
-    $("#shellSignIn")?.addEventListener("click", () => openAuthModal("signin"));
-    $("#shellAccountBtn")?.addEventListener("click", (e) => {
+    $("#menuSignIn")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      openAccountMenu(false);
+      openAuthModal("signin");
+    });
+    $("#accountBtn")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      const menu = $("#shellAccountMenu");
-      openAccountMenu(!menu.classList.contains("open"));
+      const menu = $("#accountMenu");
+      openAccountMenu(!menu?.classList.contains("open"));
     });
     document.addEventListener("click", (e) => {
       if (!e.target.closest(".account-wrap")) openAccountMenu(false);
     });
-    $("#shellMenuSignOut")?.addEventListener("click", async () => {
+    $("#menuSignOut")?.addEventListener("click", async () => {
       openAccountMenu(false);
-      await window.RECIPY.auth.signOut();
+      await window.RECIPY?.auth?.signOut?.();
       toast("Signed out");
     });
     $("#authBackdrop")?.addEventListener("click", closeAuthModal);
@@ -272,26 +384,13 @@
     $("#tabSignup")?.addEventListener("click", () => switchAuthTab("signup"));
     $("#authForm")?.addEventListener("submit", handleAuthSubmit);
     $("#authGoogleBtn")?.addEventListener("click", handleGoogleSignIn);
-  }
+    initThemeToggle();
+    initNavScroll();
+    setHeroIssue();
 
-  async function handleGoogleSignIn() {
-    const error = $("#authError");
-    error.classList.remove("show");
-    if (!window.RECIPY || !window.RECIPY.configured) {
-      error.textContent = "Set up Supabase in config.js to enable accounts.";
-      error.classList.add("show");
-      return;
-    }
-    const btn = $("#authGoogleBtn");
-    btn.disabled = true;
-    try {
-      await window.RECIPY.auth.signInWithGoogle();
-      /* Browser will redirect to Google; nothing more to do here */
-    } catch (err) {
-      error.textContent = err.message || "Couldn't start Google sign in.";
-      error.classList.add("show");
-      btn.disabled = false;
-    }
+    const isMac = /Mac|iPhone|iPad/.test(navigator.platform || "");
+    const kbdKey = $("#kbdKey");
+    if (kbdKey) kbdKey.textContent = isMac ? "⌘K" : "Ctrl K";
   }
 
   async function handleAuthChange(user) {
@@ -300,8 +399,6 @@
     if (user && window.RECIPY && window.RECIPY.configured) {
       currentProfile = await window.RECIPY.auth.getProfile(user);
     }
-    /* Always call applyUserState with currentUser as fallback so a user
-       with a pending profile row doesn't appear signed out */
     applyUserState(currentProfile || (currentUser ? _fallbackProfile(currentUser) : null));
     authListeners.forEach((cb) => {
       try { cb(currentUser, currentProfile); } catch (_) {}
@@ -311,70 +408,83 @@
   function _fallbackProfile(user) {
     const meta = user.user_metadata || {};
     return {
-      id:           user.id,
-      username:     (meta.username || user.email?.split("@")[0] || "u").toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+      id: user.id,
+      username: (meta.username || user.email?.split("@")[0] || "u").toLowerCase().replace(/[^a-z0-9_-]/g, ""),
       display_name: meta.full_name || meta.name || meta.display_name || user.email || "User",
-      avatar_url:   meta.picture || meta.avatar_url || null,
-      bio:          "",
-      role:         "user",
+      avatar_url: meta.picture || meta.avatar_url || null,
+      bio: "",
+      role: "user",
     };
   }
 
-  function mount() {
+  let shellMounted = false;
+
+  function mount(options = {}) {
+    mountOptions = {
+      page: options.page || document.body.dataset.page || "home",
+      recipeTitle: options.recipeTitle || mountOptions.recipeTitle || "",
+    };
+
     const navMount = document.getElementById("appNav");
-    if (navMount) navMount.innerHTML = navHtml();
+    if (navMount) {
+      navMount.innerHTML = pillNavHtml(mountOptions);
+    }
 
-    const div = document.createElement("div");
-    div.innerHTML = authModalHtml() + toastsHtml();
-    document.body.appendChild(div);
+    if (!shellMounted) {
+      const div = document.createElement("div");
+      div.innerHTML = authModalHtml() + toastsHtml();
+      document.body.appendChild(div);
+      shellMounted = true;
+      bindShell();
 
-    bindShell();
-
-    if (window.RECIPY && window.RECIPY.configured) {
-      window.RECIPY.auth.onChange(handleAuthChange);
-      /* getSession is synchronous/cached — catches the OAuth redirect token
-         immediately; getUser follows to fully validate */
-      window.RECIPY.auth.getSession().then(session => {
-        if (session?.user) handleAuthChange(session.user);
-      });
-      window.RECIPY.auth.getUser().then(user => {
-        if (user) handleAuthChange(user);
-      });
-    } else {
-      applyUserState(null);
+      if (window.RECIPY && window.RECIPY.configured) {
+        window.RECIPY.auth.onChange(handleAuthChange);
+        window.RECIPY.auth.getSession().then((session) => {
+          if (session?.user) handleAuthChange(session.user);
+        });
+        window.RECIPY.auth.getUser().then((user) => {
+          if (user) handleAuthChange(user);
+        });
+      } else {
+        applyUserState(null);
+      }
     }
   }
 
-  /* ---------------------------------------------------------
-     Public API
-  --------------------------------------------------------- */
+  function setRecipeTitle(title) {
+    mountOptions.recipeTitle = title || "";
+    const el = document.getElementById("navCrumbTitle");
+    if (el) el.textContent = title || "…";
+  }
+
   window.AppShell = {
     mount,
+    setRecipeTitle,
     toast,
     openAuthModal,
     closeAuthModal,
     onAuth(cb) { authListeners.push(cb); cb(currentUser, currentProfile); },
-    user()    { return currentUser; },
+    user() { return currentUser; },
     profile() { return currentProfile; },
     requireAuth(redirectIfGuest) {
       if (currentUser) return Promise.resolve(currentUser);
       if (window.RECIPY && window.RECIPY.configured) openAuthModal("signin");
       return new Promise((resolve) => {
         const stop = window.RECIPY?.auth.onChange?.((u) => {
-          if (u) {
-            stop && stop();
-            resolve(u);
-          } else if (redirectIfGuest) {
-            location.href = redirectIfGuest;
-          }
+          if (u) { stop && stop(); resolve(u); }
+          else if (redirectIfGuest) location.href = redirectIfGuest;
         }) || (() => {});
       });
     },
   };
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", mount);
-  } else {
-    mount();
+    document.addEventListener("DOMContentLoaded", () => {
+      if (document.getElementById("appNav") || document.getElementById("navWrap")) {
+        mount({ page: document.body.dataset.page });
+      }
+    });
+  } else if (document.getElementById("appNav") || document.getElementById("navWrap")) {
+    mount({ page: document.body.dataset.page });
   }
 })();
