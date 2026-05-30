@@ -2307,7 +2307,6 @@
           const svg = btn.querySelector("svg");
           svg.setAttribute("fill", saved ? "currentColor" : "none");
           toast(saved ? "Saved to your collection" : "Removed from saves");
-          if (state.showSavedOnly) filterRecipes();
         });
       });
 
@@ -2435,7 +2434,6 @@
     const state = {
       filters: new Set(),
       query: "",
-      showSavedOnly: false,
       sort: "popular"
     };
 
@@ -2445,12 +2443,10 @@
     }
 
     function filterRecipes(resetPage = true) {
-      const bookmarks = getBookmarks();
       const q = state.query.trim().toLowerCase();
 
       /* Build filtered list */
-      filteredRecipes = recipes.map((r, i) => ({ recipe: r, idx: i })).filter(({ recipe: r, idx: i }) => {
-        const bookmarkKey = String(r.id != null ? r.id : i);
+      filteredRecipes = recipes.map((r, i) => ({ recipe: r, idx: i })).filter(({ recipe: r }) => {
         const tags = r.tags || [];
         const matchSearch = !q
           || r.title.toLowerCase().includes(q)
@@ -2458,8 +2454,7 @@
           || tags.some(t => t.toLowerCase().includes(q));
         const matchFilter = state.filters.size === 0
           || [...state.filters].every(f => tags.includes(f));
-        const matchSaved = !state.showSavedOnly || bookmarks.has(bookmarkKey);
-        return matchSearch && matchFilter && matchSaved;
+        return matchSearch && matchFilter;
       });
 
       /* Apply sort */
@@ -2485,19 +2480,16 @@
       const total = recipes.length;
       const visible = filteredRecipes.length;
       const countEl = $("#resultCount");
-      const filterTxt = state.showSavedOnly ? "saved" : "";
-      countEl.innerHTML = `Showing <strong>${visible}</strong> of <strong>${total}</strong> ${filterTxt ? `<em style="font-style:normal;color:var(--green-dark)">${filterTxt}</em> ` : ""}recipes`;
+      countEl.innerHTML = `Showing <strong>${visible}</strong> of <strong>${total}</strong> recipes`;
 
       $("#emptyState").hidden = visible > 0;
-      $("#clearFilters").hidden = state.filters.size === 0 && !state.query && !state.showSavedOnly;
+      $("#clearFilters").hidden = state.filters.size === 0 && !state.query;
     }
 
     function clearAllFilters() {
       state.filters.clear();
       state.query = "";
-      state.showSavedOnly = false;
       $$(".pill").forEach(p => p.classList.remove("is-active"));
-      $("#navBookmark").classList.remove("is-active");
       filterRecipes();
     }
 
@@ -3005,7 +2997,7 @@
         const action = sel.dataset.action;
         if (action === "navigate") { window.location.href = sel.getAttribute("href"); }
         else if (action === "theme") { this.close(); $("#themeToggle").click(); }
-        else if (action === "saved") { this.close(); $("#navBookmark").click(); }
+        else if (action === "saved") { this.close(); window.location.href = "profile.html?tab=saved"; }
       }
     };
 
@@ -3046,7 +3038,7 @@
         if (item) {
           const action = item.dataset.action;
           if (action === "theme") { e.preventDefault(); cmdk.close(); $("#themeToggle").click(); }
-          else if (action === "saved") { e.preventDefault(); cmdk.close(); $("#navBookmark").click(); }
+          else if (action === "saved") { e.preventDefault(); cmdk.close(); window.location.href = "profile.html?tab=saved"; }
         }
       });
 
@@ -3105,19 +3097,6 @@
       });
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeSortMenu();
-      });
-    }
-
-    function initBookmarkToggle() {
-      $("#navBookmark").addEventListener("click", () => {
-        if (getBookmarks().size === 0 && !state.showSavedOnly) {
-          toast("Tap the bookmark on any recipe to save it");
-          return;
-        }
-        state.showSavedOnly = !state.showSavedOnly;
-        $("#navBookmark").classList.toggle("is-active", state.showSavedOnly);
-        filterRecipes();
-        toast(state.showSavedOnly ? "Showing your saves" : "Showing all recipes");
       });
     }
 
@@ -3206,7 +3185,7 @@
         if (cmdK) { e.preventDefault(); cmdk.isOpen() ? cmdk.close() : cmdk.open(); return; }
         if (e.key === "/" && !typing) { e.preventDefault(); cmdk.open(); return; }
         if (cmdk.isOpen()) return;
-        if ((e.key === "b" || e.key === "B") && !typing) { $("#navBookmark").click(); }
+        if ((e.key === "b" || e.key === "B") && !typing) { window.location.href = "profile.html?tab=saved"; }
         else if ((e.key === "d" || e.key === "D") && !typing && !e.metaKey && !e.ctrlKey) { $("#themeToggle").click(); }
       });
     }
@@ -3290,7 +3269,6 @@
       initPills();
       initCmdk();
       initSort();
-      initBookmarkToggle();
       initClearFilters();
       initNavScroll();
       initPagination();

@@ -216,6 +216,25 @@
     return (data || []).map((r) => rowToRecipe(r, authors));
   }
 
+  async function recipesGetByIds(ids) {
+    if (!ids || !ids.length) return [];
+    if (!CONFIGURED) {
+      return (window.RECIPES || []).filter((r) => ids.includes(r.id));
+    }
+    const { data, error } = await sb
+      .from("recipes")
+      .select("*")
+      .in("id", ids)
+      .eq("status", "published");
+    if (error) {
+      console.warn("recipesGetByIds", error);
+      return [];
+    }
+    const authorIds = [...new Set((data || []).map((r) => r.author_id).filter(Boolean))];
+    const authors = await loadAuthors(authorIds);
+    return (data || []).map((r) => rowToRecipe(r, authors));
+  }
+
   async function recipesSubmit(recipe, photoFile) {
     if (!CONFIGURED) throw new Error("Supabase is not configured.");
     const user = await authGetUser();
@@ -714,6 +733,7 @@
       getAll:      recipesGetAll,
       getBySlug:   recipesGetBySlug,
       getByAuthor: recipesGetByAuthor,
+      getByIds:    recipesGetByIds,
       getPending:  recipesGetPending,
       submit:      recipesSubmit,
       approve:     recipesApprove,

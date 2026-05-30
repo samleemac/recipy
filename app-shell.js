@@ -387,10 +387,24 @@
     initThemeToggle();
     initNavScroll();
     setHeroIssue();
+    initNavBookmark();
 
     const isMac = /Mac|iPhone|iPad/.test(navigator.platform || "");
     const kbdKey = $("#kbdKey");
     if (kbdKey) kbdKey.textContent = isMac ? "⌘K" : "Ctrl K";
+  }
+
+  function initNavBookmark() {
+    const btn = $("#navBookmark");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      if (!currentUser) {
+        toast("Sign in to see your saved recipes");
+        openAuthModal("signin");
+        return;
+      }
+      window.location.href = "profile.html?tab=saved";
+    });
   }
 
   async function handleAuthChange(user) {
