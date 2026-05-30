@@ -1013,7 +1013,7 @@ window.RECIPES = [
     ],
     steps: [
       { title: "Cook the rice", time: 25, desc: "Cook the brown rice according to the packet instructions, with the vegetable stock cube if you like for extra flavour.", tip: "Rinse the rice first for fluffier grains. Start this first — it can sit covered while you stir-fry." },
-      { title: "Mix the teriyaki sauce", time: 2, desc: "In a small bowl, mix together all the quick teriyaki sauce ingredients. Set aside." },
+      { title: "Mix the teriyaki sauce", time: 2, desc: "In a small bowl, mix together all the quick teriyaki sauce ingredients. Set aside.", ingredientGroupNames: ["Quick teriyaki-style sauce"] },
       { title: "Crisp the tempeh", time: 8, desc: "Over a small bowl, crumble the tempeh into small chunks with your hands. Heat 1 tablespoon of the sesame oil in a non-stick frying pan on a medium–high heat and, once hot, add the tempeh. Fry for 5 minutes until browning. Add the tamari and mix well. Taste and add a little more tamari if you think it needs more salt.", tip: "Crumbling over a bowl catches any crumbs — you want small, even pieces so every bite gets crispy edges." },
       { title: "Stir-fry the bowl", time: 10, desc: "In a wok or frying pan, add the remaining sesame oil and fry the spring onion whites, ginger, garlic and chilli for 3–4 minutes until fragrant. Add the broccoli and stir-fry for 3–4 minutes until it turns bright green. Add the cooked rice, edamame and peas (straight from frozen is fine — they will thaw in the pan), then tip in the sauce. Mix well, then add the cooked tempeh and heat through." },
       { title: "Serve", time: 2, desc: "Divide into bowls and serve topped with extra chilli, the spring onion greens and sesame seeds." }

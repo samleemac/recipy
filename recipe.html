@@ -2322,10 +2322,28 @@
        ============================================================ */
     const cook = { i: 0 };
 
-    /* Match ingredient items to a step by searching their key words in the step text */
+    /* Match ingredient items to a step — explicit group names first, then keyword match */
     function ingredientsForStep(step) {
-      const haystack = (step.title + " " + step.desc).toLowerCase();
       const factor = servings / baseServings;
+      const pushItem = (item, out) => {
+        const scaled = item.amount * factor;
+        const amountStr = scaled > 0
+          ? `${formatAmount(scaled)}${item.unit ? "\u202f" + item.unit : ""}`
+          : "";
+        out.push({ amountStr, text: item.text });
+      };
+
+      if (step.ingredientGroupNames?.length) {
+        const names = new Set(step.ingredientGroupNames.map((n) => String(n).toLowerCase()));
+        const matched = [];
+        for (const group of ingredientGroups) {
+          if (!names.has((group.name || "").toLowerCase())) continue;
+          for (const item of group.items) pushItem(item, matched);
+        }
+        if (matched.length) return matched;
+      }
+
+      const haystack = (step.title + " " + step.desc + (step.tip || "")).toLowerCase();
       const stopWords = new Set([
         "with","into","from","diced","sliced","small","large","fresh","dried",
         "melted","softened","roughly","finely","chopped","grated","torn","peeled",
@@ -2348,11 +2366,7 @@
           });
           if (!matched_word) continue;
 
-          const scaled = item.amount * factor;
-          const amountStr = scaled > 0
-            ? `${formatAmount(scaled)}${item.unit ? "\u202f" + item.unit : ""}`
-            : "";
-          matched.push({ amountStr, text: item.text });
+          pushItem(item, matched);
         }
       }
       return matched;
