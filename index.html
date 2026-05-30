@@ -3131,13 +3131,6 @@
       });
     }
 
-    function initTheme() {
-      const root = document.documentElement;
-      const saved = localStorage.getItem("recipy.theme");
-      if (saved === "dark" || saved === "light") root.dataset.theme = saved;
-      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) root.dataset.theme = "dark";
-    }
-
     function initSubscribe() {
       const form = $("#subscribeForm");
       form.addEventListener("submit", (e) => {
@@ -3259,7 +3252,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      initTheme();
       setHeroGreeting();
       await loadRecipes();
       await setHeroStats();

@@ -2655,23 +2655,6 @@
     }
 
     /* ============================================================
-       Theme
-       ============================================================ */
-    function initTheme() {
-      const root = document.documentElement;
-      const saved = localStorage.getItem("recipy.theme");
-      if (saved === "dark" || saved === "light") root.dataset.theme = saved;
-      else if (window.matchMedia("(prefers-color-scheme: dark)").matches) root.dataset.theme = "dark";
-
-      $("#themeToggle").addEventListener("click", () => {
-        const next = root.dataset.theme === "dark" ? "light" : "dark";
-        root.dataset.theme = next;
-        localStorage.setItem("recipy.theme", next);
-        toast(next === "dark" ? "Lights down. Cozy mode." : "Lights up.");
-      });
-    }
-
-    /* ============================================================
        Command palette (subset of listing)
        ============================================================ */
     const cmdk = {
@@ -2857,7 +2840,6 @@
        Boot
        ============================================================ */
     document.addEventListener("DOMContentLoaded", async () => {
-      initTheme();
       try {
         await resolveRecipe();
         /* If Supabase is configured, load the full list for related + cmdk */

@@ -395,6 +395,17 @@
     clearCache();
   }
 
+  async function authUpdateTheme(theme) {
+    if (!CONFIGURED) return;
+    const user = await authGetUser();
+    if (!user) return;
+    const next = theme === "dark" ? "dark" : "light";
+    const { error } = await sb.auth.updateUser({
+      data: { ...(user.user_metadata || {}), theme: next },
+    });
+    if (error) throw error;
+  }
+
   function authOnChange(cb) {
     if (!CONFIGURED) return () => {};
     const { data } = sb.auth.onAuthStateChange((evt, session) => {
@@ -727,6 +738,7 @@
       signOut:      authSignOut,
       getSession:   authGetSession,
       onChange:     authOnChange,
+      updateTheme:  authUpdateTheme,
     },
 
     recipes: {

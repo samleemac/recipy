@@ -8,12 +8,49 @@
   "use strict";
 
   const THEME_KEY = "recipy.theme";
+  const DEFAULT_THEME = "light";
   const SVG_SUN = `<svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>`;
   const SVG_MOON = `<svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
-  (function initThemeBootstrap() {
+  function applyTheme(theme) {
+    const t = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", t);
+  }
+
+  function getStoredTheme() {
     const saved = localStorage.getItem(THEME_KEY);
-    if (saved === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    return saved === "dark" || saved === "light" ? saved : null;
+  }
+
+  function setStoredTheme(theme) {
+    localStorage.setItem(THEME_KEY, theme === "dark" ? "dark" : "light");
+  }
+
+  function themeFromUser(user) {
+    const t = user?.user_metadata?.theme;
+    return t === "dark" || t === "light" ? t : null;
+  }
+
+  async function persistThemeForUser(theme) {
+    if (!currentUser || !window.RECIPY?.configured) return;
+    try {
+      await window.RECIPY.auth.updateTheme(theme);
+    } catch (_) {}
+  }
+
+  function syncThemeForUser(user) {
+    const accountTheme = user ? themeFromUser(user) : null;
+    if (accountTheme) {
+      applyTheme(accountTheme);
+      setStoredTheme(accountTheme);
+      return;
+    }
+    const stored = getStoredTheme();
+    applyTheme(stored || DEFAULT_THEME);
+  }
+
+  (function initThemeBootstrap() {
+    applyTheme(getStoredTheme() || DEFAULT_THEME);
   })();
 
   let currentUser = null;
@@ -325,11 +362,11 @@
   function initThemeToggle() {
     const btn = $("#themeToggle");
     if (!btn) return;
-    btn.addEventListener("click", () => {
-      const root = document.documentElement;
-      const next = root.dataset.theme === "dark" ? "light" : "dark";
-      root.dataset.theme = next;
-      localStorage.setItem(THEME_KEY, next);
+    btn.addEventListener("click", async () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      applyTheme(next);
+      setStoredTheme(next);
+      await persistThemeForUser(next);
       toast(next === "dark" ? "Lights down. Cozy mode." : "Lights up.");
     });
   }
@@ -410,6 +447,7 @@
   async function handleAuthChange(user) {
     currentUser = user || null;
     currentProfile = null;
+    syncThemeForUser(user);
     if (user && window.RECIPY && window.RECIPY.configured) {
       currentProfile = await window.RECIPY.auth.getProfile(user);
     }
