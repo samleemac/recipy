@@ -2353,32 +2353,75 @@
        ============================================================ */
     const cook = { i: 0 };
 
+    /**
+     * Find ingredient groups that were fully used (all items) in earlier steps.
+     * These represent "sub-recipes" like sauces that were already made.
+     */
+    function getCompletedGroups(stepIndex) {
+      const completed = new Set();
+      for (let i = 0; i < stepIndex; i++) {
+        const prev = steps[i];
+        // Check if step explicitly used a whole group by name
+        if (prev.ingredientGroupNames?.length) {
+          for (const name of prev.ingredientGroupNames) {
+            const gi = ingredientGroups.findIndex(g => 
+              (g.name || "").toLowerCase() === String(name).toLowerCase()
+            );
+            if (gi !== -1) completed.add(gi);
+          }
+        }
+        // Check if step used ALL items from a group via ingredientKeys
+        if (prev.ingredientKeys?.length) {
+          const usedByGroup = new Map();
+          for (const key of prev.ingredientKeys) {
+            const [gi] = String(key).split("-").map(Number);
+            if (!usedByGroup.has(gi)) usedByGroup.set(gi, new Set());
+            usedByGroup.get(gi).add(key);
+          }
+          for (const [gi, keys] of usedByGroup) {
+            const group = ingredientGroups[gi];
+            if (group && keys.size === group.items.length) {
+              completed.add(gi);
+            }
+          }
+        }
+      }
+      return completed;
+    }
+
     /* Match ingredients to a step: explicit keys → group names → group title in text → keyword match */
-    function ingredientsForStep(step) {
+    function ingredientsForStep(step, stepIndex = 0) {
       const factor = servings / baseServings;
       const matched = [];
-      const pushItem = (item) => {
+      // Track groups that were already "made" in earlier steps (e.g., sauces)
+      const completedGroups = stepIndex > 0 ? getCompletedGroups(stepIndex) : new Set();
+      
+      const pushItem = (item, groupIndex) => {
+        // Skip items from groups that were already combined in a previous step
+        if (completedGroups.has(groupIndex)) return false;
         const scaled = item.amount * factor;
         const amountStr = scaled > 0
           ? `${formatAmount(scaled)}${item.unit ? "\u202f" + item.unit : ""}`
           : "";
         matched.push({ amountStr, text: item.text });
+        return true;
       };
 
       if (step.ingredientKeys?.length) {
         for (const key of step.ingredientKeys) {
           const [gi, ii] = String(key).split("-").map(Number);
           const item = ingredientGroups[gi]?.items[ii];
-          if (item) pushItem(item);
+          if (item) pushItem(item, gi);
         }
         if (matched.length) return matched;
       }
 
       if (step.ingredientGroupNames?.length) {
         const names = new Set(step.ingredientGroupNames.map((n) => String(n).toLowerCase()));
-        for (const group of ingredientGroups) {
+        for (let gi = 0; gi < ingredientGroups.length; gi++) {
+          const group = ingredientGroups[gi];
           if (!names.has((group.name || "").toLowerCase())) continue;
-          for (const item of group.items) pushItem(item);
+          for (const item of group.items) pushItem(item, gi);
         }
         if (matched.length) return matched;
       }
@@ -2391,15 +2434,17 @@
         "extra","good","warm","cold","room","temp","more","some","your","then",
       ]);
 
-      for (const group of ingredientGroups) {
+      for (let gi = 0; gi < ingredientGroups.length; gi++) {
+        const group = ingredientGroups[gi];
         const gname = (group.name || "").toLowerCase();
         if (gname.length >= 5 && haystack.includes(gname)) {
-          for (const item of group.items) pushItem(item);
+          for (const item of group.items) pushItem(item, gi);
         }
       }
       if (matched.length) return matched;
 
-      for (const group of ingredientGroups) {
+      for (let gi = 0; gi < ingredientGroups.length; gi++) {
+        const group = ingredientGroups[gi];
         for (const item of group.items) {
           const cleanText = item.text.toLowerCase().replace(/,.*$/, "");
           const words = cleanText.split(/[\s\-\/]+/)
@@ -2412,7 +2457,7 @@
             if (w.length >= 5 && haystack.includes(w.replace(/s$/, ""))) return true;
             return false;
           });
-          if (hit) pushItem(item);
+          if (hit) pushItem(item, gi);
         }
       }
       return matched;
@@ -2463,7 +2508,7 @@
     function renderCookmodeStep() {
       const s = steps[cook.i];
       const el = $("#cookmodeStep");
-      const ings = ingredientsForStep(s);
+      const ings = ingredientsForStep(s, cook.i);
       const ingsHtml = ings.length ? `
         <div class="cookmode-ings">
           <div class="cookmode-ings-label">Ingredients this step</div>
