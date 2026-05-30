@@ -2418,6 +2418,36 @@
       return matched;
     }
 
+    /**
+     * Extract a timer duration from step description text.
+     * Looks for patterns like "for 5 minutes", "~10 min", "simmer 5 more minutes".
+     * Returns the extracted minutes or null if no timer-worthy duration found.
+     */
+    function extractTimerFromText(text) {
+      if (!text) return null;
+      // Patterns to match durations in description (ordered by specificity)
+      const patterns = [
+        // "for X-Y minutes" (range) - use the first number
+        /(?:for|about|around|~)\s*(\d+)\s*[-–]\s*\d+\s*(?:min(?:ute)?s?|mins?)\b/i,
+        // "for X minutes", "~X min", "about X mins"
+        /(?:for|about|around|~)\s*(\d+)\s*(?:min(?:ute)?s?|mins?)\b/i,
+        // "X more minutes", "another X minutes"
+        /(\d+)\s*(?:more|another)\s*(?:min(?:ute)?s?|mins?)\b/i,
+        // Action verbs followed by duration: "simmer 5 minutes", "bake 15 min"
+        /(?:simmer|bake|roast|cook|fry|boil|steam|grill|sauté|saute|stir-fry|braise|poach|blanch|rest|cool|chill|set)\s+(?:for\s+)?(\d+)\s*(?:min(?:ute)?s?|mins?)\b/i,
+        // "until X (~Y min)" pattern
+        /\(~?(\d+)\s*(?:min(?:ute)?s?|mins?)\)/i,
+      ];
+      for (const pattern of patterns) {
+        const match = text.match(pattern);
+        if (match) {
+          const mins = parseInt(match[1], 10);
+          if (mins > 0 && mins <= 120) return mins; // sanity check: 1-120 min
+        }
+      }
+      return null;
+    }
+
     function renderCookmodeStep() {
       const s = steps[cook.i];
       const el = $("#cookmodeStep");
@@ -2429,10 +2459,14 @@
             ${ings.map((ing, idx) => `<button class="cookmode-ing-chip" type="button" data-chip-idx="${idx}" aria-pressed="false">${escapeHtml(ing.text)}${ing.amountStr ? `<em>(${escapeHtml(ing.amountStr)})</em>` : ""}</button>`).join("")}
           </div>
         </div>` : "";
-      const timerBtn = s.time > 0 ? `
-        <button class="cookmode-timer-btn" data-timer-mins="${s.time}" data-timer-label="${escapeHtml(s.title)}" type="button" aria-label="Start ${s.time}-minute timer">
+
+      // Extract timer duration from description text (the actual timed task)
+      const extractedTimer = extractTimerFromText(s.desc);
+      const timerMins = extractedTimer || s.time; // fallback to step time if no explicit timer found
+      const timerBtn = timerMins > 0 ? `
+        <button class="cookmode-timer-btn" data-timer-mins="${timerMins}" data-timer-label="${escapeHtml(s.title)}" type="button" aria-label="Start ${timerMins}-minute timer">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          ${s.time} min timer
+          ${timerMins} min timer
         </button>` : "";
 
       el.innerHTML = `
