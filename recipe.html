@@ -1048,12 +1048,18 @@
 
     .cookmode-body {
       flex: 1;
-      display: flex; align-items: center; justify-content: center;
-      padding: 40px 32px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 40px 88px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
     }
     .cookmode-step {
       max-width: 760px;
+      width: 100%;
       text-align: center;
+      margin: auto;
     }
     .cookmode-step .num {
       font: 700 18px var(--sans);
@@ -1228,8 +1234,7 @@
       background: var(--green-dark); border-color: var(--green-dark);
     }
 
-    /* Ensure the step content never slides under the side buttons */
-    .cookmode-body { padding-left: 88px; padding-right: 88px; }
+    /* Side button padding merged into .cookmode-body above */
 
     /* ============================================================
        Floating timers — row across the top, centred
@@ -1343,9 +1348,35 @@
       padding: 7px 14px; border-radius: 100px;
       background: var(--bg-soft); border: 1px solid var(--border);
       font: 500 14px var(--sans); color: var(--text);
+      cursor: pointer;
+      transition: background .15s, border-color .15s, color .15s;
+      user-select: none;
     }
     .cookmode-ing-chip em {
       font-style: normal; color: var(--green); font-weight: 700; margin-left: 6px;
+    }
+    .cookmode-ing-chip.is-done {
+      background: var(--green-soft);
+      border-color: var(--green);
+      color: var(--green-dark);
+    }
+    .cookmode-ing-chip.is-done em { color: var(--green-dark); }
+    .cookmode-ing-chip.is-done::after {
+      content: " ✓";
+      font-weight: 700;
+    }
+
+    /* Cook mode — mobile layout */
+    @media (max-width: 600px) {
+      .cookmode-head { padding: 14px 16px; }
+      .cookmode-body { padding: 24px 16px 100px; }
+      .cookmode-foot { padding: 10px 16px; }
+      .cookmode-side-btn { top: auto; bottom: 72px; transform: none; width: 44px; }
+      .cookmode-side-btn.prev { left: 12px; }
+      .cookmode-side-btn.next { right: 12px; }
+      .cookmode-side-btn:hover:not(:disabled) { transform: scale(1.06); }
+      .cookmode-step h2 { font-size: clamp(26px, 6vw, 40px); }
+      .cookmode-step .desc { font-size: clamp(16px, 4vw, 20px); }
     }
 
     /* ============================================================
@@ -2395,7 +2426,7 @@
         <div class="cookmode-ings">
           <div class="cookmode-ings-label">Ingredients this step</div>
           <div class="cookmode-ings-chips">
-            ${ings.map(i => `<span class="cookmode-ing-chip">${escapeHtml(i.text)}${i.amountStr ? `<em>(${escapeHtml(i.amountStr)})</em>` : ""}</span>`).join("")}
+            ${ings.map((ing, idx) => `<button class="cookmode-ing-chip" type="button" data-chip-idx="${idx}" aria-pressed="false">${escapeHtml(ing.text)}${ing.amountStr ? `<em>(${escapeHtml(ing.amountStr)})</em>` : ""}</button>`).join("")}
           </div>
         </div>` : "";
       const timerBtn = s.time > 0 ? `
@@ -2426,6 +2457,14 @@
         }
         tb.addEventListener("click", () => startCookTimer(tb.dataset.timerLabel, parseInt(tb.dataset.timerMins, 10)));
       }
+
+      // Bind ingredient chip tap-to-tick
+      el.querySelectorAll(".cookmode-ing-chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const done = chip.classList.toggle("is-done");
+          chip.setAttribute("aria-pressed", String(done));
+        });
+      });
 
       $("#cookmodeTitle").textContent = recipe.title;
       $("#cookmodePrev").disabled = cook.i === 0;
