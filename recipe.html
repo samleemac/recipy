@@ -2322,23 +2322,32 @@
        ============================================================ */
     const cook = { i: 0 };
 
-    /* Match ingredient items to a step — explicit group names first, then keyword match */
+    /* Match ingredients to a step: explicit keys → group names → group title in text → keyword match */
     function ingredientsForStep(step) {
       const factor = servings / baseServings;
-      const pushItem = (item, out) => {
+      const matched = [];
+      const pushItem = (item) => {
         const scaled = item.amount * factor;
         const amountStr = scaled > 0
           ? `${formatAmount(scaled)}${item.unit ? "\u202f" + item.unit : ""}`
           : "";
-        out.push({ amountStr, text: item.text });
+        matched.push({ amountStr, text: item.text });
       };
+
+      if (step.ingredientKeys?.length) {
+        for (const key of step.ingredientKeys) {
+          const [gi, ii] = String(key).split("-").map(Number);
+          const item = ingredientGroups[gi]?.items[ii];
+          if (item) pushItem(item);
+        }
+        if (matched.length) return matched;
+      }
 
       if (step.ingredientGroupNames?.length) {
         const names = new Set(step.ingredientGroupNames.map((n) => String(n).toLowerCase()));
-        const matched = [];
         for (const group of ingredientGroups) {
           if (!names.has((group.name || "").toLowerCase())) continue;
-          for (const item of group.items) pushItem(item, matched);
+          for (const item of group.items) pushItem(item);
         }
         if (matched.length) return matched;
       }
@@ -2348,25 +2357,31 @@
         "with","into","from","diced","sliced","small","large","fresh","dried",
         "melted","softened","roughly","finely","chopped","grated","torn","peeled",
         "minced","halved","quartered","beaten","cooked","plain","dark","light",
-        "extra","good","warm","cold","room","temp","more","some","your","then"
+        "extra","good","warm","cold","room","temp","more","some","your","then",
       ]);
-      const matched = [];
+
+      for (const group of ingredientGroups) {
+        const gname = (group.name || "").toLowerCase();
+        if (gname.length >= 5 && haystack.includes(gname)) {
+          for (const item of group.items) pushItem(item);
+        }
+      }
+      if (matched.length) return matched;
 
       for (const group of ingredientGroups) {
         for (const item of group.items) {
-          /* Strip descriptive phrases after first comma, then split into words */
           const cleanText = item.text.toLowerCase().replace(/,.*$/, "");
           const words = cleanText.split(/[\s\-\/]+/)
-            .filter(w => w.length >= 4 && !stopWords.has(w) && !/^\d/.test(w));
+            .filter((w) => w.length >= 4 && !stopWords.has(w) && !/^\d/.test(w));
           if (words.length === 0) continue;
 
-          const matched_word = words.some(w => {
+          const hit = words.some((w) => {
             const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            return new RegExp("\\b" + escaped + "\\b").test(haystack);
+            if (new RegExp("\\b" + escaped + "\\b").test(haystack)) return true;
+            if (w.length >= 5 && haystack.includes(w.replace(/s$/, ""))) return true;
+            return false;
           });
-          if (!matched_word) continue;
-
-          pushItem(item, matched);
+          if (hit) pushItem(item);
         }
       }
       return matched;

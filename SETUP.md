@@ -35,10 +35,12 @@ buckets (`recipes`, `cooks`) and enables realtime on `cooked_posts`.
 The anon key is safe to commit — Row Level Security is what protects
 your data, not the key. Commit `config.js` so GitHub Pages picks it up.
 
-## 4. Migrate the 22 seed recipes
+## 4. Migrate seed recipes
 
 The migration script copies everything in `recipes-data.js` into the
 `recipes` table under a system user called **@mackinley-kitchen**.
+
+When adding or editing recipes, follow **[docs/RECIPE_AUTHORING.md](docs/RECIPE_AUTHORING.md)** so cook mode lists ingredients and amounts on every step. Run `npm run audit:cookmode` before migrating.
 
 ```bash
 npm install

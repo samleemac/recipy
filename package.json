@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "migrate": "node scripts/migrate-recipes.mjs"
+    "migrate": "node scripts/migrate-recipes.mjs",
+    "audit:cookmode": "node scripts/audit-cookmode-ingredients.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0"
