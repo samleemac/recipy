@@ -2419,33 +2419,45 @@
     }
 
     /**
-     * Extract a timer duration from step description text.
-     * Looks for patterns like "for 5 minutes", "~10 min", "simmer 5 more minutes".
-     * Returns the extracted minutes or null if no timer-worthy duration found.
+     * Extract ALL timer durations from step description text.
+     * Returns array of {mins, context} objects for each timed action found.
+     * For ranges like "3-4 minutes", uses the higher value.
      */
-    function extractTimerFromText(text) {
-      if (!text) return null;
-      // Patterns to match durations in description (ordered by specificity)
-      const patterns = [
-        // "for X-Y minutes" (range) - use the first number
-        /(?:for|about|around|~)\s*(\d+)\s*[-–]\s*\d+\s*(?:min(?:ute)?s?|mins?)\b/i,
-        // "for X minutes", "~X min", "about X mins"
-        /(?:for|about|around|~)\s*(\d+)\s*(?:min(?:ute)?s?|mins?)\b/i,
-        // "X more minutes", "another X minutes"
-        /(\d+)\s*(?:more|another)\s*(?:min(?:ute)?s?|mins?)\b/i,
-        // Action verbs followed by duration: "simmer 5 minutes", "bake 15 min"
-        /(?:simmer|bake|roast|cook|fry|boil|steam|grill|sauté|saute|stir-fry|braise|poach|blanch|rest|cool|chill|set)\s+(?:for\s+)?(\d+)\s*(?:min(?:ute)?s?|mins?)\b/i,
-        // "until X (~Y min)" pattern
-        /\(~?(\d+)\s*(?:min(?:ute)?s?|mins?)\)/i,
-      ];
-      for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match) {
-          const mins = parseInt(match[1], 10);
-          if (mins > 0 && mins <= 120) return mins; // sanity check: 1-120 min
+    function extractTimersFromText(text) {
+      if (!text) return [];
+      const timers = [];
+      // Split into sentences to get context for each timer
+      const sentences = text.split(/(?<=[.!?])\s+|(?:,\s*(?=(?:then|and)\s))/i);
+      
+      // Global pattern to find all time mentions
+      // Matches: "for 3-4 minutes", "~5 min", "stir-fry for 3 minutes", "(~10 min)", etc.
+      const timePattern = /(?:(?:for|about|around|~)\s*)?(\d+)(?:\s*[-–]\s*(\d+))?\s*(?:min(?:ute)?s?|mins?)\b/gi;
+      
+      let match;
+      while ((match = timePattern.exec(text)) !== null) {
+        const min1 = parseInt(match[1], 10);
+        const min2 = match[2] ? parseInt(match[2], 10) : null;
+        // For ranges, use the higher value
+        const mins = min2 ? Math.max(min1, min2) : min1;
+        
+        if (mins > 0 && mins <= 120) {
+          // Find context: look for nearby action words
+          const beforeMatch = text.slice(Math.max(0, match.index - 60), match.index);
+          const contextMatch = beforeMatch.match(/(?:fry|stir-fry|sauté|saute|cook|simmer|bake|roast|boil|steam|grill|braise|poach|blanch|rest|cool|chill|brown|sear|caramelise|caramelize|reduce|heat|warm|soften|wilt|toast|crisp|set)(?:\s+(?:the|until|for))?\s*$/i);
+          const context = contextMatch ? contextMatch[0].trim() : null;
+          
+          timers.push({ mins, context, position: match.index });
         }
       }
-      return null;
+      
+      // Remove duplicates (same duration at similar positions)
+      const unique = [];
+      for (const t of timers) {
+        const isDupe = unique.some(u => u.mins === t.mins && Math.abs(u.position - t.position) < 20);
+        if (!isDupe) unique.push(t);
+      }
+      
+      return unique;
     }
 
     function renderCookmodeStep() {
@@ -2460,14 +2472,20 @@
           </div>
         </div>` : "";
 
-      // Extract timer duration from description text (the actual timed task)
-      const extractedTimer = extractTimerFromText(s.desc);
-      const timerMins = extractedTimer || s.time; // fallback to step time if no explicit timer found
-      const timerBtn = timerMins > 0 ? `
-        <button class="cookmode-timer-btn" data-timer-mins="${timerMins}" data-timer-label="${escapeHtml(s.title)}" type="button" aria-label="Start ${timerMins}-minute timer">
+      // Extract timer durations from description text (actual timed tasks)
+      const extractedTimers = extractTimersFromText(s.desc);
+      // If no timers found in text, fall back to step time
+      const timers = extractedTimers.length > 0 ? extractedTimers : (s.time > 0 ? [{ mins: s.time, context: null }] : []);
+      const timerBtns = timers.map((t, idx) => {
+        const label = t.context 
+          ? `${s.title} — ${t.context}` 
+          : (timers.length > 1 ? `${s.title} (${idx + 1})` : s.title);
+        return `
+        <button class="cookmode-timer-btn" data-timer-mins="${t.mins}" data-timer-label="${escapeHtml(label)}" type="button" aria-label="Start ${t.mins}-minute timer">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          ${timerMins} min timer
-        </button>` : "";
+          ${t.mins} min timer
+        </button>`;
+      }).join("");
 
       el.innerHTML = `
         <div class="num">Step ${cook.i + 1} of ${steps.length}</div>
@@ -2476,21 +2494,20 @@
           <div class="time" style="margin-bottom:0;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             About ${s.time} min
-          </div>${timerBtn}
+          </div>${timerBtns}
         </div>
         <p class="desc">${escapeHtml(s.desc)}</p>
         ${s.tip ? `<div class="tip"><strong style="font-style:normal;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:6px;">Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
         ${ingsHtml}
       `;
-      // Bind the timer button (can't use onclick in innerHTML — use event delegation)
-      const tb = el.querySelector(".cookmode-timer-btn");
-      if (tb) {
+      // Bind timer buttons (can't use onclick in innerHTML — use event delegation)
+      el.querySelectorAll(".cookmode-timer-btn").forEach((tb) => {
         if (cookTimers.some(t => t.label === tb.dataset.timerLabel)) {
           tb.disabled = true;
-          tb.title = "Timer already running for this step";
+          tb.title = "Timer already running";
         }
         tb.addEventListener("click", () => startCookTimer(tb.dataset.timerLabel, parseInt(tb.dataset.timerMins, 10)));
-      }
+      });
 
       // Bind ingredient chip tap-to-tick
       el.querySelectorAll(".cookmode-ing-chip").forEach((chip) => {
