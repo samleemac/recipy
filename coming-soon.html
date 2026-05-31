@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-page="coming-soon">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coming Soon — Recipy</title>
+  <meta name="theme-color" content="#B4B56B">
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      z-index: 9999;
+      mix-blend-mode: multiply;
+    }
+    [data-theme="dark"] body::before {
+      mix-blend-mode: screen;
+      opacity: 0.015;
+    }
+
+    .coming-soon {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .coming-soon-icon {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 32px;
+      color: var(--sage);
+      animation: simmer 3s ease-in-out infinite;
+    }
+    @keyframes simmer {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+
+    .coming-soon h1 {
+      font: 700 clamp(32px, 6vw, 48px)/1.1 var(--serif);
+      color: var(--text);
+      margin: 0 0 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .coming-soon .tagline {
+      font: 500 clamp(18px, 3vw, 22px)/1.5 var(--serif);
+      font-style: italic;
+      color: var(--sage-dark);
+      margin: 0 0 24px;
+    }
+
+    .coming-soon p {
+      font: 400 16px/1.6 var(--sans);
+      color: var(--text-soft);
+      margin: 0 0 32px;
+      max-width: 420px;
+    }
+
+    .coming-soon .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      font: 600 15px var(--sans);
+      color: var(--white);
+      background: var(--ochre);
+      border: none;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .coming-soon .btn:hover {
+      background: var(--ochre-dark);
+      transform: translateY(-2px);
+    }
+    .coming-soon .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .coming-soon-footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .coming-soon-footer p {
+      font-size: 14px;
+      margin: 0;
+    }
+    .coming-soon-footer a {
+      color: var(--sage-dark);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .coming-soon-footer a:hover {
+      color: var(--sage);
+    }
+
+    /* Fun decorative elements */
+    .decorations {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: -1;
+    }
+    .deco {
+      position: absolute;
+      opacity: 0.06;
+      color: var(--sage);
+    }
+    .deco-1 { top: 10%; left: 5%; font-size: 80px; transform: rotate(-15deg); }
+    .deco-2 { top: 20%; right: 8%; font-size: 60px; transform: rotate(20deg); }
+    .deco-3 { bottom: 15%; left: 10%; font-size: 70px; transform: rotate(-25deg); }
+    .deco-4 { bottom: 25%; right: 5%; font-size: 50px; transform: rotate(10deg); }
+    [data-theme="dark"] .deco { opacity: 0.04; }
+
+    @media (max-width: 600px) {
+      .coming-soon { padding: 100px 20px 60px; }
+      .coming-soon-icon { width: 90px; height: 90px; }
+      .deco { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Decorative background elements -->
+  <div class="decorations">
+    <span class="deco deco-1">🥄</span>
+    <span class="deco deco-2">🍳</span>
+    <span class="deco deco-3">🥗</span>
+    <span class="deco deco-4">🧂</span>
+  </div>
+
+  <div id="navWrap"></div>
+  <nav class="nav" id="appNav" aria-label="Main navigation"></nav>
+
+  <main class="coming-soon">
+    <!-- Pot with steam icon -->
+    <svg class="coming-soon-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Steam wisps -->
+      <path d="M30 35 Q25 25, 30 15" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5">
+        <animate attributeName="d" values="M30 35 Q25 25, 30 15;M30 35 Q35 25, 30 15;M30 35 Q25 25, 30 15" dur="2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M50 32 Q45 20, 50 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6">
+        <animate attributeName="d" values="M50 32 Q45 20, 50 10;M50 32 Q55 20, 50 10;M50 32 Q45 20, 50 10" dur="2.5s" repeatCount="indefinite"/>
+      </path>
+      <path d="M70 35 Q75 25, 70 15" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.5">
+        <animate attributeName="d" values="M70 35 Q75 25, 70 15;M70 35 Q65 25, 70 15;M70 35 Q75 25, 70 15" dur="1.8s" repeatCount="indefinite"/>
+      </path>
+      <!-- Pot body -->
+      <path d="M15 45 L15 75 Q15 85, 25 85 L75 85 Q85 85, 85 75 L85 45 Z" fill="currentColor" opacity="0.15"/>
+      <path d="M15 45 L15 75 Q15 85, 25 85 L75 85 Q85 85, 85 75 L85 45" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <!-- Pot lid -->
+      <path d="M10 45 L90 45" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="50" cy="40" r="5" fill="currentColor"/>
+      <!-- Handles -->
+      <path d="M10 55 Q5 55, 5 60 Q5 65, 10 65" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M90 55 Q95 55, 95 60 Q95 65, 90 65" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </svg>
+
+    <h1>Still Simmering</h1>
+    <p class="tagline">This page is marinating in good ideas.</p>
+    <p>We're cooking up something special here. Check back soon — it'll be worth the wait.</p>
+
+    <a href="index.html" class="btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      Back to recipes
+    </a>
+
+    <div class="coming-soon-footer">
+      <p>Questions? <a href="mailto:hello@recipy.com">Drop us a line</a></p>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.AppShell) window.AppShell.mount();
+    });
+  </script>
+</body>
+</html>

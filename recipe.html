@@ -373,7 +373,6 @@
     }
 
     .r-byline {
-      display: flex; align-items: center; gap: 14px;
       margin: 0 0 32px;
     }
     .r-avatar {
@@ -388,6 +387,12 @@
     .r-byline-meta { line-height: 1.25; }
     .r-byline-name { display: block; font: 600 15px var(--sans); color: var(--white); }
     .r-byline-sub { display: block; font: 500 13px var(--sans); color: rgba(255,246,229,0.7); }
+    .r-byline-link {
+      display: flex; align-items: center; gap: 14px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .r-byline-link:hover { opacity: 0.85; }
 
     .r-quick {
       display: flex; flex-wrap: wrap; gap: 8px;
@@ -914,6 +919,15 @@
     [data-theme="dark"] .r-follow { background: var(--cream); color: var(--ink); }
     .r-follow:hover { background: var(--green); color: var(--white); }
     [data-theme="dark"] .r-follow:hover { background: var(--green); color: var(--white); }
+    .r-author-link {
+      display: contents;
+      text-decoration: none;
+      color: inherit;
+    }
+    .r-author-link:hover .r-author-photo { transform: scale(1.05); }
+    .r-author-link:hover h3 { color: var(--green); }
+    .r-author-photo { transition: transform 0.2s var(--easing); }
+    .r-author-meta h3 { transition: color 0.2s; }
 
     /* ---- Related ---- */
     .r-related-grid {
@@ -1510,11 +1524,13 @@
         <p class="r-tagline" id="rTagline">A glossy, warmly spiced one-pot supper that tastes like a slow Sunday — even on a Tuesday.</p>
 
         <div class="r-byline">
-          <span class="r-avatar" id="rAvatar">LA</span>
-          <div class="r-byline-meta">
-            <span class="r-byline-name" id="rAuthor">—</span>
-            <span class="r-byline-sub"><span id="rByRole">—</span> · Published <span id="rDate">November 2026</span></span>
-          </div>
+          <a href="#" id="rBylineLink" class="r-byline-link">
+            <span class="r-avatar" id="rAvatar">LA</span>
+            <div class="r-byline-meta">
+              <span class="r-byline-name" id="rAuthor">—</span>
+              <span class="r-byline-sub"><span id="rByRole">—</span> · Published <span id="rDate">November 2026</span></span>
+            </div>
+          </a>
         </div>
 
         <div class="r-quick">
@@ -1687,12 +1703,14 @@
 
       <!-- Author -->
       <section class="r-section r-author" id="author">
-        <span class="r-author-photo" id="authorPhoto">LA</span>
-        <div class="r-author-meta">
-          <div class="role" id="authorRole">About the cook</div>
-          <h3 id="authorName">Leslie Alexander</h3>
-          <p id="authorBio"></p>
-        </div>
+        <a href="#" id="authorLink" class="r-author-link">
+          <span class="r-author-photo" id="authorPhoto">LA</span>
+          <div class="r-author-meta">
+            <div class="role" id="authorRole">About the cook</div>
+            <h3 id="authorName">Leslie Alexander</h3>
+            <p id="authorBio"></p>
+          </div>
+        </a>
         <button class="r-follow">Follow</button>
       </section>
 
@@ -1756,7 +1774,7 @@
 
   <footer>
     <div class="logo">RECIPY<span class="logo-dot" aria-hidden="true"></span></div>
-    <div>&copy; Recipy 2026 · <a href="#">Terms</a> <a href="#">Privacy</a> <a href="index.html">All recipes</a></div>
+    <div>&copy; Recipy 2026 · <a href="coming-soon.html">Terms</a> <a href="coming-soon.html">Privacy</a> <a href="index.html">All recipes</a></div>
   </footer>
 
   <!-- Floating action bar -->
@@ -1972,6 +1990,20 @@
       $("#authorRole").textContent = r.role || "About the cook";
       $("#authorBio").textContent = authorBio(r);
       $("#rByRole").textContent = r.role || "Recipe by";
+      // Set author profile links
+      const authorUrl = r.authorUsername 
+        ? `profile.html?u=${encodeURIComponent(r.authorUsername)}`
+        : null;
+      const bylineLink = $("#rBylineLink");
+      const authorLink = $("#authorLink");
+      if (authorUrl) {
+        if (bylineLink) bylineLink.href = authorUrl;
+        if (authorLink) authorLink.href = authorUrl;
+      } else {
+        // No username - remove link behavior
+        if (bylineLink) { bylineLink.removeAttribute("href"); bylineLink.style.cursor = "default"; }
+        if (authorLink) { authorLink.removeAttribute("href"); authorLink.style.cursor = "default"; }
+      }
       $("#rHeroKcal").textContent = (r.macros && r.macros.calories) ? Math.round(r.macros.calories) : "—";
       $("#rTotalTime").textContent = (r.time >= 60 ? Math.round(r.time / 60 * 10) / 10 + " hr" : r.time + " min");
       $("#rDifficulty").textContent = difficultyLabel[r.difficulty];

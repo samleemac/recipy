@@ -6,6 +6,122 @@
   <title>Submit a recipe · Recipy</title>
   <link rel="stylesheet" href="theme.css" />
   <style>
+    /* Tab navigation */
+    .upload-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .upload-tab {
+      padding: 10px 20px;
+      border-radius: 100px;
+      font: 600 14px var(--sans);
+      background: transparent;
+      color: var(--text-soft);
+      border: 1.5px solid var(--border);
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    .upload-tab:hover { border-color: var(--sage); color: var(--text); }
+    .upload-tab.active {
+      background: var(--sage);
+      border-color: var(--sage);
+      color: var(--white);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Submissions list */
+    .submissions-list { display: grid; gap: 16px; }
+    .submission-card {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .submission-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--border);
+    }
+    .submission-info h3 {
+      font: 600 16px var(--sans);
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+    .submission-info h3 a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .submission-info h3 a:hover { color: var(--sage-dark); }
+    .submission-meta {
+      font: 400 13px var(--sans);
+      color: var(--text-soft);
+    }
+    .pill-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font: 600 12px var(--sans);
+      white-space: nowrap;
+    }
+    .pill-status.pending {
+      background: #fef3c7;
+      color: #b45309;
+    }
+    .pill-status.published {
+      background: var(--sage-soft);
+      color: var(--sage-dark);
+    }
+    .pill-status.rejected {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+    .pill-status.draft {
+      background: var(--bg);
+      color: var(--text-soft);
+      border: 1px solid var(--border);
+    }
+    .rejection-reason {
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: #fee2e2;
+      border-radius: 8px;
+      font: 400 13px var(--sans);
+      color: #991b1b;
+    }
+    .submissions-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-soft);
+    }
+    .submissions-empty svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+    .submissions-empty p {
+      font: 500 15px var(--sans);
+      margin: 0;
+    }
+    @media (max-width: 640px) {
+      .submission-card { grid-template-columns: 1fr; gap: 12px; }
+      .submission-thumb { width: 100%; height: 120px; }
+      .pill-status { justify-self: start; }
+    }
+
     .upload-form { display: grid; gap: 26px; }
     .section {
       background: var(--bg-soft);
@@ -120,9 +236,16 @@
     <h1 class="page-title">Submit a recipe</h1>
     <p class="page-sub">Share what you cook. Submissions go into the moderation queue and appear on the site once approved.</p>
 
-    <div id="guard"><div class="empty-state"><span class="spinner"></span></div></div>
+    <div class="upload-tabs" id="uploadTabs">
+      <button class="upload-tab active" data-tab="new" type="button">New Submission</button>
+      <button class="upload-tab" data-tab="history" type="button">Past Submissions</button>
+    </div>
 
-    <form class="upload-form" id="uploadForm" hidden>
+    <!-- New submission tab -->
+    <div class="tab-content active" id="tabNew">
+      <div id="guard"><div class="empty-state"><span class="spinner"></span></div></div>
+
+      <form class="upload-form" id="uploadForm" hidden
       <!-- Basics -->
       <section class="section">
         <h2>The basics</h2>
@@ -243,6 +366,13 @@
         <button class="btn btn-primary" id="submitBtn" type="submit">Submit for review</button>
       </div>
     </form>
+    </div>
+
+    <!-- Past submissions tab -->
+    <div class="tab-content" id="tabHistory">
+      <div id="submissionsGuard"><div class="empty-state"><span class="spinner"></span></div></div>
+      <div id="submissionsList" class="submissions-list" hidden></div>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -505,25 +635,119 @@
     });
 
     /* -------------------- gate by sign-in -------------------- */
+    /* -------------------- tab switching -------------------- */
+    let currentTab = "new";
+    let submissionsLoaded = false;
+    let currentUser = null;
+
+    function switchTab(tab) {
+      currentTab = tab;
+      $$(".upload-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+      $("#tabNew").classList.toggle("active", tab === "new");
+      $("#tabHistory").classList.toggle("active", tab === "history");
+      if (tab === "history" && !submissionsLoaded && currentUser) {
+        loadSubmissions();
+      }
+    }
+
+    $$("#uploadTabs .upload-tab").forEach(btn => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+
+    /* -------------------- past submissions -------------------- */
+    async function loadSubmissions() {
+      const guard = $("#submissionsGuard");
+      const list = $("#submissionsList");
+      if (!window.RECIPY || !window.RECIPY.configured) {
+        guard.innerHTML = `<div class="empty-state"><p>Supabase not configured.</p></div>`;
+        return;
+      }
+      if (!currentUser) {
+        guard.innerHTML = `<div class="empty-state"><p>Sign in to view your submissions.</p></div>`;
+        return;
+      }
+      try {
+        const recipes = await window.RECIPY.recipes.getByAuthor(currentUser.id, true);
+        submissionsLoaded = true;
+        guard.hidden = true;
+        list.hidden = false;
+        if (!recipes || recipes.length === 0) {
+          list.innerHTML = `
+            <div class="submissions-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <line x1="10" y1="9" x2="8" y2="9"/>
+              </svg>
+              <p>No submissions yet</p>
+            </div>`;
+          return;
+        }
+        list.innerHTML = recipes.map(r => renderSubmissionCard(r)).join("");
+      } catch (err) {
+        console.error("Failed to load submissions:", err);
+        guard.innerHTML = `<div class="empty-state"><p>Failed to load submissions.</p></div>`;
+      }
+    }
+
+    function renderSubmissionCard(r) {
+      const statusLabel = {
+        pending: "Awaiting review",
+        published: "Live",
+        rejected: "Rejected",
+        draft: "Draft"
+      };
+      const status = r.status || "pending";
+      const titleLink = status === "published" 
+        ? `<a href="recipe.html?slug=${encodeURIComponent(r.slug)}">${escapeHtml(r.title)}</a>`
+        : escapeHtml(r.title);
+      const thumb = r.photo || r.photo_url || "";
+      const date = r.created_at ? new Date(r.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+      const rejectionHtml = status === "rejected" && r.reject_reason 
+        ? `<div class="rejection-reason"><strong>Reason:</strong> ${escapeHtml(r.reject_reason)}</div>` 
+        : "";
+      return `
+        <div class="submission-card">
+          <div class="submission-thumb" style="background-image: url('${escapeHtml(thumb)}')"></div>
+          <div class="submission-info">
+            <h3>${titleLink}</h3>
+            <div class="submission-meta">Submitted ${date}</div>
+            ${rejectionHtml}
+          </div>
+          <span class="pill-status ${status}">${statusLabel[status] || status}</span>
+        </div>`;
+    }
+
     window.AppShell.onAuth((user) => {
+      currentUser = user;
       const guard = $("#guard");
       const form  = $("#uploadForm");
+      const tabs = $("#uploadTabs");
       if (!window.RECIPY || !window.RECIPY.configured) {
         guard.innerHTML = `<div class="empty-state"><h3>Uploads need Supabase.</h3><p>Set up your project in <code>config.js</code> first.</p></div>`;
         form.hidden = true;
+        tabs.style.display = "none";
         return;
       }
       if (!user) {
         guard.innerHTML = `<div class="empty-state"><h3>Sign in to submit a recipe.</h3><button class="btn btn-primary" id="goSignIn" style="margin-top:12px">Sign in</button></div>`;
         form.hidden = true;
+        tabs.style.display = "none";
         $("#goSignIn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
         return;
       }
+      tabs.style.display = "";
       guard.innerHTML = "";
       form.hidden = false;
       renderIngredients();
       renderSteps();
       renderTags();
+      // If we're already on history tab, load submissions
+      if (currentTab === "history") {
+        loadSubmissions();
+      }
     });
   </script>
 </body>
