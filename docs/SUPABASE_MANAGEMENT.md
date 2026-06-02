@@ -43,11 +43,18 @@ public.recipes (
   steps             jsonb       -- Array of { title, time, desc, tip? }
   status            text        -- 'draft', 'pending', 'published', 'rejected'
   reject_reason     text        -- Reason for rejection (if rejected)
+  pending_changes   jsonb       -- Proposed edit to a live recipe (snake_case column keys); live row stays untouched until approved
+  pending_photo_url text        -- Proposed new hero image for a pending edit
+  edit_reject_reason text       -- Reason an edit was rejected (recipe stays live)
   created_at        timestamptz
   updated_at        timestamptz
   published_at      timestamptz
 )
 ```
+
+> The `pending_changes`, `pending_photo_url`, and `edit_reject_reason` columns
+> are added by `scripts/recipe-edits-migration.sql`. See
+> [Editing Existing Recipes](#editing-existing-recipes) below.
 
 ### Recipe Statuses
 
@@ -57,6 +64,84 @@ public.recipes (
 | `pending` | Author + Admins | In moderation queue awaiting review |
 | `published` | Everyone | Live on the site |
 | `rejected` | Author + Admins | Rejected with reason shown to author |
+
+---
+
+## Editing Existing Recipes
+
+Recipes can be edited by their **author** or by an **admin**. To keep the live
+site stable, edits to a published recipe never overwrite the live row directly —
+they are stored as a proposed change and routed through the same admin queue used
+for brand-new submissions.
+
+Run `scripts/recipe-edits-migration.sql` once in the Supabase SQL editor to add
+the columns and functions described here.
+
+### New columns
+
+| Column | Purpose |
+|--------|---------|
+| `pending_changes` (`jsonb`) | The proposed edit, stored with **snake_case** keys matching the table columns (`title`, `intro`, `ingredient_groups`, `steps`, …). `null` when there is no pending edit. |
+| `pending_photo_url` (`text`) | A proposed new hero image. The live `photo_url` is untouched until approval. |
+| `edit_reject_reason` (`text`) | Set when an admin rejects a proposed edit. The recipe stays `published`. |
+
+### RPC functions (`SECURITY DEFINER`)
+
+All edit writes go through these functions, which bypass RLS but enforce
+permissions internally — so no RLS policy changes are needed.
+
+| Function | Who can call | What it does |
+|----------|--------------|--------------|
+| `submit_recipe_edit(p_recipe_id, p_changes, p_photo_url)` | Author of the recipe **or** an admin | Stores `p_changes` in `pending_changes` and `p_photo_url` in `pending_photo_url`, clears `edit_reject_reason`, touches `updated_at`. The live columns are not modified. |
+| `approve_recipe(p_recipe_id)` | Admins only | If `pending_changes` is set, merges each proposed field into the live columns (including `pending_photo_url` → `photo_url`), clears the pending fields, and sets `status='published'`. If `pending_changes` is `null`, it simply publishes a brand-new submission (old behaviour). |
+| `reject_recipe(p_recipe_id, p_reason)` | Admins only | If `pending_changes` is set, discards the edit and records `edit_reject_reason` (the recipe **stays published**). Otherwise it rejects a brand-new submission by setting `status='rejected'` + `reject_reason`. |
+
+### Lifecycle
+
+```
+Author/Admin clicks "Edit" on a recipe
+        │
+        ▼
+upload.html?edit=<slug>  ──submit──►  submit_recipe_edit RPC
+        │                                   │
+        │                          writes pending_changes
+        │                          (live row unchanged, still published)
+        ▼
+admin.html queue shows the card with an
+"Edit to a live recipe" badge + proposed preview
+        │
+   ┌────┴─────┐
+   ▼          ▼
+approve_recipe   reject_recipe
+   │                │
+merge into      clear pending_changes,
+live row,       set edit_reject_reason,
+clear pending   recipe stays live
+```
+
+Key rules:
+
+- **Brand-new submissions** are unchanged: `insert` with `status='pending'`,
+  approved/rejected as before.
+- **Edits** only ever write to `pending_changes` — the live version keeps
+  serving until an admin approves.
+- The **slug is kept stable** across edits so existing URLs and bookmarks don't
+  break (the client omits `slug` from the edit payload).
+
+### Inspecting pending edits manually
+
+```sql
+-- Recipes that currently have a proposed edit awaiting review
+SELECT id, slug, title, status, pending_changes
+FROM public.recipes
+WHERE pending_changes IS NOT NULL;
+```
+
+```sql
+-- Approve / reject from SQL (normally done via the admin UI)
+SELECT public.approve_recipe('<recipe-uuid>');
+SELECT public.reject_recipe('<recipe-uuid>', 'Please fix the ingredient amounts');
+```
 
 ---
 

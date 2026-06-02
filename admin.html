@@ -31,6 +31,19 @@
       font: 700 22px var(--serif);
       margin: 0 0 4px;
     }
+    .edit-badge {
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 8px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #92400e;
+      font: 700 10px/1.4 var(--sans);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    [data-theme="dark"] .edit-badge { background: #4a3a12; color: #fcd34d; }
     .pending-card .meta {
       font: 400 12px var(--sans); color: var(--text-soft);
       margin-bottom: 12px;
@@ -126,12 +139,13 @@
           <article class="pending-card" data-id="${escapeHtml(r.id)}">
             <div class="photo" style="background-image:url(${escapeHtml((r.photo || '') + '?auto=format&fit=crop&w=600&q=72')})"></div>
             <div class="body">
-              <h3>${escapeHtml(r.title)}</h3>
+              <h3>${escapeHtml(r.title)}${r.isEdit ? `<span class="edit-badge">Edit to a live recipe</span>` : ``}</h3>
               <div class="meta">
                 by <a href="profile.html?u=${encodeURIComponent(r.authorUsername || '')}"><strong>@${escapeHtml(r.authorUsername || 'unknown')}</strong></a>
                 · ${timeAgo(r.publishedAt || r.createdAt)}
                 · ${escapeHtml(r.cuisine || '—')}
                 · ${r.time} min
+                ${r.isEdit ? `· proposed change to <a href="recipe.html?slug=${encodeURIComponent(r.slug)}">the live version</a>` : ``}
               </div>
               <p class="intro">${escapeHtml(r.intro || '(no intro)')}</p>
 
@@ -148,7 +162,7 @@
               </details>
 
               <div class="pending-actions">
-                <button class="btn btn-primary" data-action="approve" data-id="${escapeHtml(r.id)}">Approve &amp; publish</button>
+                <button class="btn btn-primary" data-action="approve" data-id="${escapeHtml(r.id)}">${r.isEdit ? 'Approve edit &amp; merge' : 'Approve &amp; publish'}</button>
                 <button class="btn btn-danger"  data-action="rejectStart" data-id="${escapeHtml(r.id)}">Reject…</button>
               </div>
               <div class="reject-row" data-reject-for="${escapeHtml(r.id)}" hidden>

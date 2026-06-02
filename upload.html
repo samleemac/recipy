@@ -234,8 +234,8 @@
   <div class="nav-wrap" id="navWrap"><div id="appNav"></div></div>
 
   <main class="app-container">
-    <h1 class="page-title">Submit a recipe</h1>
-    <p class="page-sub">Share what you cook. Submissions go into the moderation queue and appear on the site once approved.</p>
+    <h1 class="page-title" id="pageTitle">Submit a recipe</h1>
+    <p class="page-sub" id="pageSub">Share what you cook. Submissions go into the moderation queue and appear on the site once approved.</p>
 
     <div class="upload-tabs" id="uploadTabs">
       <button class="upload-tab active" data-tab="new" type="button">New Submission</button>
@@ -246,7 +246,7 @@
     <div class="tab-content active" id="tabNew">
       <div id="guard"><div class="empty-state"><span class="spinner"></span></div></div>
 
-      <form class="upload-form" id="uploadForm" hidden
+      <form class="upload-form" id="uploadForm" hidden>
       <!-- Basics -->
       <section class="section">
         <h2>The basics</h2>
@@ -389,6 +389,12 @@
     let steps           = [{ title: "", time: "", desc: "", tip: "" }];
     let tags            = [];
     let photoFile       = null;
+
+    /* -------------------- edit mode -------------------- */
+    const editSlug        = new URLSearchParams(location.search).get("edit");
+    let editMode          = false;
+    let editRecipeId      = null;
+    let existingPhotoUrl  = "";
 
     function renderIngredients() {
       const root = $("#ingredientGroups");
@@ -559,7 +565,7 @@
       err.classList.remove("show");
       const title = $("#title").value.trim();
       if (!title) return setError("Add a title.");
-      if (!photoFile) return setError("Upload a hero photo.");
+      if (!photoFile && !existingPhotoUrl) return setError("Upload a hero photo.");
       const validGroups = ingredientGroups.filter(g => g.items.some(it => it.text.trim()));
       if (!validGroups.length) return setError("Add at least one ingredient.");
       const validSteps  = steps.filter(s => s.desc.trim());
@@ -580,10 +586,11 @@
       if (!ok) return;
       const submitBtn = $("#submitBtn");
       submitBtn.disabled = true;
-      submitBtn.textContent = "Submitting…";
+      submitBtn.textContent = editMode ? "Saving…" : "Submitting…";
 
       const recipe = {
         slug: slugify($("#title").value),
+        photo: existingPhotoUrl,
         title: $("#title").value.trim(),
         intro: $("#intro").value.trim(),
         cuisine: $("#cuisine").value.trim(),
@@ -621,8 +628,13 @@
       };
 
       try {
-        await window.RECIPY.recipes.submit(recipe, photoFile);
-        window.AppShell.toast("Submitted — we'll review it shortly.");
+        if (editMode) {
+          await window.RECIPY.recipes.update(editRecipeId, recipe, photoFile);
+          window.AppShell.toast("Saved — your changes are in for review.");
+        } else {
+          await window.RECIPY.recipes.submit(recipe, photoFile);
+          window.AppShell.toast("Submitted — we'll review it shortly.");
+        }
         setTimeout(() => {
           const profile = window.AppShell.profile();
           if (profile) location.href = `profile.html?u=${encodeURIComponent(profile.username)}`;
@@ -631,7 +643,7 @@
       } catch (err) {
         setError(err.message || "Something went wrong submitting your recipe.");
         submitBtn.disabled = false;
-        submitBtn.textContent = "Submit for review";
+        submitBtn.textContent = editMode ? "Save & resubmit for review" : "Submit for review";
       }
     });
 
@@ -721,7 +733,123 @@
         </div>`;
     }
 
-    window.AppShell.onAuth((user) => {
+    /* -------------------- prefill (edit mode) -------------------- */
+    function setVal(sel, v) { const el = $(sel); if (el) el.value = v == null ? "" : v; }
+
+    function prefillForm(recipe) {
+      setVal("#title", recipe.title);
+      setVal("#intro", recipe.intro);
+      setVal("#cuisine", recipe.cuisine);
+      setVal("#time", recipe.time);
+      setVal("#difficulty", recipe.difficulty);
+      setVal("#servings", recipe.baseServings);
+      setVal("#servingNoun", recipe.servingNoun);
+      const m = recipe.macros || {};
+      setVal("#macroKcal", m.calories);
+      setVal("#macroCarbs", m.carbs);
+      setVal("#macroProtein", m.protein);
+      setVal("#macroFat", m.fat);
+      setVal("#macroFibre", m.fibre);
+      setVal("#macroSugar", m.sugar);
+      setVal("#equipment", (recipe.equipment || []).join("\n"));
+      setVal("#factTitle", recipe.fact?.title);
+      setVal("#factBody", recipe.fact?.body);
+
+      ingredientGroups = (recipe.ingredientGroups && recipe.ingredientGroups.length)
+        ? recipe.ingredientGroups.map(g => ({
+            name: g.name || "",
+            items: (g.items && g.items.length ? g.items : [{ amount: "", unit: "", text: "" }]).map(it => ({
+              amount: it.amount == null ? "" : String(it.amount),
+              unit: it.unit || "",
+              text: it.text || "",
+            })),
+          }))
+        : [{ name: "", items: [{ amount: "", unit: "", text: "" }] }];
+
+      steps = (recipe.steps && recipe.steps.length)
+        ? recipe.steps.map(s => ({
+            title: s.title || "",
+            time: s.time == null ? "" : String(s.time),
+            desc: s.desc || "",
+            tip: s.tip || "",
+          }))
+        : [{ title: "", time: "", desc: "", tip: "" }];
+
+      tags = Array.isArray(recipe.tags) ? recipe.tags.slice() : [];
+
+      existingPhotoUrl = recipe.photo || "";
+      photoFile = null;
+      if (existingPhotoUrl) {
+        photoPreview.style.backgroundImage = `url(${existingPhotoUrl})`;
+        photoPreview.classList.add("show");
+        photoDrop.style.display = "none";
+      }
+    }
+
+    async function enterEditMode(user, profile) {
+      const guard = $("#guard");
+      const form  = $("#uploadForm");
+      const tabs  = $("#uploadTabs");
+      tabs.style.display = "none";
+      guard.innerHTML = `<div class="empty-state"><span class="spinner"></span></div>`;
+      form.hidden = true;
+      let recipe;
+      try {
+        recipe = await window.RECIPY.recipes.getBySlug(editSlug);
+      } catch (err) {
+        recipe = null;
+      }
+      if (!recipe) {
+        guard.innerHTML = `<div class="empty-state"><h3>Recipe not found.</h3><p>We couldn't find a recipe to edit.</p></div>`;
+        return;
+      }
+      const isAdmin  = profile?.role === "admin";
+      const isAuthor = user?.id && recipe.authorId && user.id === recipe.authorId;
+      if (!isAdmin && !isAuthor) {
+        guard.innerHTML = `<div class="empty-state"><h3>You can't edit this recipe.</h3><p>Only the author or an admin can edit it.</p></div>`;
+        return;
+      }
+
+      editMode = true;
+      editRecipeId = recipe.id;
+      // If a prior edit is already in review, prefill with that proposed version.
+      const source = recipe.pendingChanges ? mergePending(recipe) : recipe;
+      prefillForm(source);
+
+      $("#pageTitle").textContent = "Edit recipe";
+      $("#pageSub").textContent = "Your changes go into the moderation queue. The current version stays live until an admin approves.";
+      $("#submitBtn").textContent = "Save & resubmit for review";
+
+      guard.innerHTML = "";
+      form.hidden = false;
+      renderIngredients();
+      renderSteps();
+      renderTags();
+    }
+
+    // Merge a snake_case pending_changes payload onto a live recipe for prefill.
+    function mergePending(recipe) {
+      const pc = recipe.pendingChanges || {};
+      return {
+        ...recipe,
+        title: pc.title ?? recipe.title,
+        intro: pc.intro ?? recipe.intro,
+        cuisine: pc.cuisine ?? recipe.cuisine,
+        time: pc.time ?? recipe.time,
+        difficulty: pc.difficulty ?? recipe.difficulty,
+        baseServings: pc.base_servings ?? recipe.baseServings,
+        servingNoun: pc.serving_noun ?? recipe.servingNoun,
+        tags: pc.tags ?? recipe.tags,
+        fact: "fact" in pc ? pc.fact : recipe.fact,
+        macros: "macros" in pc ? pc.macros : recipe.macros,
+        equipment: pc.equipment ?? recipe.equipment,
+        ingredientGroups: pc.ingredient_groups ?? recipe.ingredientGroups,
+        steps: pc.steps ?? recipe.steps,
+        photo: recipe.pendingPhoto || recipe.photo,
+      };
+    }
+
+    window.AppShell.onAuth((user, profile) => {
       currentUser = user;
       const guard = $("#guard");
       const form  = $("#uploadForm");
@@ -737,6 +865,10 @@
         form.hidden = true;
         tabs.style.display = "none";
         $("#goSignIn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
+        return;
+      }
+      if (editSlug) {
+        enterEditMode(user, profile);
         return;
       }
       tabs.style.display = "";

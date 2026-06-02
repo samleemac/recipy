@@ -61,6 +61,9 @@
       role:            author?.bio || "Recipe Developer",
       publishedAt:     row.published_at,
       createdAt:       row.created_at,
+      pendingChanges:  row.pending_changes || null,
+      pendingPhoto:    row.pending_photo_url || "",
+      editRejectReason: row.edit_reject_reason || "",
     };
   }
 
@@ -208,17 +211,48 @@
     return (data || []).map((r) => rowToRecipe(r, authors));
   }
 
+  /* Apply a snake_case pending_changes payload onto an app-shape recipe
+     object so the admin queue can preview the proposed content. */
+  function applyPendingChanges(recipe, row) {
+    const pc = row.pending_changes;
+    if (!pc) return recipe;
+    return {
+      ...recipe,
+      title:           pc.title ?? recipe.title,
+      intro:           pc.intro ?? recipe.intro,
+      cuisine:         pc.cuisine ?? recipe.cuisine,
+      time:            pc.time ?? recipe.time,
+      difficulty:      pc.difficulty ?? recipe.difficulty,
+      baseServings:    pc.base_servings ?? recipe.baseServings,
+      servingNoun:     pc.serving_noun ?? recipe.servingNoun,
+      tags:            pc.tags ?? recipe.tags,
+      fact:            "fact" in pc ? pc.fact : recipe.fact,
+      macros:          "macros" in pc ? pc.macros : recipe.macros,
+      equipment:       pc.equipment ?? recipe.equipment,
+      ingredientGroups: pc.ingredient_groups ?? recipe.ingredientGroups,
+      steps:           pc.steps ?? recipe.steps,
+      photo:           row.pending_photo_url || recipe.photo,
+    };
+  }
+
   async function recipesGetPending() {
     if (!CONFIGURED) return [];
     const { data, error } = await sb
       .from("recipes")
       .select("*")
-      .eq("status", "pending")
+      .or("status.eq.pending,pending_changes.not.is.null")
       .order("created_at", { ascending: true });
     if (error) return [];
     const ids = [...new Set((data || []).map((r) => r.author_id).filter(Boolean))];
     const authors = await loadAuthors(ids);
-    return (data || []).map((r) => rowToRecipe(r, authors));
+    return (data || []).map((r) => {
+      const base = rowToRecipe(r, authors);
+      const isEdit = !!r.pending_changes;
+      if (!isEdit) return { ...base, isEdit: false };
+      // For edits, show the proposed content but keep a copy of what's live.
+      const proposed = applyPendingChanges(base, r);
+      return { ...proposed, isEdit: true, liveTitle: base.title };
+    });
   }
 
   async function recipesGetByIds(ids) {
@@ -267,6 +301,42 @@
     return data;
   }
 
+  /* Edit an existing recipe. The proposed changes are stored as
+     pending_changes (the live recipe is untouched) and enter the admin
+     queue. Callable by the recipe's author or an admin (enforced by the
+     submit_recipe_edit RPC). */
+  async function recipesUpdate(id, recipe, photoFile) {
+    if (!CONFIGURED) throw new Error("Supabase is not configured.");
+    const user = await authGetUser();
+    if (!user) throw new Error("Sign in to edit a recipe.");
+
+    let photoUrl = recipe.photo || null;
+    if (photoFile) {
+      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const up = await sb.storage.from("recipes").upload(path, photoFile, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (up.error) throw up.error;
+      photoUrl = sb.storage.from("recipes").getPublicUrl(path).data.publicUrl;
+    }
+
+    // Build the proposed payload. Keep slug stable (omit it) so existing
+    // links and bookmarks keep working.
+    const row = recipeToRow({ ...recipe, photo: photoUrl });
+    delete row.photo_url;
+    delete row.slug;
+
+    const { error } = await sb.rpc("submit_recipe_edit", {
+      p_recipe_id: id,
+      p_changes: row,
+      p_photo_url: photoUrl,
+    });
+    if (error) throw error;
+    clearCache();
+  }
+
   async function uniqueSlug(base) {
     let candidate = base;
     let i = 0;
@@ -290,21 +360,16 @@
 
   async function recipesApprove(id) {
     if (!CONFIGURED) throw new Error("Supabase is not configured.");
-    const { error } = await sb
-      .from("recipes")
-      .update({ status: "published", published_at: new Date().toISOString(), reject_reason: null })
-      .eq("id", id);
+    const { error } = await sb.rpc("approve_recipe", { p_recipe_id: id });
     if (error) throw error;
     clearCache();
   }
 
   async function recipesReject(id, reason) {
     if (!CONFIGURED) throw new Error("Supabase is not configured.");
-    const { error } = await sb
-      .from("recipes")
-      .update({ status: "rejected", reject_reason: reason || "" })
-      .eq("id", id);
+    const { error } = await sb.rpc("reject_recipe", { p_recipe_id: id, p_reason: reason || "" });
     if (error) throw error;
+    clearCache();
   }
 
   /* ------------------------------------------------------------
@@ -753,6 +818,7 @@
       getByIds:    recipesGetByIds,
       getPending:  recipesGetPending,
       submit:      recipesSubmit,
+      update:      recipesUpdate,
       approve:     recipesApprove,
       reject:      recipesReject,
     },
