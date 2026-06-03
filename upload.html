@@ -149,11 +149,47 @@
       background: var(--bg);
       border: 1px dashed var(--border);
       border-radius: 12px;
+      position: relative;
     }
+    .group-card.dragging { opacity: .5; }
+    .group-card.drag-over { border-color: var(--green); border-style: solid; }
     .group-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
     .group-head input { flex: 1; }
     .remove-btn { color: #b91c1c; font: 600 12px var(--sans); padding: 4px 8px; }
     .remove-btn:hover { text-decoration: underline; }
+
+    .step-drag-handle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; flex: none;
+      color: var(--text-soft);
+      cursor: grab; touch-action: none;
+      border-radius: 7px;
+      transition: color .15s, background .15s;
+    }
+    .step-drag-handle:hover { color: var(--green-dark); background: var(--bg-soft); }
+    .step-drag-handle:active { cursor: grabbing; }
+    .step-head-actions { display: flex; gap: 4px; align-items: center; margin-left: auto; }
+    .step-move-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--bg); color: var(--text-soft);
+      transition: border-color .15s, color .15s, opacity .15s;
+    }
+    .step-move-btn:hover:not(:disabled) { border-color: var(--green); color: var(--green-dark); }
+    .step-move-btn:disabled { opacity: .35; cursor: default; }
+    .insert-step-btn {
+      align-self: flex-start;
+      margin-top: 8px;
+      padding: 5px 12px;
+      border-radius: 100px;
+      background: var(--bg);
+      border: 1.5px dashed var(--border);
+      color: var(--text-soft);
+      font: 600 12px var(--sans);
+      transition: border-color .15s, color .15s;
+    }
+    .insert-step-btn:hover { border-color: var(--green); color: var(--green-dark); }
 
     .ingredient-row, .step-row {
       display: grid;
@@ -389,6 +425,7 @@
     let steps           = [{ title: "", time: "", desc: "", tip: "" }];
     let tags            = [];
     let photoFile       = null;
+    let dragSrc         = null;
 
     /* -------------------- edit mode -------------------- */
     const editSlug        = new URLSearchParams(location.search).get("edit");
@@ -455,10 +492,21 @@
     function renderSteps() {
       const root = $("#stepList");
       root.innerHTML = steps.map((s, i) => `
-        <div class="group-card" data-i="${i}">
+        <div class="group-card" data-i="${i}" draggable="false">
           <div class="group-head">
+            <span class="step-drag-handle" data-handle aria-label="Drag to reorder" title="Drag to reorder">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+            </span>
             <strong style="font:600 13px var(--sans);color:var(--text-soft)">Step ${i + 1}</strong>
-            ${steps.length > 1 ? `<button type="button" class="remove-btn" data-action="remove">Remove</button>` : ""}
+            <span class="step-head-actions">
+              <button type="button" class="step-move-btn" data-action="moveUp" aria-label="Move step up" title="Move up" ${i === 0 ? "disabled" : ""}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+              </button>
+              <button type="button" class="step-move-btn" data-action="moveDown" aria-label="Move step down" title="Move down" ${i === steps.length - 1 ? "disabled" : ""}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              ${steps.length > 1 ? `<button type="button" class="remove-btn" data-action="remove">Remove</button>` : ""}
+            </span>
           </div>
           <div class="step-row">
             <input class="form-input" type="text"   data-field="title" placeholder="Step title (e.g. Sweat the aromatics)" value="${escapeHtml(s.title)}" />
@@ -467,9 +515,21 @@
           </div>
           <textarea class="form-textarea" data-field="desc" rows="3" placeholder="What to do, in detail.">${escapeHtml(s.desc)}</textarea>
           <input class="form-input" type="text" data-field="tip" placeholder="Optional tip" value="${escapeHtml(s.tip)}" style="margin-top:8px" />
+          <button type="button" class="insert-step-btn" data-action="insertBelow">+ Insert step here</button>
         </div>
       `).join("");
       bindStepHandlers();
+    }
+
+    function moveStep(from, to) {
+      if (to < 0 || to >= steps.length || from === to) return;
+      const [s] = steps.splice(from, 1);
+      steps.splice(to, 0, s);
+      renderSteps();
+    }
+    function insertStepAt(index) {
+      steps.splice(index, 0, { title: "", time: "", desc: "", tip: "" });
+      renderSteps();
     }
 
     function bindStepHandlers() {
@@ -480,12 +540,65 @@
           steps[i][e.target.dataset.field] = e.target.value;
         });
       });
-      $$("#stepList [data-action='remove']").forEach(btn => {
+      $$("#stepList [data-action]").forEach(btn => {
         btn.addEventListener("click", (e) => {
           const card = e.target.closest(".group-card");
           const i = parseInt(card.dataset.i, 10);
-          steps.splice(i, 1);
-          renderSteps();
+          const action = btn.dataset.action;
+          if (action === "remove") {
+            steps.splice(i, 1);
+            renderSteps();
+          } else if (action === "moveUp") {
+            moveStep(i, i - 1);
+          } else if (action === "moveDown") {
+            moveStep(i, i + 1);
+          } else if (action === "insertBelow") {
+            insertStepAt(i + 1);
+          }
+        });
+      });
+
+      // Handle-gated drag: only start a drag when grabbing the handle so text
+      // selection in the inputs/textarea keeps working.
+      $$("#stepList [data-handle]").forEach(handle => {
+        const card = handle.closest(".group-card");
+        const enable = () => { card.draggable = true; };
+        // If the press ends without a drag actually starting, undo draggable
+        // so it doesn't interfere with selecting text in the card's inputs.
+        const disableSoon = () => setTimeout(() => { if (dragSrc === null) card.draggable = false; }, 0);
+        handle.addEventListener("mousedown", enable);
+        handle.addEventListener("touchstart", enable, { passive: true });
+        handle.addEventListener("mouseup", disableSoon);
+        handle.addEventListener("touchend", disableSoon);
+      });
+
+      $$("#stepList .group-card").forEach(card => {
+        card.addEventListener("dragstart", (e) => {
+          dragSrc = parseInt(card.dataset.i, 10);
+          card.classList.add("dragging");
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move";
+            try { e.dataTransfer.setData("text/plain", String(dragSrc)); } catch (_) {}
+          }
+        });
+        card.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+          $$("#stepList .group-card").forEach(c => c.classList.remove("drag-over"));
+          card.classList.add("drag-over");
+        });
+        card.addEventListener("dragleave", () => card.classList.remove("drag-over"));
+        card.addEventListener("drop", (e) => {
+          e.preventDefault();
+          const to = parseInt(card.dataset.i, 10);
+          const from = dragSrc;
+          dragSrc = null;
+          if (from !== null && !Number.isNaN(to)) moveStep(from, to);
+        });
+        card.addEventListener("dragend", () => {
+          card.draggable = false;
+          dragSrc = null;
+          $$("#stepList .group-card").forEach(c => c.classList.remove("dragging", "drag-over"));
         });
       });
     }
