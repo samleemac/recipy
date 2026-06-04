@@ -64,6 +64,10 @@
       pendingChanges:  row.pending_changes || null,
       pendingPhoto:    row.pending_photo_url || "",
       editRejectReason: row.edit_reject_reason || "",
+      language:        row.language || "en",
+      isLimitedEdition: !!row.is_limited_edition,
+      variantGroup:    row.variant_group || null,
+      isPrimary:       row.is_primary !== false,
     };
   }
 
@@ -157,8 +161,14 @@
   /* ------------------------------------------------------------
      RECIPES
   ------------------------------------------------------------ */
+  /* Only primary rows appear in listings — language variants of a limited
+     edition (is_primary === false) are hidden from home/search/related. */
+  function staticListable() {
+    return (window.RECIPES || []).filter((r) => r.isPrimary !== false);
+  }
+
   async function recipesGetAll(opts = {}) {
-    if (!CONFIGURED) return (window.RECIPES || []).slice();
+    if (!CONFIGURED) return staticListable().slice();
 
     const cached = !opts.fresh && readCache();
     if (cached) return cached;
@@ -167,12 +177,13 @@
       .from("recipes")
       .select("*")
       .eq("status", "published")
+      .eq("is_primary", true)
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
 
     if (error) {
       console.warn("recipesGetAll", error);
-      return (window.RECIPES || []).slice();
+      return staticListable().slice();
     }
 
     const ids = [...new Set((data || []).map((r) => r.author_id).filter(Boolean))];
@@ -205,9 +216,32 @@
       .from("recipes")
       .select("*")
       .eq("author_id", authorId)
+      .eq("is_primary", true)
       .in("status", statuses)
       .order("created_at", { ascending: false });
     const authors = authorId ? await loadAuthors([authorId]) : {};
+    return (data || []).map((r) => rowToRecipe(r, authors));
+  }
+
+  /* Fetch all published language siblings of a limited edition recipe,
+     including non-primary variants, so the recipe page can offer a
+     language toggle. Returns app-shape recipe objects. */
+  async function recipesGetVariants(group) {
+    if (!group) return [];
+    if (!CONFIGURED) {
+      return (window.RECIPES || []).filter((r) => r.variantGroup === group);
+    }
+    const { data, error } = await sb
+      .from("recipes")
+      .select("*")
+      .eq("variant_group", group)
+      .eq("status", "published");
+    if (error) {
+      console.warn("recipesGetVariants", error);
+      return [];
+    }
+    const ids = [...new Set((data || []).map((r) => r.author_id).filter(Boolean))];
+    const authors = await loadAuthors(ids);
     return (data || []).map((r) => rowToRecipe(r, authors));
   }
 
@@ -816,6 +850,7 @@
       getBySlug:   recipesGetBySlug,
       getByAuthor: recipesGetByAuthor,
       getByIds:    recipesGetByIds,
+      getVariants: recipesGetVariants,
       getPending:  recipesGetPending,
       submit:      recipesSubmit,
       update:      recipesUpdate,

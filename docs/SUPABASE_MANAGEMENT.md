@@ -46,6 +46,10 @@ public.recipes (
   pending_changes   jsonb       -- Proposed edit to a live recipe (snake_case column keys); live row stays untouched until approved
   pending_photo_url text        -- Proposed new hero image for a pending edit
   edit_reject_reason text       -- Reason an edit was rejected (recipe stays live)
+  language          text        -- Content locale: 'en', 'nl', … (default 'en')
+  is_limited_edition boolean     -- Flags a special "limited edition" recipe (default false)
+  variant_group     text        -- Shared key linking language siblings (null for normal recipes)
+  is_primary        boolean     -- The canonical row shown in listings; variants are false (default true)
   created_at        timestamptz
   updated_at        timestamptz
   published_at      timestamptz
@@ -55,6 +59,10 @@ public.recipes (
 > The `pending_changes`, `pending_photo_url`, and `edit_reject_reason` columns
 > are added by `scripts/recipe-edits-migration.sql`. See
 > [Editing Existing Recipes](#editing-existing-recipes) below.
+>
+> The `language`, `is_limited_edition`, `variant_group`, and `is_primary`
+> columns are added by `scripts/limited-edition-migration.sql`. See
+> [Limited Edition / Multi-language Recipes](#limited-edition--multi-language-recipes) below.
 
 ### Recipe Statuses
 
@@ -141,6 +149,64 @@ WHERE pending_changes IS NOT NULL;
 -- Approve / reject from SQL (normally done via the admin UI)
 SELECT public.approve_recipe('<recipe-uuid>');
 SELECT public.reject_recipe('<recipe-uuid>', 'Please fix the ingredient amounts');
+```
+
+---
+
+## Limited Edition / Multi-language Recipes
+
+A "limited edition" recipe can have language variants (e.g. a Dutch edition of
+the Blueberry Muffins). Each language is stored as a **separate row**, but only
+the primary (usually English) row appears in listings/search. The recipe page
+detects the siblings and offers an in-place language toggle (with a flag overlay)
+that swaps to the translated content.
+
+Run `scripts/limited-edition-migration.sql` once to add the columns, then a seed
+like `scripts/seed-blueberry-muffins-dutch.sql` to create an edition.
+
+### New columns
+
+| Column | Purpose |
+|--------|---------|
+| `language` (`text`) | Content locale of this row (`'en'`, `'nl'`, …). Default `'en'`. |
+| `is_limited_edition` (`boolean`) | Marks the recipe as a special limited edition (drives the home-tile badge + flag overlay). Default `false`. |
+| `variant_group` (`text`) | Shared key linking language siblings. `null` for normal recipes. Convention: the primary row's slug. |
+| `is_primary` (`boolean`) | `true` for the canonical row shown in listings; variants are `false`. Default `true` (so all existing recipes stay visible). |
+
+### Listing rule (show once)
+
+The client only lists **primary** rows:
+
+- `recipesGetAll` and `recipesGetByAuthor` in `supabase-client.js` filter
+  `.eq("is_primary", true)`, so variants never appear on the home grid, search,
+  command palette, related recipes, or author profiles.
+- `recipesGetVariants(group)` returns **all** published siblings (incl.
+  non-primary) and is used only by the recipe page to build the language toggle.
+- A variant row is still `status='published'`, so it's reachable directly by its
+  own slug or via the toggle's `?lang=<code>` URL — it's just hidden from lists.
+
+### Adding a new translation (e.g. a Spanish edition)
+
+1. Pick the primary recipe and ensure it has a `variant_group` (its own slug is
+   the convention) and `is_limited_edition = true`.
+2. Insert a new published row that:
+   - shares the same `variant_group`,
+   - sets `language` to the new locale (`'es'`),
+   - sets `is_primary = false`,
+   - sets `is_limited_edition = true`,
+   - has a unique `slug` (e.g. `<base-slug>-es`),
+   - keeps `ingredient_groups`/`steps` in the **same order** as the primary
+     (cook-mode `ingredientKeys` are positional like `"0-3"`), translating only
+     the display text.
+3. Add a flag overlay for the new language in `recipe.html` CSS:
+   a `body.edition-es::after` rule (a stub is already included), and the locale
+   to `LANG_NAMES` / `LANG_FLAGS` in the recipe-page script.
+
+```sql
+-- Inspect a recipe's language siblings
+SELECT slug, language, is_primary, is_limited_edition, variant_group
+FROM public.recipes
+WHERE variant_group = 'berried-treasure-blueberry-muffins';
 ```
 
 ---

@@ -331,6 +331,10 @@ window.RECIPES = [
     difficulty: 1,
     baseServings: 9,
     servingNoun: "muffin",
+    language: "en",
+    isLimitedEdition: true,
+    variantGroup: "berried-treasure-blueberry-muffins",
+    isPrimary: true,
     tags: ["Breakfast","Vegan","Light"],
     photo: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa",
     fact: {"title":"Did you know?","body":"Blueberries have one of the highest concentrations of antioxidants of any fruit, helping protect cells from damage and slowing the deterioration of memory. Your body won't be feeling blue for blueberries."},
@@ -3372,6 +3376,86 @@ window.RECIPES = [
         "time": 2,
         "desc": "Divide into bowls and serve topped with extra chilli, the spring onion greens and sesame seeds.",
         "ingredientKeys": ["0-12"]
+      }
+    ]
+  },
+  /* ============================================================ 23. Verborgen Schat - Bosbessenmuffins (NL limited edition of #2) ============================================================ */
+  {
+    id: 23,
+    slug: "berried-treasure-blueberry-muffins-nl",
+    title: "Verborgen Schat - Bosbessenmuffins",
+    author: "Sara Mackinley",
+    authorUsername: "mackinleykitchen",
+    role: "Recipe Developer - Brunch & Bakery",
+    cuisine: "Brits",
+    time: 30,
+    difficulty: 1,
+    baseServings: 9,
+    servingNoun: "muffin",
+    language: "nl",
+    isLimitedEdition: true,
+    variantGroup: "berried-treasure-blueberry-muffins",
+    isPrimary: false,
+    tags: ["Ontbijt","Vegan","Licht"],
+    photo: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa",
+    fact: {"title":"Wist je dat?","body":"Bosbessen bevatten een van de hoogste concentraties antioxidanten van al het fruit, wat helpt cellen te beschermen tegen schade en het verval van het geheugen vertraagt. Je lichaam wordt niet somber van bosbessen."},
+    intro: "Zachte, met gember gekruide muffins boordevol jammy bosbessen. Vegan, lactosevrij en klaar in een half uur - en Sara's geheim is de kaneel-gembersuiker die je er warm overheen strooit.",
+    macros: {"calories":152,"carbs":23,"protein":2.2,"fat":5.5,"fibre":0.5,"sugar":7.6},
+    equipment: ["Muffinvorm voor 9 stuks","Papieren vormpjes","Mengkommen","Garde","Spatel"],
+    ingredientGroups: [
+      {
+        "name": "Muffinbeslag",
+        "items": [
+          { "amount": 180, "unit": "g",  "text": "bloem" },
+          { "amount": 50,  "unit": "g",  "text": "fijne kristalsuiker" },
+          { "amount": 0.5, "unit": "tl", "text": "fijn zout" },
+          { "amount": 2,   "unit": "tl", "text": "bakpoeder" },
+          { "amount": 1,   "unit": "tl", "text": "gemberpoeder" },
+          { "amount": 1,   "unit": "tl", "text": "kaneelpoeder" },
+          { "amount": 195, "unit": "ml", "text": "amandelmelk" },
+          { "amount": 50,  "unit": "ml", "text": "olijfolie" },
+          { "amount": 1,   "unit": "el", "text": "citroensap" },
+          { "amount": 2,   "unit": "tl", "text": "vanille-extract" },
+          { "amount": 120, "unit": "g",  "text": "diepvriesbosbessen" }
+        ]
+      },
+      {
+        "name": "Sara's kruidensuiker (optioneel)",
+        "items": [
+          { "amount": 1,   "unit": "tl", "text": "fijne kristalsuiker" },
+          { "amount": 0.5, "unit": "tl", "text": "gemberpoeder" },
+          { "amount": 0.5, "unit": "tl", "text": "kaneelpoeder" }
+        ]
+      }
+    ],
+    steps: [
+      {
+        "title": "Verwarm voor & klop de droge ingredienten",
+        "time": 5,
+        "desc": "Verwarm de oven voor op 200C en bekleed een muffinvorm voor 9 stuks. Klop in een grote kom de bloem, suiker, zout, bakpoeder, gember en kaneel door elkaar tot alles gelijkmatig gemengd is."
+      },
+      {
+        "title": "Meng de natte ingredienten",
+        "time": 5,
+        "desc": "Klop in een andere kom de amandelmelk, olijfolie, citroensap en vanille. Giet dit bij de droge kom en spatel alles voorzichtig door elkaar - stop zodra het net samenkomt.",
+        "tip": "Het citroensap + amandelmelk werkt als een vegan karnemelk - dat geeft de muffins hun rijzing."
+      },
+      {
+        "title": "Spatel de bosbessen erdoor",
+        "time": 2,
+        "desc": "Voeg de diepvriesbosbessen rechtstreeks aan het beslag toe (ontdooien hoeft niet) en spatel ze er 2-3 keer doorheen. Paarse strepen zijn juist goed - dan heb je ze niet geplet."
+      },
+      {
+        "title": "Bak tot ze gerezen zijn",
+        "time": 15,
+        "desc": "Schep het beslag helemaal tot bovenaan in de muffinvormpjes. Bak ongeveer 15 minuten of tot de bovenkanten lichtgoud zijn en een sateprikker in het midden er schoon uitkomt (een streepje bosbes mag - alleen geen beslag).",
+        "ingredientKeys": ["0-0","0-1","0-2","0-3","0-4","0-5","0-6","0-7","0-8","0-9","0-10"]
+      },
+      {
+        "title": "Sara's kruidensuiker (optioneel)",
+        "time": 3,
+        "desc": "Meng de suiker, gember en kaneel voor de topping. Strooi dit royaal over de muffins terwijl ze nog warm zijn zodat het aan de bovenkant blijft plakken.",
+        "ingredientKeys": ["1-0","1-1","1-2"]
       }
     ]
   }

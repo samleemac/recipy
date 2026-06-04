@@ -112,6 +112,32 @@
       mix-blend-mode: multiply;
     }
     [data-theme="dark"] body::before { mix-blend-mode: screen; opacity: .35; }
+
+    /* ============================================================
+       Limited edition language overlays — a subtle tiled flag pattern
+       painted over the page background (~20% opacity) when a non-default
+       language edition is active. Add a body.edition-<lang>::after rule
+       per supported language to extend (e.g. Spanish).
+       ============================================================ */
+    body.edition-nl::after, body.edition-es::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.2;
+      background-repeat: repeat;
+    }
+    /* Dutch tricolor (red / white / blue) tiled into a flag pattern */
+    body.edition-nl::after {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40'><rect width='60' height='13.34' y='0' fill='%23AE1C28'/><rect width='60' height='13.33' y='13.34' fill='%23ffffff'/><rect width='60' height='13.33' y='26.67' fill='%2321468B'/></svg>");
+      background-size: 96px 64px;
+    }
+    /* Spanish (rojigualda) — ready for a future edition */
+    body.edition-es::after {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='40'><rect width='60' height='10' y='0' fill='%23AA151B'/><rect width='60' height='20' y='10' fill='%23F1BF00'/><rect width='60' height='10' y='30' fill='%23AA151B'/></svg>");
+      background-size: 96px 64px;
+    }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; padding: 0; }
     img { display: block; max-width: 100%; }
@@ -438,6 +464,19 @@
     }
     .r-btn.ghost:hover { background: rgba(255,255,255,0.22); transform: translateY(-1px); }
     .r-btn.is-saved { background: var(--orange); color: var(--white); border-color: transparent; }
+
+    /* Quirky limited-edition language toggle */
+    .r-btn.lang-toggle {
+      background: linear-gradient(135deg, #AE1C28 0%, #ffffff 50%, #21468B 100%);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.5);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+      box-shadow: 0 8px 22px rgba(33,70,139,0.35);
+    }
+    .r-btn.lang-toggle:hover { transform: translateY(-1px) rotate(-1.5deg); }
+    #fabLang .fab-lang-label { display: inline-flex; align-items: center; gap: 6px; }
 
     /* ============================================================
        At-a-glance band (sticky)
@@ -1465,7 +1504,7 @@
        Print
        ============================================================ */
     @media print {
-      body::before, .nav-wrap, .r-fab, .scroll-progress, .cmdk, .toasts, .r-glance, .r-actions, .r-related, .r-reviews, footer { display: none !important; }
+      body::before, body::after, .nav-wrap, .r-fab, .scroll-progress, .cmdk, .toasts, .r-glance, .r-actions, .r-related, .r-reviews, footer { display: none !important; }
       .r-hero { min-height: auto; padding: 0; color: var(--ink); margin-top: 0; }
       .r-hero-bg, .r-hero::before, .r-hero::after { display: none; }
       .r-hero-inner { padding: 0; }
@@ -1553,6 +1592,9 @@
           <button class="r-btn ghost" id="heroShare">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
             Share
+          </button>
+          <button class="r-btn lang-toggle" id="langToggle" hidden aria-label="Switch recipe language">
+            <span class="lang-toggle-label">🌐</span>
           </button>
         </div>
       </div>
@@ -1792,6 +1834,9 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
       <span id="fabEditLabel">Edit</span>
     </button>
+    <button id="fabLang" hidden>
+      <span class="fab-lang-label">🌐</span>
+    </button>
     <button class="primary" id="fabCook">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7z"></path></svg>
       Cook Mode
@@ -1932,6 +1977,7 @@
     const params = new URLSearchParams(location.search);
     const slugParam = params.get("slug");
     const idParam   = parseInt(params.get("id"), 10);
+    const langParam = params.get("lang");
     let recipe = null;
     let recipeKey = "";           /* stable storage key (UUID or slug) */
     let STORAGE_INGREDIENTS = "";
@@ -1940,6 +1986,28 @@
     let baseServings = 2;
     let servings = 2;
     let photo = fallbackPhoto;
+
+    /* Limited edition / language variants */
+    let variantsByLang = {};      /* { en: recipeObj, nl: recipeObj, … } */
+    let currentLang = "en";
+    const LANG_NAMES = { en: "English", nl: "Nederlands" };
+    const LANG_FLAGS = { en: "🇬🇧", nl: "🇳🇱" };
+
+    /* Derive per-recipe storage + render state from the active `recipe`.
+       recipeKey is keyed on variantGroup when present so check/serving state
+       is shared across language editions (ingredient indices are identical). */
+    function applyRecipeState() {
+      ingredientGroups = recipe.ingredientGroups || [];
+      steps            = recipe.steps || [];
+      recipeKey        = String(recipe.variantGroup || recipe.id || recipe.slug || "0");
+      STORAGE_INGREDIENTS = `recipy.ingredients.${recipeKey}`;
+      STORAGE_STEPS       = `recipy.steps.${recipeKey}`;
+      STORAGE_SERVINGS    = `recipy.servings.${recipeKey}`;
+      baseServings = recipe.baseServings || 2;
+      servings = parseInt(localStorage.getItem(STORAGE_SERVINGS), 10) || baseServings;
+      photo = photoUrl(recipe);
+      currentLang = recipe.language || "en";
+    }
 
     async function resolveRecipe() {
       if (window.RECIPY && window.RECIPY.configured) {
@@ -1971,15 +2039,110 @@
         document.body.innerHTML = "<p style='padding:40px;text-align:center;font:600 18px sans-serif'>Recipe not found.</p>";
         throw new Error("Recipe not found");
       }
-      ingredientGroups = recipe.ingredientGroups || [];
-      steps            = recipe.steps || [];
-      recipeKey        = String(recipe.id || recipe.slug || "0");
-      STORAGE_INGREDIENTS = `recipy.ingredients.${recipeKey}`;
-      STORAGE_STEPS       = `recipy.steps.${recipeKey}`;
-      STORAGE_SERVINGS    = `recipy.servings.${recipeKey}`;
-      baseServings = recipe.baseServings || 2;
-      servings = parseInt(localStorage.getItem(STORAGE_SERVINGS), 10) || baseServings;
-      photo = photoUrl(recipe);
+
+      /* Load language siblings for a limited edition and pick the active one. */
+      await loadVariants();
+
+      applyRecipeState();
+    }
+
+    async function loadVariants() {
+      variantsByLang = {};
+      const group = recipe.variantGroup;
+      if (!group) return;
+      let siblings = [];
+      try {
+        if (window.RECIPY && window.RECIPY.recipes && window.RECIPY.recipes.getVariants) {
+          siblings = await window.RECIPY.recipes.getVariants(group);
+        }
+      } catch (_) {}
+      // Always include the already-loaded recipe.
+      const all = [recipe, ...siblings.filter(s => s.slug !== recipe.slug)];
+      all.forEach(r => { if (r && r.language) variantsByLang[r.language] = r; });
+      // If the URL requests another language we have, switch to it before render.
+      if (langParam && variantsByLang[langParam] && langParam !== (recipe.language || "en")) {
+        recipe = variantsByLang[langParam];
+      }
+    }
+
+    function availableLangs() {
+      return Object.keys(variantsByLang);
+    }
+
+    /* Paint (or clear) the limited-edition flag overlay for a language. */
+    function applyEditionOverlay(lang) {
+      const langs = Object.keys(LANG_NAMES);
+      langs.forEach(l => document.body.classList.remove(`edition-${l}`));
+      // Only show the flag for non-default editions of a limited edition recipe.
+      if (recipe.isLimitedEdition && lang && lang !== "en") {
+        document.body.classList.add(`edition-${lang}`);
+      }
+    }
+
+    /* Switch the recipe to another language in place and re-render. */
+    function setLanguage(lang) {
+      const next = variantsByLang[lang];
+      if (!next || lang === currentLang) return;
+      recipe = next;
+      applyRecipeState();
+      applyEditionOverlay(lang);
+
+      renderHero();
+      renderIngredients();
+      renderSteps();
+      animateDonut();
+      updateLangToggle();
+      // Keep cook mode in sync if it's open.
+      const cm = $("#cookmode");
+      if (cm && cm.classList.contains("open")) {
+        const t = $("#cookmodeTitle");
+        if (t) t.textContent = recipe.title;
+        if (typeof renderCookmodeStep === "function") renderCookmodeStep();
+      }
+
+      // Reflect the language in the URL (shareable) without reloading.
+      const url = new URL(location.href);
+      if (lang === "en") url.searchParams.delete("lang");
+      else url.searchParams.set("lang", lang);
+      history.replaceState(null, "", url);
+    }
+
+    /* Update the quirky language toggle buttons (hero pill + FAB). */
+    function updateLangToggle() {
+      const langs = availableLangs();
+      const heroBtn = $("#langToggle");
+      const fabBtn  = $("#fabLang");
+      if (langs.length < 2) {
+        if (heroBtn) heroBtn.hidden = true;
+        if (fabBtn) fabBtn.hidden = true;
+        return;
+      }
+      // Toggle to "the other" language (first one that isn't current).
+      const target = langs.find(l => l !== currentLang) || langs[0];
+      const label = `${LANG_FLAGS[target] || "🌐"} ${target === "en" ? "View in English" : "Bekijk in het " + (LANG_NAMES[target] || target)}`;
+      if (heroBtn) {
+        heroBtn.hidden = false;
+        heroBtn.dataset.target = target;
+        heroBtn.querySelector(".lang-toggle-label").textContent = label;
+      }
+      if (fabBtn) {
+        fabBtn.hidden = false;
+        fabBtn.dataset.target = target;
+        fabBtn.querySelector(".fab-lang-label").textContent = `${LANG_FLAGS[target] || "🌐"} ${LANG_NAMES[target] || target}`;
+      }
+    }
+
+    function initLangToggle() {
+      const heroBtn = $("#langToggle");
+      const fabBtn  = $("#fabLang");
+      const handler = (e) => {
+        const target = e.currentTarget.dataset.target;
+        if (target) setLanguage(target);
+      };
+      if (heroBtn) heroBtn.addEventListener("click", handler);
+      if (fabBtn) fabBtn.addEventListener("click", handler);
+      applyEditionOverlay(currentLang);
+      updateLangToggle();
     }
 
     /* ============================================================
@@ -3055,6 +3218,7 @@
       syncSaveButtons();
       updateBookmarkBadge();
       initCookMode();
+      initLangToggle();
       initCmdk();
       initKeyboard();
       initAuthOnRecipePage();

@@ -112,6 +112,10 @@ function toRow(r, authorId) {
     status:            "published",
     author_id:         authorId,
     published_at:      new Date().toISOString(),
+    language:           r.language || "en",
+    is_limited_edition: !!r.isLimitedEdition,
+    variant_group:      r.variantGroup || null,
+    is_primary:         r.isPrimary !== false,
   };
 }
 
