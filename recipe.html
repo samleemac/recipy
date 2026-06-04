@@ -114,10 +114,41 @@
     [data-theme="dark"] body::before { mix-blend-mode: screen; opacity: .35; }
 
     /* ============================================================
-       Limited edition language overlays — waving 3D-style flags
-       (~20% opacity). See assets/edition-flags-nl.svg
+       Limited edition overlays — scattered photo-real waving flags (NL)
+       or tiled pattern (ES). Faint opacity so content stays readable.
        ============================================================ */
-    body.edition-nl::after, body.edition-es::after {
+    .edition-flag-field {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .edition-flag-field[hidden] { display: none; }
+    .edition-flag-piece {
+      position: absolute;
+      height: auto;
+      object-fit: contain;
+      opacity: 0.2;
+      mix-blend-mode: lighten;
+      filter: drop-shadow(0 10px 28px rgba(23, 8, 5, 0.18));
+      user-select: none;
+    }
+    .edition-flag-piece.f1 { width: min(380px, 42vw); top: -4%; left: -7%; transform: rotate(-16deg); }
+    .edition-flag-piece.f2 { width: min(280px, 32vw); top: 18%; right: -6%; transform: rotate(11deg); }
+    .edition-flag-piece.f3 { width: min(200px, 24vw); top: 48%; left: 6%; transform: rotate(-24deg); }
+    .edition-flag-piece.f4 { width: min(420px, 48vw); bottom: -2%; right: 4%; transform: rotate(6deg); }
+    .edition-flag-piece.f5 { width: min(160px, 18vw); top: 8%; left: 38%; transform: rotate(19deg); }
+    .edition-flag-piece.f6 { width: min(240px, 28vw); bottom: 22%; left: -5%; transform: rotate(-9deg); }
+    .edition-flag-piece.f7 { width: min(320px, 36vw); top: 62%; right: 18%; transform: rotate(-14deg); }
+    .edition-flag-piece.f8 { width: min(130px, 15vw); top: 34%; right: 32%; transform: rotate(22deg); }
+    .edition-flag-piece.f9 { width: min(260px, 30vw); bottom: 38%; left: 28%; transform: rotate(8deg); }
+    [data-theme="dark"] .edition-flag-piece {
+      mix-blend-mode: normal;
+      opacity: 0.16;
+    }
+
+    body.edition-es::after {
       content: "";
       position: fixed;
       inset: -12%;
@@ -126,15 +157,7 @@
       opacity: 0.22;
       background-repeat: repeat;
     }
-    /* Dutch: textured waving flags at varied sizes, two offset layers */
-    body.edition-nl::after {
-      background-image:
-        url("assets/edition-flags-nl.svg"),
-        url("assets/edition-flags-nl.svg");
-      background-size: 540px 540px, 760px 760px;
-      background-position: 0 0, 290px 210px;
-    }
-    /* Spanish — same scatter vibe, ready for a future edition */
+    /* Spanish — tiled pattern, ready for a future photo asset */
     body.edition-es::after {
       background-image:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='640' viewBox='0 0 640 640'%3E%3Cg transform='translate(32 48) rotate(-9 70 40)'%3E%3Crect width='140' height='47' fill='%23AA151B'/%3E%3Crect width='140' height='47' y='47' fill='%23F1BF00'/%3E%3Crect width='140' height='46' y='94' fill='%23AA151B'/%3E%3C/g%3E%3Cg transform='translate(300 100) rotate(14 95 45)'%3E%3Crect width='190' height='63' fill='%23AA151B'/%3E%3Crect width='190' height='64' y='63' fill='%23F1BF00'/%3E%3Crect width='190' height='63' y='127' fill='%23AA151B'/%3E%3C/g%3E%3Cg transform='translate(80 360) rotate(-6 80 42)'%3E%3Crect width='160' height='53' fill='%23AA151B'/%3E%3Crect width='160' height='54' y='53' fill='%23F1BF00'/%3E%3Crect width='160' height='53' y='107' fill='%23AA151B'/%3E%3C/g%3E%3C/svg%3E");
@@ -1507,7 +1530,7 @@
        Print
        ============================================================ */
     @media print {
-      body::before, body::after, .nav-wrap, .r-fab, .scroll-progress, .cmdk, .toasts, .r-glance, .r-actions, .r-related, .r-reviews, footer { display: none !important; }
+      body::before, body::after, .edition-flag-field, .nav-wrap, .r-fab, .scroll-progress, .cmdk, .toasts, .r-glance, .r-actions, .r-related, .r-reviews, footer { display: none !important; }
       .r-hero { min-height: auto; padding: 0; color: var(--ink); margin-top: 0; }
       .r-hero-bg, .r-hero::before, .r-hero::after { display: none; }
       .r-hero-inner { padding: 0; }
@@ -1523,6 +1546,18 @@
   </style>
 </head>
 <body data-page="recipe">
+
+  <div class="edition-flag-field" id="editionFlagField" hidden aria-hidden="true">
+    <img class="edition-flag-piece f1" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f2" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f3" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f4" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f5" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f6" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f7" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f8" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+    <img class="edition-flag-piece f9" src="assets/nl-flag-wave.png" alt="" decoding="async" />
+  </div>
 
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
@@ -2074,11 +2109,13 @@
 
     /* Paint (or clear) the limited-edition flag overlay for a language. */
     function applyEditionOverlay(lang) {
+      const field = $("#editionFlagField");
       const langs = Object.keys(LANG_NAMES);
       langs.forEach(l => document.body.classList.remove(`edition-${l}`));
-      // Only show the flag for non-default editions of a limited edition recipe.
+      if (field) field.hidden = true;
       if (recipe.isLimitedEdition && lang && lang !== "en") {
         document.body.classList.add(`edition-${lang}`);
+        if (lang === "nl" && field) field.hidden = false;
       }
     }
 
