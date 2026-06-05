@@ -772,6 +772,285 @@
     .r-text { flex: 1; }
     .r-amount { font-weight: 600; color: var(--text); }
 
+    /* ============================================================
+       Language Learning UI (Limited Edition)
+       ============================================================ */
+    .language-lens-card {
+      background: linear-gradient(135deg, rgba(180, 181, 107, 0.12), rgba(212, 163, 115, 0.10));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .language-lens-card[hidden] { display: none; }
+    .language-lens-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .language-lens-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .language-lens-text {
+      font: 500 13px var(--sans);
+      color: var(--text);
+    }
+    .language-lens-text small {
+      display: block;
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-top: 2px;
+    }
+    .learning-toggle-btn {
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font: 600 12px var(--sans);
+      color: var(--text);
+      cursor: pointer;
+      transition: background .2s var(--easing), border-color .2s var(--easing), color .2s var(--easing);
+    }
+    .learning-toggle-btn:hover {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+    .learning-toggle-btn[aria-pressed="true"] {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    /* Ingredient translation (Dutch label below English) */
+    .ingredient-translation {
+      display: block;
+      font: 400 12px var(--sans);
+      color: var(--ochre-dark);
+      margin-top: 2px;
+      font-style: italic;
+    }
+    [data-theme="dark"] .ingredient-translation {
+      color: var(--ochre);
+    }
+
+    /* Step translation preview */
+    .step-translation-preview {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(180, 181, 107, 0.08), rgba(212, 163, 115, 0.06));
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--ochre);
+    }
+    .step-translation-label {
+      font: 700 10px var(--sans);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ochre-dark);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="dark"] .step-translation-label { color: var(--ochre); }
+    .step-translation-title {
+      font: 600 14px var(--serif);
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .step-translation-desc {
+      font: 400 13px var(--sans);
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    /* Vocabulary chips */
+    .vocab-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .vocab-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      font: 500 12px var(--sans);
+      color: var(--text);
+      cursor: pointer;
+      transition: background .15s var(--easing), border-color .15s var(--easing), transform .15s var(--easing);
+      position: relative;
+    }
+    .vocab-chip:hover {
+      background: var(--ochre-soft);
+      border-color: var(--ochre);
+      transform: translateY(-1px);
+    }
+    .vocab-chip.is-expanded {
+      background: var(--ochre-soft);
+      border-color: var(--ochre);
+    }
+    .vocab-word {
+      font-weight: 600;
+      color: var(--ochre-dark);
+    }
+    [data-theme="dark"] .vocab-word { color: var(--ochre); }
+    .vocab-type {
+      font-size: 10px;
+      color: var(--text-soft);
+      font-style: italic;
+    }
+    .vocab-speak {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(180, 181, 107, 0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green);
+      transition: background .15s var(--easing);
+    }
+    .vocab-speak:hover {
+      background: var(--green);
+      color: white;
+    }
+
+    /* Vocab popover (expanded state) */
+    .vocab-popover {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      box-shadow: var(--shadow-md);
+      white-space: nowrap;
+      z-index: 10;
+      animation: popIn .2s var(--easing);
+    }
+    .vocab-popover::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--surface);
+    }
+    .vocab-popover-word {
+      font: 700 14px var(--sans);
+      color: var(--ochre-dark);
+    }
+    [data-theme="dark"] .vocab-popover-word { color: var(--ochre); }
+    .vocab-popover-meaning {
+      font: 400 13px var(--sans);
+      color: var(--text);
+      margin-top: 2px;
+    }
+    .vocab-popover-type {
+      font: 400 11px var(--sans);
+      color: var(--text-soft);
+      font-style: italic;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Cook mode language lens block */
+    .cookmode-language-lens {
+      margin-top: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(180, 181, 107, 0.10), rgba(212, 163, 115, 0.08));
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--ochre);
+    }
+    .cookmode-language-lens-label {
+      font: 700 10px var(--sans);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ochre-dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    [data-theme="dark"] .cookmode-language-lens-label { color: var(--ochre); }
+    .cookmode-language-lens h3 {
+      font: 600 18px var(--serif);
+      color: var(--text);
+      margin: 0 0 8px;
+    }
+    .cookmode-language-lens p {
+      font: 400 15px var(--sans);
+      color: var(--text-soft);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* Cook mode learning toggle button */
+    .cookmode-learn-toggle {
+      position: absolute;
+      top: 12px;
+      right: 50px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      font: 600 11px var(--sans);
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: background .15s var(--easing), color .15s var(--easing), border-color .15s var(--easing);
+      z-index: 5;
+    }
+    .cookmode-learn-toggle:hover {
+      background: var(--bg-soft);
+      color: var(--text);
+    }
+    .cookmode-learn-toggle.is-active {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+    .cookmode-learn-toggle[hidden] { display: none; }
+
+    /* Bilingual ingredient chips in cook mode */
+    .cookmode-ing-bilingual {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cookmode-ing-target {
+      font-size: 11px;
+      color: var(--ochre-dark);
+      font-style: italic;
+    }
+    [data-theme="dark"] .cookmode-ing-target { color: var(--ochre); }
+
+    /* Hero learn button */
+    .r-btn.learn-dutch-btn {
+      background: linear-gradient(135deg, var(--ochre), var(--ochre-dark));
+      color: white;
+      border: none;
+    }
+    .r-btn.learn-dutch-btn:hover {
+      filter: brightness(1.1);
+    }
+    .r-btn.learn-dutch-btn[hidden] { display: none; }
+
     /* Steps */
     .r-steps {
       counter-reset: step;
@@ -1627,6 +1906,10 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
             Share
           </button>
+          <button class="r-btn learn-dutch-btn" id="heroLearnDutch" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            🇳🇱 Learn Dutch
+          </button>
           <button class="r-btn lang-toggle" id="langToggle" hidden aria-label="Switch recipe language">
             <span class="lang-toggle-label">🌐</span>
           </button>
@@ -1718,6 +2001,18 @@
         <h2>How to make it</h2>
 
         <div class="r-method">
+          <!-- Language Lens card (limited edition learning) -->
+          <div class="language-lens-card" id="languageLensCard" hidden>
+            <div class="language-lens-info">
+              <span class="language-lens-icon">🇳🇱</span>
+              <div class="language-lens-text">
+                Language Lens: Learn Dutch
+                <small>See ingredient &amp; step translations</small>
+              </div>
+            </div>
+            <button class="learning-toggle-btn" id="learningToggleBtn" type="button" aria-pressed="false">Show Dutch labels</button>
+          </div>
+
           <!-- Sticky ingredients -->
           <aside class="r-ingredients" id="ingredientsBox">
             <h3>Ingredients</h3>
@@ -1868,6 +2163,9 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
       <span id="fabEditLabel">Edit</span>
     </button>
+    <button id="fabLearnDutch" hidden>
+      🇳🇱 Learn
+    </button>
     <button id="fabLang" hidden>
       <span class="fab-lang-label">🌐</span>
     </button>
@@ -1881,6 +2179,9 @@
   <div class="cookmode" id="cookmode" role="dialog" aria-modal="true" aria-label="Cook mode">
     <div class="cookmode-head">
       <div class="cookmode-title">Cook Mode · <strong id="cookmodeTitle">…</strong></div>
+      <button class="cookmode-learn-toggle" id="cookmodeLearnToggle" type="button" hidden>
+        <span class="learn-toggle-label">Learning: Off</span>
+      </button>
       <button class="cookmode-close" id="cookmodeClose" aria-label="Exit cook mode">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
@@ -2026,6 +2327,202 @@
     let currentLang = "en";
     const LANG_NAMES = { en: "English", nl: "Nederlands" };
     const LANG_FLAGS = { en: "🇬🇧", nl: "🇳🇱" };
+
+    /* ============================================================
+       Language Learning Mode (Limited Edition only)
+       ============================================================ */
+    const LEARNING_TARGET = "nl";  // Target language for learning (Dutch for v1)
+    let learningMode = false;      // Is learning layer enabled?
+
+    /* Dutch muffin vocabulary dictionary */
+    const LEARNING_VOCAB = {
+      nl: {
+        "bloem": { en: "flour", type: "ingredient" },
+        "suiker": { en: "sugar", type: "ingredient" },
+        "boter": { en: "butter", type: "ingredient" },
+        "eieren": { en: "eggs", type: "ingredient" },
+        "ei": { en: "egg", type: "ingredient" },
+        "melk": { en: "milk", type: "ingredient" },
+        "bosbessen": { en: "blueberries", type: "ingredient" },
+        "bakpoeder": { en: "baking powder", type: "ingredient" },
+        "zout": { en: "salt", type: "ingredient" },
+        "vanille": { en: "vanilla", type: "ingredient" },
+        "beslag": { en: "batter", type: "noun" },
+        "mengkom": { en: "mixing bowl", type: "noun" },
+        "oven": { en: "oven", type: "noun" },
+        "muffinvorm": { en: "muffin tin", type: "noun" },
+        "klop": { en: "whisk", type: "verb" },
+        "meng": { en: "mix", type: "verb" },
+        "roer": { en: "stir", type: "verb" },
+        "verwarm": { en: "preheat / warm", type: "verb" },
+        "voeg toe": { en: "add", type: "verb" },
+        "bak": { en: "bake", type: "verb" },
+        "vouw": { en: "fold", type: "verb" },
+        "giet": { en: "pour", type: "verb" },
+        "spatel": { en: "spatula", type: "noun" },
+        "minuten": { en: "minutes", type: "time" },
+        "graden": { en: "degrees", type: "measurement" },
+        "droge ingrediënten": { en: "dry ingredients", type: "noun" },
+        "natte ingrediënten": { en: "wet ingredients", type: "noun" },
+        "luchtig": { en: "fluffy / light", type: "adjective" },
+        "goudbruin": { en: "golden brown", type: "adjective" },
+        "papieren vormpjes": { en: "paper liners", type: "noun" },
+        "afkoelen": { en: "cool down", type: "verb" }
+      }
+    };
+
+    /* Check if learning mode is available (limited edition with English + target language) */
+    function isLearningAvailable() {
+      return recipe && 
+             recipe.isLimitedEdition && 
+             variantsByLang.en && 
+             variantsByLang[LEARNING_TARGET];
+    }
+
+    /* Get the learning pair: base (English) and target language recipes */
+    function getLearningPair() {
+      if (!isLearningAvailable()) return null;
+      return {
+        base: variantsByLang.en,
+        target: variantsByLang[LEARNING_TARGET]
+      };
+    }
+
+    /* Get paired ingredient by group index and item index */
+    function getPairedIngredient(gi, ii) {
+      const pair = getLearningPair();
+      if (!pair) return null;
+      const enGroup = pair.base.ingredientGroups?.[gi];
+      const targetGroup = pair.target.ingredientGroups?.[gi];
+      if (!enGroup || !targetGroup) return null;
+      return {
+        enItem: enGroup.items?.[ii],
+        targetItem: targetGroup.items?.[ii]
+      };
+    }
+
+    /* Get paired step by index */
+    function getPairedStep(i) {
+      const pair = getLearningPair();
+      if (!pair) return null;
+      return {
+        enStep: pair.base.steps?.[i],
+        targetStep: pair.target.steps?.[i]
+      };
+    }
+
+    /* Toggle learning mode on/off */
+    function toggleLearningMode(force) {
+      const wasOn = learningMode;
+      learningMode = typeof force === "boolean" ? force : !learningMode;
+      if (learningMode === wasOn) return;
+      
+      // Persist preference per recipe
+      const storageKey = `recipy.learning.${recipeKey}`;
+      if (learningMode) {
+        localStorage.setItem(storageKey, "1");
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+      
+      syncLearningControls();
+      renderIngredients();
+      renderSteps();
+      
+      // Re-render cook mode step if open
+      const cm = $("#cookmode");
+      if (cm && cm.classList.contains("open")) {
+        renderCookmodeStep();
+      }
+    }
+
+    /* Sync all learning-related UI controls */
+    function syncLearningControls() {
+      const available = isLearningAvailable();
+      
+      // Language Lens card visibility
+      const lensCard = $("#languageLensCard");
+      if (lensCard) lensCard.hidden = !available;
+      
+      // Learning toggle button states
+      const toggleBtn = $("#learningToggleBtn");
+      if (toggleBtn) {
+        toggleBtn.textContent = learningMode ? "Hide Dutch labels" : "Show Dutch labels";
+        toggleBtn.setAttribute("aria-pressed", String(learningMode));
+      }
+      
+      // Hero "Learn Dutch" button
+      const heroLearnBtn = $("#heroLearnDutch");
+      if (heroLearnBtn) heroLearnBtn.hidden = !available;
+      
+      // FAB "Learn Dutch" button  
+      const fabLearnBtn = $("#fabLearnDutch");
+      if (fabLearnBtn) fabLearnBtn.hidden = !available;
+      
+      // Cook mode learning toggle
+      const cmLearningToggle = $("#cookmodeLearnToggle");
+      if (cmLearningToggle) {
+        cmLearningToggle.hidden = !available;
+        const label = cmLearningToggle.querySelector(".learn-toggle-label");
+        if (label) label.textContent = learningMode ? "Learning: On" : "Learning: Off";
+        cmLearningToggle.classList.toggle("is-active", learningMode);
+      }
+    }
+
+    /* Initialize learning mode from localStorage */
+    function initLearningMode() {
+      if (!isLearningAvailable()) {
+        learningMode = false;
+        syncLearningControls();
+        return;
+      }
+      const storageKey = `recipy.learning.${recipeKey}`;
+      learningMode = localStorage.getItem(storageKey) === "1";
+      syncLearningControls();
+    }
+
+    /* Speak text using browser speech synthesis */
+    function speak(text, lang = "nl-NL") {
+      if (!("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = 0.85;
+      speechSynthesis.speak(utterance);
+    }
+
+    /* Find vocabulary words in text and return matches */
+    function findVocabInText(text, lang = LEARNING_TARGET) {
+      const vocab = LEARNING_VOCAB[lang];
+      if (!vocab || !text) return [];
+      const lowerText = text.toLowerCase();
+      const matches = [];
+      for (const [word, data] of Object.entries(vocab)) {
+        if (lowerText.includes(word.toLowerCase())) {
+          matches.push({ word, ...data });
+        }
+      }
+      return matches;
+    }
+
+    /* Render vocabulary chips HTML */
+    function renderVocabChips(text, lang = LEARNING_TARGET) {
+      const matches = findVocabInText(text, lang);
+      if (!matches.length) return "";
+      return `
+        <div class="vocab-chips">
+          ${matches.map(m => `
+            <button class="vocab-chip" type="button" data-word="${escapeHtml(m.word)}" data-en="${escapeHtml(m.en)}" data-type="${escapeHtml(m.type || "")}">
+              <span class="vocab-word">${escapeHtml(m.word)}</span>
+              <span class="vocab-type">${escapeHtml(m.type || "")}</span>
+              <button class="vocab-speak" type="button" aria-label="Pronounce ${escapeHtml(m.word)}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              </button>
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
 
     /* Derive per-recipe storage + render state from the active `recipe`.
        recipeKey is keyed on variantGroup when present so check/serving state
@@ -2179,6 +2676,35 @@
       if (fabBtn) fabBtn.addEventListener("click", handler);
       applyEditionOverlay(currentLang);
       updateLangToggle();
+    }
+
+    /* Initialize learning mode and toggle buttons */
+    function initLearningToggle() {
+      initLearningMode();
+      
+      // Learning toggle button in the Language Lens card
+      const toggleBtn = $("#learningToggleBtn");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => toggleLearningMode());
+      }
+      
+      // Hero "Learn Dutch while cooking" button
+      const heroLearnBtn = $("#heroLearnDutch");
+      if (heroLearnBtn) {
+        heroLearnBtn.addEventListener("click", () => {
+          toggleLearningMode(true);
+          openCookMode();
+        });
+      }
+      
+      // FAB "Learn Dutch" button
+      const fabLearnBtn = $("#fabLearnDutch");
+      if (fabLearnBtn) {
+        fabLearnBtn.addEventListener("click", () => {
+          toggleLearningMode(true);
+          openCookMode();
+        });
+      }
     }
 
     /* ============================================================
@@ -2348,6 +2874,7 @@
       const wrap = $("#ingredientGroups");
       const checked = new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]"));
       const factor = servings / baseServings;
+      const pair = getLearningPair();
 
       wrap.innerHTML = ingredientGroups.map((group, gi) => `
         <div class="r-ingredient-group">
@@ -2357,12 +2884,22 @@
               const key = `${gi}-${ii}`;
               const isDone = checked.has(key);
               const scaled = item.amount * factor;
+              // Get Dutch translation if learning mode is on
+              let dutchLabel = "";
+              if (learningMode && pair) {
+                const targetGroup = pair.target.ingredientGroups?.[gi];
+                const targetItem = targetGroup?.items?.[ii];
+                if (targetItem && targetItem.text !== item.text) {
+                  dutchLabel = `<span class="ingredient-translation">🇳🇱 ${escapeHtml(targetItem.text)}</span>`;
+                }
+              }
               return `
                 <li class="r-ingredient ${isDone ? 'is-done' : ''}" data-key="${key}">
                   <span class="r-check" aria-hidden="true"></span>
                   <span class="r-text">
                     <span class="r-amount">${formatAmount(scaled)}${item.unit ? ` ${escapeHtml(item.unit)}` : ''}</span>
                     ${escapeHtml(item.text)}
+                    ${dutchLabel}
                   </span>
                 </li>
               `;
@@ -2403,7 +2940,24 @@
     function renderSteps() {
       const wrap = $("#stepsList");
       const done = new Set(JSON.parse(localStorage.getItem(STORAGE_STEPS) || "[]"));
-      wrap.innerHTML = steps.map((s, i) => `
+      const pair = getLearningPair();
+      
+      wrap.innerHTML = steps.map((s, i) => {
+        // Get Dutch translation preview if learning mode is on
+        let dutchPreview = "";
+        if (learningMode && pair) {
+          const targetStep = pair.target.steps?.[i];
+          if (targetStep) {
+            dutchPreview = `
+              <div class="step-translation-preview">
+                <div class="step-translation-label">🇳🇱 Dutch Lens</div>
+                <div class="step-translation-title">${escapeHtml(targetStep.title)}</div>
+                <div class="step-translation-desc">${escapeHtml(targetStep.desc.substring(0, 120))}${targetStep.desc.length > 120 ? '…' : ''}</div>
+              </div>
+            `;
+          }
+        }
+        return `
         <article class="r-step ${done.has(String(i)) ? 'is-done' : ''}" data-step="${i}">
           <div class="r-step-num-wrap">
             <span class="r-step-num" aria-hidden="true"></span>
@@ -2417,9 +2971,11 @@
             </span>
             <p class="r-step-desc">${escapeHtml(s.desc)}</p>
             ${s.tip ? `<div class="r-step-tip"><strong>Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
+            ${dutchPreview}
           </div>
         </article>
-      `).join("");
+      `;
+      }).join("");
 
       $("#stepsTotal").textContent = steps.length;
 
@@ -2737,13 +3293,32 @@
       const s = steps[cook.i];
       const el = $("#cookmodeStep");
       const ings = ingredientsForStep(s, cook.i);
-      const ingsHtml = ings.length ? `
-        <div class="cookmode-ings">
-          <div class="cookmode-ings-label">Ingredients this step</div>
-          <div class="cookmode-ings-chips">
-            ${ings.map((ing, idx) => `<button class="cookmode-ing-chip" type="button" data-chip-idx="${idx}" aria-pressed="false">${escapeHtml(ing.text)}${ing.amountStr ? `<em>(${escapeHtml(ing.amountStr)})</em>` : ""}</button>`).join("")}
-          </div>
-        </div>` : "";
+      const pair = getLearningPair();
+      
+      // Build bilingual ingredient chips if learning mode is active
+      let ingsHtml = "";
+      if (ings.length) {
+        const chipsHtml = ings.map((ing, idx) => {
+          let targetText = "";
+          if (learningMode && pair && ing.groupIdx !== undefined && ing.itemIdx !== undefined) {
+            const targetGroup = pair.target.ingredientGroups?.[ing.groupIdx];
+            const targetItem = targetGroup?.items?.[ing.itemIdx];
+            if (targetItem && targetItem.text !== ing.text) {
+              targetText = `<span class="cookmode-ing-target">🇳🇱 ${escapeHtml(targetItem.text)}</span>`;
+            }
+          }
+          return `<button class="cookmode-ing-chip ${targetText ? 'cookmode-ing-bilingual' : ''}" type="button" data-chip-idx="${idx}" aria-pressed="false">
+            <span>${escapeHtml(ing.text)}${ing.amountStr ? `<em>(${escapeHtml(ing.amountStr)})</em>` : ""}</span>
+            ${targetText}
+          </button>`;
+        }).join("");
+        
+        ingsHtml = `
+          <div class="cookmode-ings">
+            <div class="cookmode-ings-label">Ingredients this step</div>
+            <div class="cookmode-ings-chips">${chipsHtml}</div>
+          </div>`;
+      }
 
       // Extract timer durations from description text (actual timed tasks)
       const extractedTimers = extractTimersFromText(s.desc);
@@ -2759,6 +3334,23 @@
           ${t.mins} min timer
         </button>`;
       }).join("");
+      
+      // Build Dutch Lens block if learning mode is active
+      let dutchLensHtml = "";
+      if (learningMode && pair) {
+        const targetStep = pair.target.steps?.[cook.i];
+        if (targetStep) {
+          const vocabChipsHtml = renderVocabChips(targetStep.title + " " + targetStep.desc);
+          dutchLensHtml = `
+            <div class="cookmode-language-lens">
+              <div class="cookmode-language-lens-label">🇳🇱 Dutch Lens</div>
+              <h3>${escapeHtml(targetStep.title)}</h3>
+              <p>${escapeHtml(targetStep.desc)}</p>
+              ${vocabChipsHtml}
+            </div>
+          `;
+        }
+      }
 
       el.innerHTML = `
         <div class="num">Step ${cook.i + 1} of ${steps.length}</div>
@@ -2771,6 +3363,7 @@
         </div>
         <p class="desc">${escapeHtml(s.desc)}</p>
         ${s.tip ? `<div class="tip"><strong style="font-style:normal;font-family:var(--sans);font-weight:700;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blue);display:block;margin-bottom:6px;">Tip</strong>${escapeHtml(s.tip)}</div>` : ""}
+        ${dutchLensHtml}
         ${ingsHtml}
       `;
       // Bind timer buttons (can't use onclick in innerHTML — use event delegation)
@@ -2789,6 +3382,37 @@
           chip.setAttribute("aria-pressed", String(done));
         });
       });
+      
+      // Bind vocabulary chip interactions
+      el.querySelectorAll(".vocab-chip").forEach((chip) => {
+        chip.addEventListener("click", (e) => {
+          // If clicking the speak button, don't toggle expansion
+          if (e.target.closest(".vocab-speak")) {
+            e.stopPropagation();
+            speak(chip.dataset.word, "nl-NL");
+            return;
+          }
+          // Toggle expanded state with popover
+          const wasExpanded = chip.classList.contains("is-expanded");
+          // Close any other expanded chips
+          el.querySelectorAll(".vocab-chip.is-expanded").forEach(c => {
+            c.classList.remove("is-expanded");
+            const pop = c.querySelector(".vocab-popover");
+            if (pop) pop.remove();
+          });
+          if (!wasExpanded) {
+            chip.classList.add("is-expanded");
+            const popover = document.createElement("div");
+            popover.className = "vocab-popover";
+            popover.innerHTML = `
+              <div class="vocab-popover-word">${escapeHtml(chip.dataset.word)}</div>
+              <div class="vocab-popover-meaning">= ${escapeHtml(chip.dataset.en)}</div>
+              <div class="vocab-popover-type">${escapeHtml(chip.dataset.type)}</div>
+            `;
+            chip.appendChild(popover);
+          }
+        });
+      });
 
       $("#cookmodeTitle").textContent = recipe.title;
       $("#cookmodePrev").disabled = cook.i === 0;
@@ -2796,6 +3420,9 @@
       $("#cookmodeNextLabel").textContent = isLast ? "Finish" : "Next";
       $("#cookmodeNext").classList.toggle("is-finish", isLast);
       $("#cookmodeBar").style.width = ((cook.i + 1) / steps.length * 100) + "%";
+      
+      // Sync learning toggle in cook mode header
+      syncLearningControls();
     }
 
     let wakeLock = null;
@@ -3035,6 +3662,13 @@
       $("#cookmodeClose").addEventListener("click", closeCookMode);
       $("#cookmodeNext").addEventListener("click", nextStep);
       $("#cookmodePrev").addEventListener("click", prevStep);
+      
+      // Cook mode learning toggle
+      const cmLearnToggle = $("#cookmodeLearnToggle");
+      if (cmLearnToggle) {
+        cmLearnToggle.addEventListener("click", () => toggleLearningMode());
+      }
+      
       window.addEventListener("keydown", (e) => {
         if (!$("#cookmode").classList.contains("open")) return;
         /* Don't intercept keys when user is typing in an input or textarea */
@@ -3255,6 +3889,7 @@
       updateBookmarkBadge();
       initCookMode();
       initLangToggle();
+      initLearningToggle();
       initCmdk();
       initKeyboard();
       initAuthOnRecipePage();

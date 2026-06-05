@@ -211,6 +211,70 @@ WHERE variant_group = 'berried-treasure-blueberry-muffins';
 
 ---
 
+## Language Learning Layer (Client-side Feature)
+
+Limited-edition recipes with language variants include an optional **language learning mode** that helps users learn the target language (e.g. Dutch) while cooking. This is a client-side feature that requires no database changes.
+
+### How It Works
+
+When a user is viewing a limited-edition recipe with both English and a non-English variant (e.g. Dutch), they can enable "Learning Mode" which:
+
+1. **Ingredient Lens**: Shows Dutch translations below each English ingredient
+2. **Step Previews**: Displays a Dutch preview card under each recipe step
+3. **Bilingual Cook Mode**: In cook mode, shows English instructions as the "safe cooking anchor" with a Dutch Lens card underneath containing the translated step
+4. **Vocabulary Chips**: Highlights key Dutch words that users can tap to see translations and hear pronunciations via browser speech synthesis
+5. **Bilingual Ingredient Chips**: Cook mode ingredient chips show both English and Dutch names
+
+### Entry Points
+
+- **Language Lens card** above the ingredient list (toggle to show/hide Dutch labels)
+- **"Learn Dutch while cooking" button** in hero actions and FAB (opens cook mode with learning enabled)
+- **Learning toggle** in cook mode header
+
+### Data Requirements
+
+The learning layer **pairs content by array index**. This means:
+
+- `ingredientGroups[0].items[2]` in English maps to `ingredientGroups[0].items[2]` in Dutch
+- `steps[3]` in English maps to `steps[3]` in Dutch
+
+**Critical**: When adding a translated variant, **preserve the exact same order** of ingredient groups, items, and steps as the primary recipe. Only translate the display text.
+
+### Vocabulary Dictionary (v1)
+
+For v1, vocabulary is stored client-side in `recipe.html` as `LEARNING_VOCAB`:
+
+```js
+const LEARNING_VOCAB = {
+  nl: {
+    "bloem": { en: "flour", type: "ingredient" },
+    "klop": { en: "whisk", type: "verb" },
+    "verwarm": { en: "preheat / warm", type: "verb" },
+    // ... more words
+  }
+};
+```
+
+### Future Data Model Path
+
+When adding more limited-edition recipes with learning support:
+
+1. **Short term**: Expand `LEARNING_VOCAB` in `recipe.html` with words for new recipes
+2. **Medium term**: Move vocabulary to a `learning_vocab` JSONB column on the recipe row
+3. **Long term**: Create a dedicated `vocabulary` table with foreign key to recipes
+
+### State Persistence
+
+Learning mode preference is stored in `localStorage` per recipe:
+
+```
+recipy.learning.<recipeKey>   →   "1" (enabled) or absent (disabled)
+```
+
+The `recipeKey` is the `variant_group` (if set) or recipe ID, so the preference is shared across language variants of the same recipe.
+
+---
+
 ## Common Operations
 
 ### View All Recipes
