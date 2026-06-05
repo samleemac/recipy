@@ -775,59 +775,6 @@
     /* ============================================================
        Language Learning UI (Limited Edition)
        ============================================================ */
-    .language-lens-card {
-      background: linear-gradient(135deg, rgba(180, 181, 107, 0.12), rgba(212, 163, 115, 0.10));
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .language-lens-card[hidden] { display: none; }
-    .language-lens-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .language-lens-icon {
-      font-size: 22px;
-      line-height: 1;
-    }
-    .language-lens-text {
-      font: 500 13px var(--sans);
-      color: var(--text);
-    }
-    .language-lens-text small {
-      display: block;
-      font-weight: 400;
-      font-size: 11px;
-      color: var(--text-soft);
-      margin-top: 2px;
-    }
-    .learning-toggle-btn {
-      padding: 8px 14px;
-      border-radius: var(--radius-pill);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      font: 600 12px var(--sans);
-      color: var(--text);
-      cursor: pointer;
-      transition: background .2s var(--easing), border-color .2s var(--easing), color .2s var(--easing);
-    }
-    .learning-toggle-btn:hover {
-      background: var(--green);
-      border-color: var(--green);
-      color: white;
-    }
-    .learning-toggle-btn[aria-pressed="true"] {
-      background: var(--green);
-      border-color: var(--green);
-      color: white;
-    }
-
     /* Ingredient translation (Dutch label below English) */
     .ingredient-translation {
       display: block;
@@ -909,21 +856,6 @@
       font-size: 10px;
       color: var(--text-soft);
       font-style: italic;
-    }
-    .vocab-speak {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: rgba(180, 181, 107, 0.15);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--green);
-      transition: background .15s var(--easing);
-    }
-    .vocab-speak:hover {
-      background: var(--green);
-      color: white;
     }
 
     /* Vocab popover (expanded state) */
@@ -2001,18 +1933,6 @@
         <h2>How to make it</h2>
 
         <div class="r-method">
-          <!-- Language Lens card (limited edition learning) -->
-          <div class="language-lens-card" id="languageLensCard" hidden>
-            <div class="language-lens-info">
-              <span class="language-lens-icon">🇳🇱</span>
-              <div class="language-lens-text">
-                Language Lens: Learn Dutch
-                <small>See ingredient &amp; step translations</small>
-              </div>
-            </div>
-            <button class="learning-toggle-btn" id="learningToggleBtn" type="button" aria-pressed="false">Show Dutch labels</button>
-          </div>
-
           <!-- Sticky ingredients -->
           <aside class="r-ingredients" id="ingredientsBox">
             <h3>Ingredients</h3>
@@ -2440,17 +2360,6 @@
     function syncLearningControls() {
       const available = isLearningAvailable();
       
-      // Language Lens card visibility
-      const lensCard = $("#languageLensCard");
-      if (lensCard) lensCard.hidden = !available;
-      
-      // Learning toggle button states
-      const toggleBtn = $("#learningToggleBtn");
-      if (toggleBtn) {
-        toggleBtn.textContent = learningMode ? "Hide Dutch labels" : "Show Dutch labels";
-        toggleBtn.setAttribute("aria-pressed", String(learningMode));
-      }
-      
       // Hero "Learn Dutch" button
       const heroLearnBtn = $("#heroLearnDutch");
       if (heroLearnBtn) heroLearnBtn.hidden = !available;
@@ -2481,16 +2390,6 @@
       syncLearningControls();
     }
 
-    /* Speak text using browser speech synthesis */
-    function speak(text, lang = "nl-NL") {
-      if (!("speechSynthesis" in window)) return;
-      speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang;
-      utterance.rate = 0.85;
-      speechSynthesis.speak(utterance);
-    }
-
     /* Find vocabulary words in text and return matches */
     function findVocabInText(text, lang = LEARNING_TARGET) {
       const vocab = LEARNING_VOCAB[lang];
@@ -2515,9 +2414,6 @@
             <button class="vocab-chip" type="button" data-word="${escapeHtml(m.word)}" data-en="${escapeHtml(m.en)}" data-type="${escapeHtml(m.type || "")}">
               <span class="vocab-word">${escapeHtml(m.word)}</span>
               <span class="vocab-type">${escapeHtml(m.type || "")}</span>
-              <button class="vocab-speak" type="button" aria-label="Pronounce ${escapeHtml(m.word)}">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-              </button>
             </button>
           `).join("")}
         </div>
@@ -2678,15 +2574,9 @@
       updateLangToggle();
     }
 
-    /* Initialize learning mode and toggle buttons */
+    /* Initialize learning mode and entry point buttons */
     function initLearningToggle() {
       initLearningMode();
-      
-      // Learning toggle button in the Language Lens card
-      const toggleBtn = $("#learningToggleBtn");
-      if (toggleBtn) {
-        toggleBtn.addEventListener("click", () => toggleLearningMode());
-      }
       
       // Hero "Learn Dutch while cooking" button
       const heroLearnBtn = $("#heroLearnDutch");
@@ -3383,16 +3273,9 @@
         });
       });
       
-      // Bind vocabulary chip interactions
+      // Bind vocabulary chip interactions (tap to expand/translate)
       el.querySelectorAll(".vocab-chip").forEach((chip) => {
-        chip.addEventListener("click", (e) => {
-          // If clicking the speak button, don't toggle expansion
-          if (e.target.closest(".vocab-speak")) {
-            e.stopPropagation();
-            speak(chip.dataset.word, "nl-NL");
-            return;
-          }
-          // Toggle expanded state with popover
+        chip.addEventListener("click", () => {
           const wasExpanded = chip.classList.contains("is-expanded");
           // Close any other expanded chips
           el.querySelectorAll(".vocab-chip.is-expanded").forEach(c => {
