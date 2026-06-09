@@ -443,7 +443,7 @@
           </div>
           ${g.items.map((it, ii) => `
             <div class="ingredient-row" data-ii="${ii}">
-              <input class="form-input" type="text" inputmode="decimal" data-field="amount" placeholder="Amt" value="${escapeHtml(it.amount)}" />
+              <input class="form-input" type="text" inputmode="decimal" data-field="amount" placeholder="Quantity" value="${escapeHtml(it.amount)}" />
               <input class="form-input" type="text" data-field="unit"   placeholder="g, tbsp" value="${escapeHtml(it.unit)}" />
               <input class="form-input" type="text" data-field="text"   placeholder="ingredient" value="${escapeHtml(it.text)}" />
               <button type="button" class="remove-btn" data-action="removeItem" ${g.items.length === 1 ? 'style="visibility:hidden"' : ""}>✕</button>
