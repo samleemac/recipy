@@ -3316,12 +3316,23 @@
       try { if (wakeLock) wakeLock.release(); wakeLock = null; } catch (_) {}
     }
 
+    /* Ask for notification permission so timers can alert when the tab/screen
+       is in the background (mobile screen-off case). Best-effort only. */
+    function requestNotificationPermission() {
+      try {
+        if ("Notification" in window && Notification.permission === "default") {
+          Notification.requestPermission();
+        }
+      } catch (_) {}
+    }
+
     function openCookMode() {
       cook.i = 0;
       renderCookmodeStep();
       $("#cookmode").classList.add("open");
       document.body.style.overflow = "hidden";
       acquireWakeLock();
+      requestNotificationPermission();
     }
     function closeCookMode() {
       $("#cookmode").classList.remove("open");
@@ -3442,9 +3453,32 @@
       return `${padT(m)}:${padT(s)}`;
     }
 
+    /* Shared AudioContext — created once and unlocked on a user gesture so that
+       mobile Safari (and other mobile browsers) will allow the beep to play
+       later from a setInterval callback when a timer finishes. */
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      return audioCtx;
+    }
+    /* Unlock/resume the context during a user gesture (e.g. tapping a timer).
+       Safari starts contexts "suspended" and only allows resume() from a tap. */
+    function unlockAudio() {
+      try {
+        const ctx = getAudioCtx();
+        if (ctx && ctx.state === "suspended") ctx.resume();
+      } catch (_) {}
+    }
+
     function playTimerBeep() {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = getAudioCtx();
+        if (!ctx) return;
+        /* If the context got suspended (e.g. backgrounded), try to resume. */
+        if (ctx.state === "suspended") ctx.resume();
         [[0, 880], [0.35, 880], [0.7, 1100]].forEach(([delay, freq]) => {
           const osc  = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -3479,6 +3513,13 @@
       if (fillEl) { fillEl.style.width = "100%"; fillEl.style.background = "var(--green)"; }
       playTimerBeep();
       toast("⏱ Timer done: " + entry.label);
+      /* If the page is backgrounded (screen off / tab switched), also fire a
+         system notification so the cook isn't relying solely on the beep. */
+      try {
+        if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+          new Notification("⏱ Timer done", { body: entry.label, silent: false });
+        }
+      } catch (_) {}
       setTimeout(() => cancelCookTimer(entry.id), 9000);
     }
 
@@ -3499,6 +3540,9 @@
     }
 
     function startCookTimer(label, minutes) {
+      /* This runs from the user's tap — unlock audio so the finish beep can
+         play later from the interval callback (required by mobile Safari). */
+      unlockAudio();
       const existing = cookTimers.find(t => t.label === label);
       if (existing) {
         /* Nudge the existing chip to draw attention to it */
