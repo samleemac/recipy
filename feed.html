@@ -22,7 +22,8 @@
       border-radius: 100px;
       transition: background .15s, color .15s;
     }
-    .feed-tab.is-active { background: var(--green); color: var(--white); }
+    .feed-tab.is-active { background: var(--green); color: var(--ink); font-weight: 700; }
+    [data-theme="dark"] .feed-tab.is-active { color: #1E1B18; }
 
     .feed-list { display: grid; gap: 18px; max-width: 600px; margin: 0 auto; }
     .feed-card {
@@ -31,7 +32,15 @@
       border-radius: var(--radius-lg);
       overflow: hidden;
       animation: feedIn .35s ease both;
+      transition: transform .2s var(--easing), box-shadow .2s var(--easing), border-color .2s;
     }
+    .feed-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.10);
+      border-color: var(--text-soft);
+    }
+    [data-theme="dark"] .feed-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+    .feed-skeletons { display: grid; gap: 18px; max-width: 600px; margin: 0 auto; }
     @keyframes feedIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .feed-head {
       display: flex; align-items: center; gap: 12px;
@@ -70,7 +79,14 @@
       transition: background .15s, color .15s;
     }
     .feed-action:hover { background: var(--bg); color: var(--text); }
-    .feed-action.is-liked { color: #e11d48; }
+    .feed-action.is-liked { color: var(--ochre-dark); }
+    [data-theme="dark"] .feed-action.is-liked { color: var(--ochre); }
+    .feed-action.like-pop svg { animation: likePop .3s var(--easing); }
+    @keyframes likePop {
+      0%   { transform: scale(1); }
+      45%  { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
     .feed-new-banner {
       position: sticky; top: 80px; z-index: 5;
       display: none; margin-bottom: 16px;
@@ -92,7 +108,9 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 14px 16px;
+      transition: border-color .15s;
     }
+    .people-search:focus-within { border-color: var(--sage); }
     .people-search-bar {
       display: flex; align-items: center; gap: 10px;
     }
@@ -150,6 +168,19 @@
       font: 400 13px var(--sans);
       color: var(--text-soft);
     }
+
+    .feed-error { text-align: center; }
+    .feed-error .btn { margin-top: 14px; }
+
+    @media (max-width: 640px) {
+      .feed-tabs { width: 100%; }
+      .feed-tab { flex: 1; text-align: center; }
+      .feed-head { padding: 12px 14px 10px; }
+      .feed-body { padding: 10px 14px 14px; }
+      .feed-actions { padding: 2px 10px 12px; }
+      .people-search { padding: 12px; }
+      .people-row { grid-template-columns: 40px 1fr auto; gap: 10px; padding: 8px; }
+    }
   </style>
 </head>
 <body data-page="feed">
@@ -163,14 +194,14 @@
     <section class="people-search" aria-label="Find people">
       <div class="people-search-bar">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input id="peopleSearchInput" type="text" placeholder="Find people on Recipy — username or display name" autocomplete="off" />
+        <input id="peopleSearchInput" type="text" placeholder="Find people on Recipy — username or display name" aria-label="Find people on Recipy" autocomplete="off" />
       </div>
       <div class="people-results" id="peopleResults"></div>
     </section>
 
-    <div class="feed-tabs" role="tablist">
-      <button class="feed-tab is-active" data-scope="following">Following</button>
-      <button class="feed-tab"             data-scope="everyone">Everyone</button>
+    <div class="feed-tabs" role="tablist" aria-label="Feed scope">
+      <button class="feed-tab is-active" role="tab" aria-selected="true"  data-scope="following">Following</button>
+      <button class="feed-tab"           role="tab" aria-selected="false" data-scope="everyone">Everyone</button>
     </div>
 
     <div class="feed-new-banner" id="newBanner"><button id="newBannerBtn">↑ New posts — tap to load</button></div>
@@ -218,7 +249,7 @@
         }
         return;
       }
-      root.innerHTML = `<div class="feed-list">${posts.map(renderCard).join("")}</div>`;
+      root.innerHTML = `<div class="feed-list tab-fade-in">${posts.map(renderCard).join("")}</div>`;
       $$(".feed-like").forEach(el => el.addEventListener("click", onLike));
     }
 
@@ -228,7 +259,7 @@
       const profileHref = `profile.html?u=${encodeURIComponent(author.username || "")}`;
       const recipeHref  = p.recipe ? `recipe.html?slug=${encodeURIComponent(p.recipe.slug)}` : "#";
       const photoBlock  = photo
-        ? `<div class="feed-photo" style="background-image:url(${escapeHtml(photo + '?auto=format&fit=crop&w=900&q=78')})"></div>`
+        ? `<div class="feed-photo" role="img" aria-label="${escapeHtml(p.recipe ? `Photo of ${p.recipe.title}` : 'Photo of the cook')}" style="background-image:url(${escapeHtml(photo + '?auto=format&fit=crop&w=900&q=78')})"></div>`
         : "";
       const avatarBlock = author.avatar_url
         ? `<img class="avatar-md" style="object-fit:cover" src="${escapeHtml(author.avatar_url)}" alt="${escapeHtml(author.display_name || author.username)}" />`
@@ -254,7 +285,7 @@
             </div>
           </div>
           <div class="feed-actions">
-            <button class="feed-action feed-like ${p.likedByMe ? 'is-liked' : ''}" data-id="${escapeHtml(p.id)}" type="button">
+            <button class="feed-action feed-like ${p.likedByMe ? 'is-liked' : ''}" data-id="${escapeHtml(p.id)}" type="button" aria-label="${p.likedByMe ? 'Unlike this post' : 'Like this post'}" aria-pressed="${p.likedByMe ? 'true' : 'false'}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="${p.likedByMe ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
               <span class="likeCount">${p.likes}</span>
             </button>
@@ -270,6 +301,11 @@
       try {
         const liked = await window.RECIPY.posts.likeToggle(btn.dataset.id);
         btn.classList.toggle("is-liked", liked);
+        btn.setAttribute("aria-pressed", liked ? "true" : "false");
+        btn.setAttribute("aria-label", liked ? "Unlike this post" : "Like this post");
+        btn.classList.remove("like-pop");
+        void btn.offsetWidth;
+        btn.classList.add("like-pop");
         const svg = btn.querySelector("svg");
         if (svg) svg.setAttribute("fill", liked ? "currentColor" : "none");
         const countEl = btn.querySelector(".likeCount");
@@ -281,14 +317,33 @@
       }
     }
 
+    function renderFeedSkeletons() {
+      $("#feedRoot").innerHTML = `<div class="feed-skeletons" aria-hidden="true">${Array.from({ length: 3 }, () => `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-img"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+      `).join("")}</div>`;
+    }
     async function loadFeed() {
-      $("#feedRoot").innerHTML = `<div class="empty-state"><span class="spinner"></span></div>`;
+      renderFeedSkeletons();
       if (!window.RECIPY || !window.RECIPY.configured) {
         $("#feedRoot").innerHTML = `<div class="empty-state"><h3>Feed needs Supabase.</h3><p>Set up your project in <code>config.js</code>.</p></div>`;
         return;
       }
-      const posts = await window.RECIPY.posts.feed({ scope });
-      renderFeed(posts);
+      try {
+        const posts = await window.RECIPY.posts.feed({ scope });
+        renderFeed(posts);
+      } catch (err) {
+        $("#feedRoot").innerHTML = `
+          <div class="empty-state feed-error">
+            <h3>Couldn't load the feed.</h3>
+            <p>${escapeHtml(err.message || "Something went wrong — check your connection.")}</p>
+            <button class="btn btn-primary" id="feedRetryBtn" type="button">Try again</button>
+          </div>`;
+        $("#feedRetryBtn").addEventListener("click", loadFeed);
+      }
     }
 
     function setupRealtime() {
@@ -305,11 +360,26 @@
     }
 
     function bindTabs() {
-      $$(".feed-tab").forEach(t => t.addEventListener("click", async () => {
+      const tabs = $$(".feed-tab");
+      async function activateTab(t) {
         scope = t.dataset.scope;
-        $$(".feed-tab").forEach(b => b.classList.toggle("is-active", b === t));
+        tabs.forEach(b => {
+          const active = b === t;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-selected", active ? "true" : "false");
+        });
         await loadFeed();
-      }));
+      }
+      tabs.forEach((t, i) => {
+        t.addEventListener("click", () => activateTab(t));
+        t.addEventListener("keydown", (e) => {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          e.preventDefault();
+          const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+          next.focus();
+          activateTab(next);
+        });
+      });
       $("#newBannerBtn").addEventListener("click", async () => {
         await loadFeed();
         $("#newBanner").classList.remove("show");

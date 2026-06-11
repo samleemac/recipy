@@ -29,8 +29,10 @@
     .upload-tab.active {
       background: var(--sage);
       border-color: var(--sage);
-      color: var(--white);
+      color: var(--ink);
+      font-weight: 700;
     }
+    [data-theme="dark"] .upload-tab.active { color: #1E1B18; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
@@ -78,29 +80,29 @@
       white-space: nowrap;
     }
     .pill-status.pending {
-      background: #fef3c7;
-      color: #b45309;
+      background: var(--warning-soft);
+      color: var(--warning);
     }
     .pill-status.published {
-      background: var(--sage-soft);
-      color: var(--sage-dark);
+      background: var(--success-soft);
+      color: var(--success);
     }
     .pill-status.rejected {
-      background: #fee2e2;
-      color: #b91c1c;
+      background: var(--danger-soft);
+      color: var(--danger);
     }
     .pill-status.draft {
-      background: var(--bg);
+      background: var(--green-soft);
       color: var(--text-soft);
       border: 1px solid var(--border);
     }
     .rejection-reason {
       margin-top: 8px;
       padding: 10px 14px;
-      background: #fee2e2;
+      background: var(--danger-soft);
       border-radius: 8px;
       font: 400 13px var(--sans);
-      color: #991b1b;
+      color: var(--danger);
     }
     .submissions-empty {
       text-align: center;
@@ -131,7 +133,8 @@
       padding: 22px 24px;
     }
     .section h2 {
-      font: 700 18px var(--sans);
+      font: 700 22px var(--serif);
+      letter-spacing: -0.01em;
       margin-bottom: 4px;
     }
     .section .section-sub {
@@ -151,11 +154,23 @@
       border-radius: 12px;
       position: relative;
     }
+    /* Row add/remove motion */
+    .row-in { animation: rowIn .25s var(--easing) both; }
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .row-out {
+      opacity: 0 !important;
+      transform: translateY(-4px) !important;
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+    }
     .group-card.dragging { opacity: .5; }
     .group-card.drag-over { border-color: var(--green); border-style: solid; }
     .group-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
     .group-head input { flex: 1; }
-    .remove-btn { color: #b91c1c; font: 600 12px var(--sans); padding: 4px 8px; }
+    .remove-btn { color: var(--danger); font: 600 12px var(--sans); padding: 4px 8px; }
     .remove-btn:hover { text-decoration: underline; }
 
     .step-drag-handle {
@@ -276,6 +291,7 @@
       display: none;
     }
     .photo-preview.show { display: block; }
+    .photo-actions { display: flex; gap: 10px; margin-top: 12px; }
 
     .submit-bar {
       position: sticky;
@@ -312,9 +328,9 @@
     <h1 class="page-title" id="pageTitle">Submit a recipe</h1>
     <p class="page-sub" id="pageSub">Share what you cook. Submissions go into the moderation queue and appear on the site once approved.</p>
 
-    <div class="upload-tabs" id="uploadTabs">
-      <button class="upload-tab active" data-tab="new" type="button">New Submission</button>
-      <button class="upload-tab" data-tab="history" type="button">Past Submissions</button>
+    <div class="upload-tabs" id="uploadTabs" role="tablist" aria-label="Submission sections">
+      <button class="upload-tab active" role="tab" aria-selected="true" data-tab="new" type="button">New Submission</button>
+      <button class="upload-tab" role="tab" aria-selected="false" data-tab="history" type="button">Past Submissions</button>
     </div>
 
     <!-- New submission tab -->
@@ -364,7 +380,7 @@
           </div>
         </div>
         <div class="form-field">
-          <label>Tags</label>
+          <label for="tagInput">Tags</label>
           <div class="tag-input">
             <input class="form-input" type="text" id="tagInput" placeholder="Add a tag and press Enter (e.g. Vegan, Pasta, Light)" />
           </div>
@@ -382,6 +398,10 @@
           <span>Drag &amp; drop, or click to choose</span>
         </label>
         <div class="photo-preview" id="photoPreview"></div>
+        <div class="photo-actions" id="photoActions" hidden>
+          <button type="button" class="btn btn-secondary" id="photoChangeBtn">Change photo</button>
+          <button type="button" class="btn btn-ghost" id="photoRemoveBtn">Remove</button>
+        </div>
       </section>
 
       <!-- Ingredients -->
@@ -407,14 +427,14 @@
         <h2>Nutrition (per serving)</h2>
         <div class="section-sub">Best-guess is fine — leave blank if you don't know.</div>
         <div class="row">
-          <div class="form-field"><label>Calories</label><input class="form-input" type="number" id="macroKcal" min="0"></div>
-          <div class="form-field"><label>Carbs (g)</label><input class="form-input" type="number" id="macroCarbs" min="0"></div>
-          <div class="form-field"><label>Protein (g)</label><input class="form-input" type="number" id="macroProtein" min="0"></div>
+          <div class="form-field"><label for="macroKcal">Calories</label><input class="form-input" type="number" id="macroKcal" min="0"></div>
+          <div class="form-field"><label for="macroCarbs">Carbs (g)</label><input class="form-input" type="number" id="macroCarbs" min="0"></div>
+          <div class="form-field"><label for="macroProtein">Protein (g)</label><input class="form-input" type="number" id="macroProtein" min="0"></div>
         </div>
         <div class="row">
-          <div class="form-field"><label>Fat (g)</label><input class="form-input" type="number" id="macroFat" min="0"></div>
-          <div class="form-field"><label>Fibre (g)</label><input class="form-input" type="number" id="macroFibre" min="0"></div>
-          <div class="form-field"><label>Sugar (g)</label><input class="form-input" type="number" id="macroSugar" min="0"></div>
+          <div class="form-field"><label for="macroFat">Fat (g)</label><input class="form-input" type="number" id="macroFat" min="0"></div>
+          <div class="form-field"><label for="macroFibre">Fibre (g)</label><input class="form-input" type="number" id="macroFibre" min="0"></div>
+          <div class="form-field"><label for="macroSugar">Sugar (g)</label><input class="form-input" type="number" id="macroSugar" min="0"></div>
         </div>
       </section>
 
@@ -423,14 +443,15 @@
         <h2>Bonus details</h2>
         <div class="section-sub">Optional — make the page richer.</div>
         <div class="form-field">
-          <label>Equipment (one per line)</label>
+          <label for="equipment">Equipment (one per line)</label>
           <textarea class="form-textarea" id="equipment" rows="4" placeholder="Sharp knife&#10;Heavy chopping board&#10;Mixing bowl"></textarea>
         </div>
         <div class="form-field">
-          <label>Did you know?</label>
+          <label for="factTitle">Did you know?</label>
           <input class="form-input" type="text" id="factTitle" placeholder="Title (e.g. 'Why this works')" />
         </div>
         <div class="form-field">
+          <label for="factBody">Did you know — details</label>
           <textarea class="form-textarea" id="factBody" rows="2" placeholder="A fun fact or technique tip readers will appreciate."></textarea>
         </div>
       </section>
@@ -515,15 +536,26 @@
           const gi = parseInt(card.dataset.gi, 10);
           const action = btn.dataset.action;
           if (action === "removeGroup") {
-            ingredientGroups.splice(gi, 1);
+            btn.disabled = true;
+            card.classList.add("row-out");
+            setTimeout(() => { ingredientGroups.splice(gi, 1); renderIngredients(); }, 180);
           } else if (action === "addItem") {
             ingredientGroups[gi].items.push({ amount: "", unit: "", text: "" });
+            renderIngredients();
+            const rows = $$(`#ingredientGroups .group-card[data-gi="${gi}"] .ingredient-row`);
+            const newRow = rows[rows.length - 1];
+            if (newRow) {
+              newRow.classList.add("row-in");
+              const first = newRow.querySelector("input");
+              if (first) first.focus();
+            }
           } else if (action === "removeItem") {
             const row = e.target.closest(".ingredient-row");
             const ii = parseInt(row.dataset.ii, 10);
-            ingredientGroups[gi].items.splice(ii, 1);
+            btn.disabled = true;
+            row.classList.add("row-out");
+            setTimeout(() => { ingredientGroups[gi].items.splice(ii, 1); renderIngredients(); }, 180);
           }
-          renderIngredients();
         });
       });
     }
@@ -552,9 +584,9 @@
         return `
         <div class="group-card" data-i="${i}" draggable="false">
           <div class="group-head">
-            <span class="step-drag-handle" data-handle aria-label="Drag to reorder" title="Drag to reorder">
+            <button type="button" class="step-drag-handle" data-handle aria-label="Drag to reorder step ${i + 1} (or use the move buttons)" title="Drag to reorder">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
-            </span>
+            </button>
             <strong style="font:600 13px var(--sans);color:var(--text-soft)">Step ${i + 1}</strong>
             <span class="step-head-actions">
               <button type="button" class="step-move-btn" data-action="moveUp" aria-label="Move step up" title="Move up" ${i === 0 ? "disabled" : ""}>
@@ -590,6 +622,12 @@
     function insertStepAt(index) {
       steps.splice(index, 0, { title: "", time: "", desc: "", tip: "", timers: [] });
       renderSteps();
+      const card = $(`#stepList .group-card[data-i="${index}"]`);
+      if (card) {
+        card.classList.add("row-in");
+        const first = card.querySelector("input[data-field='title']");
+        if (first) first.focus();
+      }
     }
 
     function bindStepHandlers() {
@@ -620,8 +658,9 @@
           const i = parseInt(card.dataset.i, 10);
           const action = btn.dataset.action;
           if (action === "remove") {
-            steps.splice(i, 1);
-            renderSteps();
+            btn.disabled = true;
+            card.classList.add("row-out");
+            setTimeout(() => { steps.splice(i, 1); renderSteps(); }, 180);
           } else if (action === "moveUp") {
             moveStep(i, i - 1);
           } else if (action === "moveDown") {
@@ -632,11 +671,19 @@
             if (!steps[i].timers) steps[i].timers = [];
             steps[i].timers.push({ mins: "", context: "" });
             renderSteps();
+            const rows = $$(`#stepList .group-card[data-i="${i}"] .timer-row`);
+            const newRow = rows[rows.length - 1];
+            if (newRow) {
+              newRow.classList.add("row-in");
+              const first = newRow.querySelector("input");
+              if (first) first.focus();
+            }
           } else if (action === "removeTimer") {
             const row = e.target.closest(".timer-row");
             const ti = parseInt(row.dataset.ti, 10);
-            steps[i].timers.splice(ti, 1);
-            renderSteps();
+            btn.disabled = true;
+            row.classList.add("row-out");
+            setTimeout(() => { steps[i].timers.splice(ti, 1); renderSteps(); }, 180);
           }
         });
       });
@@ -689,16 +736,30 @@
     $("#addGroup").addEventListener("click", () => {
       ingredientGroups.push({ name: "", items: [{ amount: "", unit: "", text: "" }] });
       renderIngredients();
+      const cards = $$("#ingredientGroups .group-card");
+      const newCard = cards[cards.length - 1];
+      if (newCard) {
+        newCard.classList.add("row-in");
+        const first = newCard.querySelector("input[data-field='groupName']");
+        if (first) first.focus();
+      }
     });
     $("#addStep").addEventListener("click", () => {
       steps.push({ title: "", time: "", desc: "", tip: "", timers: [] });
       renderSteps();
+      const cards = $$("#stepList .group-card");
+      const newCard = cards[cards.length - 1];
+      if (newCard) {
+        newCard.classList.add("row-in");
+        const first = newCard.querySelector("input[data-field='title']");
+        if (first) first.focus();
+      }
     });
 
     /* -------------------- tag input -------------------- */
     function renderTags() {
       $("#tagList").innerHTML = tags.map((t, i) => `
-        <span class="tag-chip">${escapeHtml(t)}<button type="button" data-i="${i}">✕</button></span>
+        <span class="tag-chip">${escapeHtml(t)}<button type="button" data-i="${i}" aria-label="Remove tag ${escapeHtml(t)}">✕</button></span>
       `).join("");
       $$("#tagList button").forEach(b => b.addEventListener("click", () => {
         tags.splice(parseInt(b.dataset.i, 10), 1);
@@ -732,6 +793,17 @@
       photoPreview.style.backgroundImage = `url(${URL.createObjectURL(file)})`;
       photoPreview.classList.add("show");
       photoDrop.style.display = "none";
+      $("#photoActions").hidden = false;
+    });
+    $("#photoChangeBtn").addEventListener("click", () => photoInput.click());
+    $("#photoRemoveBtn").addEventListener("click", () => {
+      photoFile = null;
+      existingPhotoUrl = "";
+      photoInput.value = "";
+      photoPreview.classList.remove("show");
+      photoPreview.style.backgroundImage = "";
+      photoDrop.style.display = "";
+      $("#photoActions").hidden = true;
     });
     ["dragenter", "dragover"].forEach(ev => photoDrop.addEventListener(ev, e => { e.preventDefault(); photoDrop.style.borderColor = "var(--green)"; }));
     ["dragleave", "drop"].forEach(ev => photoDrop.addEventListener(ev, e => { e.preventDefault(); photoDrop.style.borderColor = "var(--border)"; }));
@@ -855,7 +927,11 @@
 
     function switchTab(tab) {
       currentTab = tab;
-      $$(".upload-tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+      $$(".upload-tab").forEach(t => {
+        const active = t.dataset.tab === tab;
+        t.classList.toggle("active", active);
+        t.setAttribute("aria-selected", active ? "true" : "false");
+      });
       $("#tabNew").classList.toggle("active", tab === "new");
       $("#tabHistory").classList.toggle("active", tab === "history");
       if (tab === "history" && !submissionsLoaded && currentUser) {
@@ -863,8 +939,16 @@
       }
     }
 
-    $$("#uploadTabs .upload-tab").forEach(btn => {
+    const uploadTabBtns = $$("#uploadTabs .upload-tab");
+    uploadTabBtns.forEach((btn, i) => {
       btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+      btn.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const next = uploadTabBtns[(i + (e.key === "ArrowRight" ? 1 : uploadTabBtns.length - 1)) % uploadTabBtns.length];
+        next.focus();
+        switchTab(next.dataset.tab);
+      });
     });
 
     /* -------------------- past submissions -------------------- */
@@ -984,6 +1068,7 @@
         photoPreview.style.backgroundImage = `url(${existingPhotoUrl})`;
         photoPreview.classList.add("show");
         photoDrop.style.display = "none";
+        $("#photoActions").hidden = false;
       }
     }
 

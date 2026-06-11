@@ -24,21 +24,29 @@
       font: 500 14px var(--sans); color: var(--text-soft);
     }
     .profile-stats strong { color: var(--text); font-weight: 700; }
-    .profile-actions { display: flex; gap: 10px; }
+    .profile-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
+    /* Pill tabs — unified with the feed page tab style */
     .profile-tabs {
       display: flex; gap: 6px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      background: var(--bg-soft);
+      padding: 4px;
+      border-radius: 100px;
+      width: max-content;
+      max-width: 100%;
+      overflow-x: auto;
     }
     .profile-tab {
-      padding: 12px 18px;
-      font: 600 14px var(--sans);
+      padding: 8px 18px;
+      font: 600 13px var(--sans);
       color: var(--text-soft);
-      border-bottom: 2px solid transparent;
-      transition: color .15s, border-color .15s;
+      border-radius: 100px;
+      white-space: nowrap;
+      transition: background .15s, color .15s;
     }
-    .profile-tab.is-active { color: var(--text); border-color: var(--green); }
+    .profile-tab.is-active { background: var(--green); color: var(--ink); font-weight: 700; }
+    [data-theme="dark"] .profile-tab.is-active { color: #1E1B18; }
 
     .recipe-grid {
       display: grid; gap: 18px;
@@ -53,6 +61,7 @@
       transition: transform .2s, box-shadow .2s;
     }
     .mini-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.10); }
+    [data-theme="dark"] .mini-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.45); border-color: var(--text-soft); }
     .mini-card-img {
       width: 100%; aspect-ratio: 4/3;
       background-size: cover; background-position: center;
@@ -68,9 +77,14 @@
       content: "";
       width: 48px;
       height: 48px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B4B56B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3h18v18H3z'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
-      background-size: contain;
-      background-repeat: no-repeat;
+      /* mask + background-color so the icon follows the theme's sage tone */
+      background-color: var(--green);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3h18v18H3z'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3h18v18H3z'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpath d='M21 15l-5-5L5 21'/%3E%3C/svg%3E");
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
       opacity: 0.5;
     }
     .mini-card-body { padding: 12px 14px 14px; }
@@ -103,9 +117,9 @@
       font: 700 10px var(--sans); letter-spacing: 0.05em;
       text-transform: uppercase;
     }
-    .pill-status.pending  { background: rgba(245,158,11,0.18); color: #b45309; }
-    .pill-status.rejected { background: rgba(239,68,68,0.18); color: #b91c1c; }
-    .pill-status.draft    { background: var(--bg); color: var(--text-soft); }
+    .pill-status.pending  { background: var(--warning-soft); color: var(--warning); }
+    .pill-status.rejected { background: var(--danger-soft); color: var(--danger); }
+    .pill-status.draft    { background: var(--green-soft); color: var(--text-soft); border: 1px solid var(--border); }
 
     /* Avatar with image */
     .avatar-photo {
@@ -173,7 +187,9 @@
       border: 1.5px solid var(--border);
       border-radius: 12px;
       padding: 10px 12px;
+      transition: border-color .15s;
     }
+    .recipe-picker-input-wrap:focus-within { border-color: var(--sage); }
     .recipe-picker-input-wrap input {
       flex: 1;
       border: none; background: transparent;
@@ -276,7 +292,13 @@
     let viewerProfile = null;
     let target = null;        // the profile being viewed
     let isFollowing = false;
-    let activeTab = urlTab === "saved" ? "saved" : "recipes";
+    let activeTab = ["recipes", "cooks", "saved"].includes(urlTab) ? urlTab : "recipes";
+
+    function syncTabUrl() {
+      const url = new URL(location.href);
+      url.searchParams.set("tab", activeTab);
+      history.replaceState(null, "", url);
+    }
     let savedRecipes = [];
 
     function initialsFrom(name) {
@@ -362,7 +384,7 @@
             <div class="username">@${escapeHtml(target.username)}</div>
             ${target.bio ? `<p class="bio">${escapeHtml(target.bio)}</p>` : (isSelf ? `<p class="bio" style="color:var(--text-soft);font-style:italic">No bio yet — click "Edit profile" to add one.</p>` : "")}
             <div class="profile-stats">
-              <span><strong>${recipesList.filter(r => r.status === "published").length}</strong> recipes</span>
+              <span><strong>${recipesList.filter(r => r.status === "published").length}</strong> published</span>
               <span><strong>${counts.followers}</strong> followers</span>
               <span><strong>${counts.following}</strong> following</span>
             </div>
@@ -380,10 +402,10 @@
 
         ${isSelf ? renderEditPanel() + renderSharePanel() : ""}
 
-        <div class="profile-tabs">
-          <button class="profile-tab ${activeTab === 'recipes' ? 'is-active' : ''}" data-tab="recipes">Recipes</button>
-          <button class="profile-tab ${activeTab === 'cooks'   ? 'is-active' : ''}" data-tab="cooks">Cooks</button>
-          ${isSelf ? `<button class="profile-tab ${activeTab === 'saved' ? 'is-active' : ''}" data-tab="saved">Saved</button>` : ""}
+        <div class="profile-tabs" role="tablist" aria-label="Profile sections">
+          <button class="profile-tab ${activeTab === 'recipes' ? 'is-active' : ''}" role="tab" aria-selected="${activeTab === 'recipes'}" data-tab="recipes">Recipes</button>
+          <button class="profile-tab ${activeTab === 'cooks'   ? 'is-active' : ''}" role="tab" aria-selected="${activeTab === 'cooks'}" data-tab="cooks">Cooks</button>
+          ${isSelf ? `<button class="profile-tab ${activeTab === 'saved' ? 'is-active' : ''}" role="tab" aria-selected="${activeTab === 'saved'}" data-tab="saved">Saved</button>` : ""}
         </div>
 
         <div id="tabContent"></div>
@@ -407,11 +429,27 @@
         $("#followSignInBtn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
       }
 
-      $$(".profile-tab").forEach(btn => btn.addEventListener("click", async () => {
+      const tabBtns = $$(".profile-tab");
+      async function activateTab(btn) {
         activeTab = btn.dataset.tab;
-        $$(".profile-tab").forEach(b => b.classList.toggle("is-active", b === btn));
+        tabBtns.forEach(b => {
+          const active = b === btn;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        syncTabUrl();
         await renderTab(recipesList, cooks, isSelf);
-      }));
+      }
+      tabBtns.forEach((btn, i) => {
+        btn.addEventListener("click", () => activateTab(btn));
+        btn.addEventListener("keydown", (e) => {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          e.preventDefault();
+          const next = tabBtns[(i + (e.key === "ArrowRight" ? 1 : tabBtns.length - 1)) % tabBtns.length];
+          next.focus();
+          activateTab(next);
+        });
+      });
 
       await renderTab(recipesList, cooks, isSelf);
     }
@@ -733,8 +771,22 @@
       });
     }
 
+    function skeletonGrid(count = 4) {
+      return `<div class="recipe-grid" aria-hidden="true">${Array.from({ length: count }, () => `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-img"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+      `).join("")}</div>`;
+    }
+
     async function renderTab(recipesList, cooks, isSelf) {
       const el = $("#tabContent");
+      /* Subtle fade/slide when the visible tab panel changes */
+      el.classList.remove("tab-fade-in");
+      void el.offsetWidth;
+      el.classList.add("tab-fade-in");
       if (activeTab === "recipes") {
         if (!recipesList.length) {
           el.innerHTML = `<div class="empty-state"><h3>No recipes yet.</h3>${isSelf ? `<p><a href="upload.html">Submit your first one</a> — it goes straight to the admin queue.</p>` : ""}</div>`;
@@ -745,12 +797,12 @@
           const photoStyle = hasPhoto ? `background-image:url(${escapeHtml(r.photo + '?auto=format&fit=crop&w=600&q=72')})` : '';
           const noPhotoClass = hasPhoto ? '' : ' no-photo';
           return `
-          <a class="mini-card" href="${r.status === 'published' ? `recipe.html?slug=${encodeURIComponent(r.slug)}` : '#'}">
+          <a class="mini-card" href="${r.status === 'published' ? `recipe.html?slug=${encodeURIComponent(r.slug)}` : `upload.html?edit=${encodeURIComponent(r.slug)}`}">
             <div class="mini-card-img${noPhotoClass}" style="${photoStyle}"></div>
             <div class="mini-card-body">
               <div class="mini-card-title">${escapeHtml(r.title)}${r.status !== 'published' ? `<span class="pill-status ${r.status}">${r.status}</span>` : ""}</div>
               <div class="mini-card-meta">${r.time} min · ${escapeHtml(r.cuisine || '')}</div>
-              ${r.status === 'rejected' && r.rejectReason ? `<div class="mini-card-meta" style="color:#b91c1c;margin-top:6px"><strong>Rejected:</strong> ${escapeHtml(r.rejectReason)}</div>` : ""}
+              ${r.status === 'rejected' && r.rejectReason ? `<div class="mini-card-meta" style="color:var(--danger);margin-top:6px"><strong>Rejected:</strong> ${escapeHtml(r.rejectReason)}</div>` : ""}
             </div>
           </a>`;
         }).join("")}</div>`;
@@ -758,7 +810,7 @@
       }
 
       if (activeTab === "saved" && isSelf) {
-        el.innerHTML = `<div class="empty-state"><span class="spinner"></span></div>`;
+        el.innerHTML = skeletonGrid();
         try {
           const ids = await window.RECIPY.bookmarks.list();
           if (!ids.length) {

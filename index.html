@@ -59,6 +59,13 @@
 
       --container: 1280px;
       --easing: cubic-bezier(0.22, 1, 0.36, 1);
+
+      /* Status colours (theme-aware, mirrors theme.css) */
+      --danger:       #B3422F;
+      --danger-soft:  #F7E3DE;
+      --warning:      #A26B1F;
+      --warning-soft: #F6ECD8;
+      --green-soft:   var(--sage-soft);
     }
 
     [data-theme="dark"] {
@@ -80,6 +87,13 @@
       --sage-dark: #8B8D4A;
       --green: var(--sage);
       --green-dark: var(--sage-dark);
+      --green-soft: rgba(162, 164, 92, 0.14);
+
+      /* Status colours — muted for dark surfaces */
+      --danger:       #E08A78;
+      --danger-soft:  rgba(224, 138, 120, 0.14);
+      --warning:      #DBA94F;
+      --warning-soft: rgba(219, 169, 79, 0.14);
     }
 
     /* ============================================================
@@ -241,7 +255,7 @@
       align-items: center;
       gap: 6px;
       font: 600 10px var(--sans);
-      letter-spacing: 0.18em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--text-soft);
       padding: 4px 10px;
@@ -408,6 +422,7 @@
       padding: 18px 22px;
       border-bottom: 1px solid var(--border);
     }
+    .cmdk-input:focus-within { border-bottom-color: var(--sage); }
     .cmdk-input svg { color: var(--text-soft); flex: 0 0 auto; }
     .cmdk-input input {
       flex: 1;
@@ -442,8 +457,10 @@
     }
     .cmdk-mode.is-active {
       background: var(--green);
-      color: var(--white);
+      color: var(--ink);
+      font-weight: 700;
     }
+    [data-theme="dark"] .cmdk-mode.is-active { color: #1E1B18; }
     .cmdk-body {
       max-height: min(56vh, 480px);
       overflow-y: auto;
@@ -463,7 +480,7 @@
     .cmdk-section h5 {
       margin: 0 0 6px;
       font: 700 10px var(--sans);
-      letter-spacing: 0.18em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--text-soft);
     }
@@ -682,7 +699,7 @@
     }
     .hero-stats .label {
       font: 500 11px var(--sans);
-      letter-spacing: 0.18em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: rgba(255, 246, 229, 0.65);
     }
@@ -728,7 +745,7 @@
       display: inline-block;
       margin-top: 12px;
       font: 700 10px var(--sans);
-      letter-spacing: 0.22em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--green);
     }
@@ -801,9 +818,11 @@
     }
     .pill:hover::after { transform: scaleX(1); }
     .pill.is-active {
-      color: var(--white);
+      color: var(--ink);
       background: var(--green);
+      font-weight: 600;
     }
+    [data-theme="dark"] .pill.is-active { color: #1E1B18; } /* ink stays dark on sage in both themes */
     .pill.is-active::after { display: none; }
 
     .sort-group { display: flex; gap: 10px; align-items: center; flex: 0 0 auto; }
@@ -881,11 +900,18 @@
       background: var(--surface-2);
     }
     .card:hover {
-      transform: translateY(-6px) rotate(calc(var(--tilt, 0deg) * 0.3)) scale(1.025);
+      transform: translateY(-6px) rotate(var(--tilt, 0deg));
       box-shadow: var(--shadow-lg);
       z-index: 3;
     }
     .card.is-hidden { display: none; }
+    /* After the first paint the grid stops re-animating on filter changes */
+    .grid.no-anim .card {
+      animation: none;
+      opacity: 1;
+      transform: translateY(0) rotate(var(--tilt, 0deg));
+    }
+    .grid.no-anim .card:hover { transform: translateY(-6px) rotate(var(--tilt, 0deg)); }
 
     .card-link {
       position: absolute;
@@ -905,9 +931,9 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform .8s var(--easing);
+      transition: transform .35s var(--easing);
     }
-    .card:hover .card-media img { transform: scale(1.08); }
+    .card:hover .card-media img { transform: scale(1.04); }
 
     .card-overlay {
       position: absolute;
@@ -956,6 +982,10 @@
     .chip.asian { background: #B0573A; color: var(--white); }
     .chip.mexican { background: #C87B3D; color: var(--white); }
     .chip.british { background: #7A5A40; color: var(--white); }
+    /* Soften the brightest chips in dark mode so they don't glare on cards */
+    [data-theme="dark"] .chip.light { background: #3A352F; color: #FAF6F0; }
+    [data-theme="dark"] .chip.breakfast { background: #8A6E39; color: #FAF6F0; }
+    [data-theme="dark"] .chip.pasta { background: #806829; color: #FAF6F0; }
     .chip.chip-le {
       background: linear-gradient(135deg, #C9A24B 0%, #E8C56A 50%, #B5853C 100%);
       color: #2E2A25;
@@ -1156,7 +1186,7 @@
     .shop-modal-body { flex: 1; overflow-y: auto; padding: 0 24px 32px; }
     .shop-recipe-group { margin-top: 28px; }
     .shop-recipe-name {
-      font: 700 11px/1 var(--sans); letter-spacing: 0.18em; text-transform: uppercase;
+      font: 700 11px/1 var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--green); margin-bottom: 12px;
       display: flex; align-items: center; gap: 8px;
     }
@@ -1217,7 +1247,7 @@
       margin-bottom: 4px;
     }
     .shop-servings-label {
-      font: 700 10px/1 var(--sans); letter-spacing: 0.16em; text-transform: uppercase;
+      font: 700 10px/1 var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--text-soft); margin-bottom: 14px;
     }
     .shop-serving-row {
@@ -1259,6 +1289,10 @@
       margin: 0 0 12px;
       letter-spacing: -0.005em;
       text-shadow: 0 2px 14px rgba(0,0,0,.45);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .author {
       display: flex;
@@ -1340,7 +1374,7 @@
       display: block;
       margin-top: 22px;
       font: 500 13px var(--sans);
-      letter-spacing: 0.22em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--text-soft);
       font-style: normal;
@@ -1443,7 +1477,7 @@
       max-width: var(--container);
       margin: 0 auto;
     }
-    .footer-brand .logo { display: inline-block; margin-bottom: 16px; }
+    .footer-brand .logo { display: inline-block; margin-bottom: 16px; color: var(--text); }
     .footer-brand p {
       max-width: 300px;
       font-size: 14px;
@@ -1644,7 +1678,9 @@
     @media (max-width: 640px) {
       .grid { grid-template-columns: 1fr; gap: 18px; }
       .card { transform: translateY(16px) !important; }
-      .card:hover { transform: translateY(-4px) scale(1.015) !important; }
+      .card:hover { transform: translateY(-4px) !important; }
+      .grid.no-anim .card { transform: translateY(0) !important; }
+      .grid.no-anim .card:hover { transform: translateY(-4px) !important; }
       .footer-top { grid-template-columns: 1fr; gap: 36px; padding: 48px 20px 32px; }
       .footer-bottom-inner { grid-template-columns: 1fr; text-align: center; gap: 8px; }
       .footer-bottom-inner .right { text-align: center; }
@@ -1728,8 +1764,8 @@
       margin: 6px 0;
     }
     .account-menu svg { color: var(--text-soft); flex-shrink: 0; }
-    .account-menu .danger { color: #ef4444; }
-    .account-menu .danger svg { color: #ef4444; }
+    .account-menu .danger { color: var(--danger); }
+    .account-menu .danger svg { color: var(--danger); }
 
     /* Nav link visibility based on auth state */
     [data-auth="user"] { display: none; }
@@ -1825,8 +1861,8 @@
     .auth-submit:hover { background: var(--ochre-dark); }
     .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
     .auth-error {
-      font: 500 13px var(--sans); color: #ef4444;
-      background: rgba(239,68,68,0.08);
+      font: 500 13px var(--sans); color: var(--danger);
+      background: var(--danger-soft);
       border-radius: 10px; padding: 8px 12px;
       display: none;
     }
@@ -1868,12 +1904,12 @@
     <div class="cmdk-card" role="document">
       <div class="cmdk-input">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input id="cmdkInput" type="text" placeholder="Search recipes, authors, or try 'duck'…" autocomplete="off" />
+        <input id="cmdkInput" type="text" placeholder="Search recipes, authors, or try 'duck'…" aria-label="Search recipes and people" autocomplete="off" />
         <button class="esc" id="cmdkEsc" aria-label="Close">ESC</button>
       </div>
-      <div class="cmdk-modes" role="tablist">
-        <button class="cmdk-mode is-active" id="cmdkModeRecipes" data-mode="recipes" type="button">Recipes</button>
-        <button class="cmdk-mode"            id="cmdkModePeople"  data-mode="people"  type="button">People</button>
+      <div class="cmdk-modes" role="tablist" aria-label="Search mode">
+        <button class="cmdk-mode is-active" role="tab" aria-selected="true"  id="cmdkModeRecipes" data-mode="recipes" type="button">Recipes</button>
+        <button class="cmdk-mode"           role="tab" aria-selected="false" id="cmdkModePeople"  data-mode="people"  type="button">People</button>
       </div>
       <div class="cmdk-body" id="cmdkBody"></div>
       <div class="cmdk-foot">
@@ -1930,17 +1966,17 @@
     <!-- 4. Filter / Category Bar -->
     <div class="filter-bar" id="filterBar">
       <div class="filter-inner">
-        <div class="pills" role="tablist" aria-label="Recipe categories">
-          <button class="pill" type="button" data-filter="Breakfast">Breakfast</button>
-          <button class="pill" type="button" data-filter="Light">Light Cuisine</button>
-          <button class="pill" type="button" data-filter="Protein">High Protein</button>
-          <button class="pill" type="button" data-filter="Veg">Vegetarian</button>
-          <button class="pill" type="button" data-filter="Vegan">Vegan</button>
-          <button class="pill" type="button" data-filter="Curry">Curry</button>
-          <button class="pill" type="button" data-filter="Pasta">Pasta</button>
-          <button class="pill" type="button" data-filter="Quick">Quick (under 30 min)</button>
-          <button class="pill" type="button" data-filter="Comfort">Comfort</button>
-          <button class="pill" type="button" data-filter="Spicy">Spicy</button>
+        <div class="pills" role="group" aria-label="Filter recipes by category">
+          <button class="pill" type="button" aria-pressed="false" data-filter="Breakfast">Breakfast</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Light">Light Cuisine</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Protein">High Protein</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Veg">Vegetarian</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Vegan">Vegan</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Curry">Curry</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Pasta">Pasta</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Quick">Quick (under 30 min)</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Comfort">Comfort</button>
+          <button class="pill" type="button" aria-pressed="false" data-filter="Spicy">Spicy</button>
         </div>
 
         <div class="sort-group">
@@ -1961,10 +1997,6 @@
               <li><button type="button" role="option" data-sort="easiest">Easiest</button></li>
             </ul>
           </div>
-          <button class="ctrl" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="10" y1="18" x2="14" y2="18"></line></svg>
-            <span>More Filter</span>
-          </button>
         </div>
       </div>
     </div>
@@ -2242,10 +2274,25 @@
     /* ============================================================
        Render cards
        ============================================================ */
+    let firstCardsPaint = true;
+    function renderSkeletonCards(count = 6) {
+      const grid = $("#recipeGrid");
+      grid.innerHTML = Array.from({ length: count }, () => `
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton skeleton-img"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+      `).join("");
+    }
     function renderCards(recipeList) {
       /* recipeList is an array of { recipe, idx } objects from filterRecipes */
       const list = recipeList || recipes.map((r, i) => ({ recipe: r, idx: i }));
       const grid = $("#recipeGrid");
+      /* Cards animate in on the first paint only — filter/pill changes
+         shouldn't replay the entrance animation */
+      grid.classList.toggle("no-anim", !firstCardsPaint);
+      firstCardsPaint = false;
       const bookmarks = getBookmarks();
       grid.innerHTML = list.map(({ recipe: r, idx: i }, cardIndex) => {
         const photoUrl = (r.photo || "").includes("unsplash") ? `${r.photo}?auto=format&fit=crop&w=900&q=72` : (r.photo || fallbackPhoto);
@@ -2500,7 +2547,7 @@
     function clearAllFilters() {
       state.filters.clear();
       state.query = "";
-      $$(".pill").forEach(p => p.classList.remove("is-active"));
+      $$(".pill").forEach(p => { p.classList.remove("is-active"); p.setAttribute("aria-pressed", "false"); });
       filterRecipes();
     }
 
@@ -2843,6 +2890,7 @@
           const f = p.dataset.filter;
           if (state.filters.has(f)) { state.filters.delete(f); p.classList.remove("is-active"); }
           else { state.filters.add(f); p.classList.add("is-active"); }
+          p.setAttribute("aria-pressed", p.classList.contains("is-active") ? "true" : "false");
           filterRecipes();
         });
       });
@@ -2872,7 +2920,11 @@
       setMode(mode) {
         if (this.mode === mode) return;
         this.mode = mode;
-        $$(".cmdk-mode").forEach(b => b.classList.toggle("is-active", b.dataset.mode === mode));
+        $$(".cmdk-mode").forEach(b => {
+          const active = b.dataset.mode === mode;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-selected", active ? "true" : "false");
+        });
         this.input.placeholder = mode === "people"
           ? "Search people by name or @username…"
           : "Search recipes, authors, or try 'duck'…";
@@ -3264,6 +3316,7 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       setHeroGreeting();
+      renderSkeletonCards();
       await loadRecipes();
       await setHeroStats();
       setHeroPick();

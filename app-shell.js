@@ -99,6 +99,10 @@
             <span class="label">Search…</span>
             <span class="kbd" aria-hidden="true"><span id="kbdKey">⌘K</span></span>
           </button>` : ""}
+          ${isRecipe ? "" : `
+          <button class="icon-btn nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>`}
           <div class="nav-icons">
             <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">${SVG_SUN}${SVG_MOON}</button>
             ${showBookmark ? `
@@ -145,7 +149,14 @@
             </div>
           </div>
         </div>
-      </nav>`;
+      </nav>
+      ${isRecipe ? "" : `
+      <div class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
+        <a href="index.html" class="${page === "home" ? "is-active" : ""}">Recipes</a>
+        <a data-auth="user" href="feed.html" class="${page === "feed" ? "is-active" : ""}">Feed</a>
+        <a data-auth="user" href="upload.html" class="${page === "upload" ? "is-active" : ""}">Submit</a>
+        <a data-auth="admin" href="admin.html" class="${page === "admin" ? "is-active" : ""}">Admin</a>
+      </div>`}`;
   }
 
   function innerNavLink(href, label, pageKey, activePage) {
@@ -425,10 +436,36 @@
     initNavScroll();
     setHeroIssue();
     initNavBookmark();
+    initMobileNav();
 
     const isMac = /Mac|iPhone|iPad/.test(navigator.platform || "");
     const kbdKey = $("#kbdKey");
     if (kbdKey) kbdKey.textContent = isMac ? "⌘K" : "Ctrl K";
+  }
+
+  function initMobileNav() {
+    const burger = $("#navHamburger");
+    const menu = $("#mobileNav");
+    if (!burger || !menu) return;
+    burger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = menu.classList.toggle("open");
+      burger.setAttribute("aria-expanded", String(open));
+      burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#mobileNav") && !e.target.closest("#navHamburger")) {
+        menu.classList.remove("open");
+        burger.setAttribute("aria-expanded", "false");
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && menu.classList.contains("open")) {
+        menu.classList.remove("open");
+        burger.setAttribute("aria-expanded", "false");
+        burger.focus();
+      }
+    });
   }
 
   function initNavBookmark() {
