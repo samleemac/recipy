@@ -679,6 +679,54 @@
       color: var(--text);
     }
 
+    /* ---- Cookery School cross-link banner ---- */
+    .guide-crosslink {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: 720px;
+      margin: 0 0 28px;
+      padding: 14px 18px;
+      background: var(--green-soft);
+      border: 1px solid rgba(180, 181, 107, 0.30);
+      border-radius: var(--radius-md);
+      transition: transform .2s var(--easing), box-shadow .2s var(--easing), border-color .2s;
+    }
+    [data-theme="dark"] .guide-crosslink {
+      background: rgba(180, 181, 107, 0.12);
+      border-color: rgba(180, 181, 107, 0.30);
+    }
+    .guide-crosslink:hover {
+      transform: translateY(-2px);
+      border-color: var(--green);
+      box-shadow: var(--shadow-md);
+    }
+    .guide-crosslink .gc-emoji {
+      flex: none;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      background: var(--surface);
+      border-radius: 50%;
+      box-shadow: var(--shadow-sm);
+    }
+    .guide-crosslink .gc-text { flex: 1; min-width: 0; }
+    .guide-crosslink .gc-kicker {
+      display: block;
+      font: 700 10px var(--sans);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--green-dark);
+      margin-bottom: 2px;
+    }
+    [data-theme="dark"] .guide-crosslink .gc-kicker { color: var(--green); }
+    .guide-crosslink .gc-title {
+      font: 600 15px/1.35 var(--sans);
+      color: var(--text);
+    }
+    .guide-crosslink .gc-arrow { flex: none; color: var(--green-dark); }
+    [data-theme="dark"] .guide-crosslink .gc-arrow { color: var(--green); }
+
     /* ---- Method (Ingredients + Steps) ---- */
     .r-method {
       display: grid;
@@ -1932,6 +1980,9 @@
         <span class="r-section-tag">Method</span>
         <h2>How to make it</h2>
 
+        <!-- Cookery School cross-link (shown when an ingredient matches a technique guide) -->
+        <div id="guideCrosslink" hidden></div>
+
         <div class="r-method">
           <!-- Sticky ingredients -->
           <aside class="r-ingredients" id="ingredientsBox">
@@ -2134,6 +2185,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
   <script src="recipes-data.js"></script>
+  <script src="techniques-data.js"></script>
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
   <script>
@@ -2649,6 +2701,37 @@
       renderEquipment();
       renderNotes();
       renderNutritionTable();
+      renderGuideCrosslink();
+    }
+
+    /* ----- Cookery School cross-link: show a banner when an ingredient matches a guide ----- */
+    function renderGuideCrosslink() {
+      const box = $("#guideCrosslink");
+      if (!box || !window.TECHNIQUES) return;
+
+      const haystackParts = [recipe.title || "", (recipe.tags || []).join(" ")];
+      (recipe.ingredientGroups || []).forEach(g => {
+        (g.items || []).forEach(it => haystackParts.push(it.text || ""));
+      });
+      const haystack = haystackParts.join(" ").toLowerCase();
+
+      const guide = window.TECHNIQUES.find(t =>
+        (t.relatedIngredientKeywords || []).some(k => haystack.includes(k.toLowerCase()))
+      );
+
+      if (!guide) { box.hidden = true; box.innerHTML = ""; return; }
+
+      const ingredientName = guide.title.replace(/^How to Cook\s+/i, "").toLowerCase();
+      box.hidden = false;
+      box.innerHTML = `
+        <a class="guide-crosslink" href="technique.html?slug=${encodeURIComponent(guide.slug)}">
+          <span class="gc-emoji" aria-hidden="true">${guide.icon || "🎓"}</span>
+          <span class="gc-text">
+            <span class="gc-kicker">Cookery School</span>
+            <span class="gc-title">New to cooking with ${escapeHtml(ingredientName)}? Read our full guide.</span>
+          </span>
+          <svg class="gc-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>`;
     }
 
     /* ----- Macro box (right side of donut) ----- */

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Cookery School · Recipy</title>
+  <meta name="description" content="Learn the kitchen fundamentals — technique guides for eggs, tofu, chickpeas and more, with times, tips and troubleshooting." />
+  <meta name="theme-color" content="#B4B56B" />
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    body {
+      transition: background-color .35s var(--easing), color .35s var(--easing);
+    }
+    /* Paper grain to match index/recipe pages */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.5;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.03  0 0 0 0 0.02  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");
+      mix-blend-mode: multiply;
+    }
+    [data-theme="dark"] body::before { mix-blend-mode: screen; opacity: .35; }
+    main { position: relative; z-index: 2; }
+
+    /* ============================================================
+       Hero
+       ============================================================ */
+    .learn-hero {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 24px 20px;
+      text-align: center;
+    }
+    .learn-hero .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font: 700 11px var(--sans);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sage-dark);
+      background: var(--sage-soft);
+      border: 1px solid rgba(180, 181, 107, 0.35);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 18px;
+    }
+    [data-theme="dark"] .learn-hero .kicker {
+      color: var(--sage);
+      background: rgba(162, 164, 92, 0.14);
+    }
+    .learn-hero h1 {
+      font: 700 clamp(36px, 6vw, 56px)/1.08 var(--serif);
+      letter-spacing: -0.02em;
+      margin: 0 0 14px;
+    }
+    .learn-hero h1 em {
+      font-style: italic;
+      color: var(--sage-dark);
+    }
+    [data-theme="dark"] .learn-hero h1 em { color: var(--sage); }
+    .learn-hero p {
+      font: 400 17px/1.6 var(--sans);
+      color: var(--text-soft);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ============================================================
+       Guide cards
+       ============================================================ */
+    .guide-grid {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .guide-card {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform .3s var(--easing), box-shadow .3s var(--easing), border-color .3s;
+      animation: guideIn .5s var(--easing) both;
+    }
+    .guide-card:nth-child(2) { animation-delay: 60ms; }
+    .guide-card:nth-child(3) { animation-delay: 120ms; }
+    .guide-card:nth-child(4) { animation-delay: 180ms; }
+    @keyframes guideIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .guide-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 44px rgba(46, 42, 37, 0.14);
+      border-color: var(--sage);
+    }
+    [data-theme="dark"] .guide-card:hover { box-shadow: 0 20px 44px rgba(0,0,0,0.5); }
+    .guide-card-media {
+      position: relative;
+      aspect-ratio: 16/10;
+      overflow: hidden;
+      background: var(--bg-soft);
+    }
+    .guide-card-media img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform .35s var(--easing);
+    }
+    .guide-card:hover .guide-card-media img { transform: scale(1.04); }
+    .guide-card-icon {
+      position: absolute;
+      bottom: -20px; right: 18px;
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      box-shadow: 0 6px 18px rgba(46, 42, 37, 0.14);
+    }
+    .guide-card-body { padding: 26px 22px 22px; display: flex; flex-direction: column; flex: 1; }
+    .guide-card-body h2 {
+      font: 700 24px/1.2 var(--serif);
+      letter-spacing: -0.01em;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    .guide-card-body p {
+      font: 400 14px/1.55 var(--sans);
+      color: var(--text-soft);
+      margin: 0 0 18px;
+      flex: 1;
+    }
+    .guide-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .guide-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font: 600 11px var(--sans);
+      padding: 5px 11px;
+      border-radius: 100px;
+      background: var(--bg-soft);
+      color: var(--text-soft);
+      border: 1px solid var(--border);
+    }
+    .guide-chip.level {
+      background: var(--sage-soft);
+      color: var(--sage-dark);
+      border-color: rgba(180, 181, 107, 0.35);
+    }
+    [data-theme="dark"] .guide-chip.level {
+      background: rgba(162, 164, 92, 0.14);
+      color: var(--sage);
+    }
+    .guide-chip svg { width: 11px; height: 11px; }
+    .guide-card-cta {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font: 700 13px var(--sans);
+      color: var(--ochre-dark);
+      transition: gap .2s var(--easing);
+    }
+    [data-theme="dark"] .guide-card-cta { color: var(--ochre); }
+    .guide-card:hover .guide-card-cta { gap: 10px; }
+
+    /* Coming-next teaser card */
+    .guide-card.teaser {
+      border-style: dashed;
+      background: transparent;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-soft);
+      animation-delay: 180ms;
+    }
+    .guide-card.teaser:hover { transform: none; box-shadow: none; border-color: var(--border); }
+    .guide-card.teaser .teaser-icon { font-size: 34px; margin-bottom: 12px; }
+    .guide-card.teaser h2 { font: 700 19px var(--serif); color: var(--text); margin: 0 0 6px; }
+    .guide-card.teaser p { font: 400 13px/1.5 var(--sans); margin: 0; max-width: 240px; }
+
+    /* ============================================================
+       Footer (mirrors index.html)
+       ============================================================ */
+    footer { background: var(--bg-soft); color: var(--text-soft); position: relative; z-index: 2; }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1.3fr;
+      gap: 48px;
+      padding: 64px 24px 44px;
+      max-width: var(--container);
+      margin: 0 auto;
+    }
+    .footer-brand .logo { display: inline-block; margin-bottom: 16px; color: var(--text); }
+    .footer-brand p { max-width: 300px; font-size: 14px; line-height: 1.6; color: var(--text-soft); margin: 0; }
+    .footer-col h4 { font-family: var(--serif); font-weight: 600; font-size: 18px; color: var(--text); margin: 0 0 18px; }
+    .footer-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .footer-col a { font-size: 14px; color: var(--text-soft); transition: color .2s var(--easing); }
+    .footer-col a:hover { color: var(--green-dark); }
+    .footer-bottom { border-top: 1px solid var(--border); padding: 18px 24px; }
+    .footer-bottom-inner {
+      max-width: var(--container);
+      margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      font: 400 13px var(--sans);
+    }
+    .footer-bottom-inner a { color: var(--text-soft); margin-right: 12px; }
+    .footer-bottom-inner a:hover { color: var(--green-dark); }
+
+    @media (max-width: 900px) {
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 36px; padding: 48px 20px 32px; }
+    }
+    @media (max-width: 640px) {
+      .learn-hero { padding: 40px 20px 12px; }
+      .guide-grid { padding: 28px 20px 60px; }
+      .footer-top { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body data-page="learn">
+  <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+  <div class="nav-wrap" id="navWrap"><div id="appNav"></div></div>
+
+  <main>
+    <section class="learn-hero">
+      <span class="kicker">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+        Recipy Cookery School
+      </span>
+      <h1>Master the basics, <em>one ingredient at a time</em></h1>
+      <p>Short, practical technique guides — how to cook it, what to season it with, what to watch out for, and how to fix it when it goes wrong.</p>
+    </section>
+
+    <section class="guide-grid" id="guideGrid" aria-label="Technique guides"></section>
+  </main>
+
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">RECIPY<span class="logo-dot" aria-hidden="true"></span></a>
+        <p>A cookbook for the curious. Seasonal recipes, weekly inspiration and a community of home cooks who care about a good plate.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="index.html">All recipes</a></li>
+          <li><a href="learn.html">Cookery School</a></li>
+          <li><a href="feed.html">Feed</a></li>
+          <li><a href="upload.html">Submit a recipe</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Learn</h4>
+        <ul>
+          <li><a href="learn.html">Cooking basics</a></li>
+          <li><a href="coming-soon.html">How it works</a></li>
+          <li><a href="coming-soon.html">FAQ</a></li>
+          <li><a href="coming-soon.html">Blog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Enterprise</h4>
+        <ul>
+          <li><a href="coming-soon.html">About us</a></li>
+          <li><a href="coming-soon.html">Press</a></li>
+          <li><a href="coming-soon.html">Privacy</a></li>
+          <li><a href="coming-soon.html">Terms</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-inner">
+        <span>&copy; Recipy 2026 · Made with butter &amp; salt</span>
+        <span>
+          <a href="coming-soon.html">Terms</a>
+          <a href="coming-soon.html">Privacy</a>
+          <a href="coming-soon.html">Cookies</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="techniques-data.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js"></script>
+  <script>
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    }
+
+    function renderGuides() {
+      const grid = document.getElementById("guideGrid");
+      const guides = window.TECHNIQUES || [];
+      const cards = guides.map(g => `
+        <a class="guide-card" href="technique.html?slug=${encodeURIComponent(g.slug)}">
+          <div class="guide-card-media">
+            <img src="${escapeHtml(g.heroPhoto)}?auto=format&fit=crop&w=800&q=72" alt="" loading="lazy" />
+            <span class="guide-card-icon" aria-hidden="true">${escapeHtml(g.icon || "🍽")}</span>
+          </div>
+          <div class="guide-card-body">
+            <h2>${escapeHtml(g.title)}</h2>
+            <p>${escapeHtml(g.subtitle)}</p>
+            <div class="guide-card-meta">
+              <span class="guide-chip level">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                ${escapeHtml(g.skillLevel)}
+              </span>
+              <span class="guide-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                ${g.readTime} min read
+              </span>
+              <span class="guide-chip">${g.methods.length} methods</span>
+            </div>
+            <span class="guide-card-cta">Start the guide
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </span>
+          </div>
+        </a>
+      `).join("");
+
+      const teaser = `
+        <div class="guide-card teaser" aria-label="More guides coming soon">
+          <span class="teaser-icon" aria-hidden="true">🍚</span>
+          <h2>More on the way</h2>
+          <p>Rice, onions, and stocks are next on the syllabus. Check back soon.</p>
+        </div>
+      `;
+
+      grid.innerHTML = cards + teaser;
+    }
+
+    /* Nav mounts automatically via app-shell.js reading data-page="learn" */
+    document.addEventListener("DOMContentLoaded", renderGuides);
+  </script>
+</body>
+</html>

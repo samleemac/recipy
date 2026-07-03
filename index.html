@@ -766,6 +766,90 @@
     }
 
     /* ============================================================
+       Master the Basics banner (Cookery School cross-link)
+       ============================================================ */
+    .basics-banner {
+      background: var(--bg-soft);
+      border-bottom: 1px solid var(--border);
+      padding: 26px 24px;
+    }
+    .basics-inner {
+      max-width: var(--container);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .basics-intro { flex: 1 1 240px; min-width: 220px; }
+    .basics-intro .basics-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font: 700 10px var(--sans);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sage-dark);
+      margin-bottom: 6px;
+    }
+    [data-theme="dark"] .basics-intro .basics-tag { color: var(--sage); }
+    .basics-intro h2 {
+      font: 700 24px/1.15 var(--serif);
+      letter-spacing: -0.01em;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+    .basics-intro p { font: 400 13px/1.5 var(--sans); color: var(--text-soft); margin: 0; }
+    .basics-intro .basics-all {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+      font: 700 13px var(--sans);
+      color: var(--ochre-dark);
+    }
+    [data-theme="dark"] .basics-intro .basics-all { color: var(--ochre); }
+    .basics-intro .basics-all:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .basics-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 220px));
+      gap: 12px;
+    }
+    .basics-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      transition: transform .2s var(--easing), border-color .2s, box-shadow .2s var(--easing);
+    }
+    .basics-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--sage);
+      box-shadow: var(--shadow-md);
+    }
+    .basics-card .emoji {
+      font-size: 24px;
+      width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--sage-soft);
+      border-radius: 50%;
+      flex: none;
+    }
+    [data-theme="dark"] .basics-card .emoji { background: rgba(162, 164, 92, 0.16); }
+    .basics-card strong {
+      display: block;
+      font: 700 14px/1.2 var(--sans);
+      color: var(--text);
+    }
+    .basics-card small { font: 500 11px var(--sans); color: var(--text-soft); }
+    @media (max-width: 860px) {
+      .basics-cards { grid-template-columns: 1fr; width: 100%; }
+    }
+
+    /* ============================================================
        Filter bar
        ============================================================ */
     .filter-bar {
@@ -1963,6 +2047,37 @@
       </aside>
     </section>
 
+    <!-- 3b. Master the Basics — Cookery School cross-link -->
+    <section class="basics-banner" aria-label="Cookery School guides">
+      <div class="basics-inner">
+        <div class="basics-intro">
+          <span class="basics-tag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            Cookery School
+          </span>
+          <h2>Master the basics</h2>
+          <p>Technique guides with times, tips and troubleshooting.</p>
+          <a class="basics-all" href="learn.html">See all guides
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+        <div class="basics-cards">
+          <a class="basics-card" href="technique.html?slug=how-to-cook-eggs">
+            <span class="emoji" aria-hidden="true">🍳</span>
+            <span><strong>Eggs</strong><small>6 methods · 6 min read</small></span>
+          </a>
+          <a class="basics-card" href="technique.html?slug=how-to-cook-tofu">
+            <span class="emoji" aria-hidden="true">🧊</span>
+            <span><strong>Tofu</strong><small>6 methods · 7 min read</small></span>
+          </a>
+          <a class="basics-card" href="technique.html?slug=how-to-cook-chickpeas">
+            <span class="emoji" aria-hidden="true">🫘</span>
+            <span><strong>Chickpeas</strong><small>7 methods · 6 min read</small></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
     <!-- 4. Filter / Category Bar -->
     <div class="filter-bar" id="filterBar">
       <div class="filter-inner">
@@ -2081,10 +2196,11 @@
       <div class="footer-col">
         <h4>Learn</h4>
         <ul>
+          <li><a href="learn.html">Cooking Basics</a></li>
           <li><a href="coming-soon.html">How it works</a></li>
           <li><a href="coming-soon.html">Become a Creator</a></li>
           <li><a href="coming-soon.html">FAQ</a></li>
-          <li><a href="coming-soon.html">Info and Guides</a></li>
+          <li><a href="learn.html">Info and Guides</a></li>
           <li><a href="coming-soon.html">Blog</a></li>
           <li><a href="coming-soon.html">Contact</a></li>
         </ul>

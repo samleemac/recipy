@@ -68,13 +68,17 @@
   function pillNavHtml(opts) {
     const page = opts.page || "home";
     const isRecipe = page === "recipe";
+    const isTechnique = page === "technique";
+    const isCrumbPage = isRecipe || isTechnique;
     const showIssue = page === "home";
     const showCmdk = page === "home" || page === "recipe";
     const showBookmark = page === "home" || page === "recipe";
     const recipeTitle = opts.recipeTitle || "…";
+    const crumbHref = isTechnique ? "learn.html" : "index.html";
+    const crumbLabel = isTechnique ? "Cookery School" : "Recipes";
 
-    const brand = isRecipe
-      ? `<a href="index.html" class="back-btn" aria-label="Back to recipes">
+    const brand = isCrumbPage
+      ? `<a href="${crumbHref}" class="back-btn" aria-label="Back to ${crumbLabel.toLowerCase()}">
            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
          </a>
          <a href="index.html" class="logo" aria-label="Recipy home">RECIPY<span class="logo-dot" aria-hidden="true"></span></a>`
@@ -84,10 +88,11 @@
     return `
       <nav class="nav" aria-label="Primary">
         <div class="nav-brand">${brand}</div>
-        ${isRecipe
-          ? `<div class="nav-crumb"><a href="index.html">Recipes</a> · <strong id="navCrumbTitle">${escapeHtml(recipeTitle)}</strong></div>`
+        ${isCrumbPage
+          ? `<div class="nav-crumb"><a href="${crumbHref}">${crumbLabel}</a> · <strong id="navCrumbTitle">${escapeHtml(recipeTitle)}</strong></div>`
           : `<ul class="nav-links">
               ${navLink("index.html", "Recipes", "home", page)}
+              ${navLink("learn.html", "Learn", "learn", page)}
               <li data-auth="user">${innerNavLink("feed.html", "Feed", "feed", page)}</li>
               <li data-auth="user">${innerNavLink("upload.html", "Submit", "upload", page)}</li>
               <li data-auth="admin">${innerNavLink("admin.html", "Admin", "admin", page)}</li>
@@ -99,7 +104,7 @@
             <span class="label">Search…</span>
             <span class="kbd" aria-hidden="true"><span id="kbdKey">⌘K</span></span>
           </button>` : ""}
-          ${isRecipe ? "" : `
+          ${isCrumbPage ? "" : `
           <button class="icon-btn nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>`}
@@ -150,9 +155,10 @@
           </div>
         </div>
       </nav>
-      ${isRecipe ? "" : `
+      ${isCrumbPage ? "" : `
       <div class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
         <a href="index.html" class="${page === "home" ? "is-active" : ""}">Recipes</a>
+        <a href="learn.html" class="${page === "learn" ? "is-active" : ""}">Learn</a>
         <a data-auth="user" href="feed.html" class="${page === "feed" ? "is-active" : ""}">Feed</a>
         <a data-auth="user" href="upload.html" class="${page === "upload" ? "is-active" : ""}">Submit</a>
         <a data-auth="admin" href="admin.html" class="${page === "admin" ? "is-active" : ""}">Admin</a>
