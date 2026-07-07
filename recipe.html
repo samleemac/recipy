@@ -7,6 +7,8 @@
   <title>Recipy — Recipe</title>
   <meta name="description" content="A detailed recipe with ingredients, step-by-step instructions, nutrition, and notes from the cook." />
   <meta name="theme-color" content="#B4B56B" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
 
   <style>
@@ -49,8 +51,8 @@
       --tape: rgba(212, 163, 115, 0.5);
       --shadow-color: 46, 42, 37;
 
-      --serif: Georgia, "Times New Roman", serif;
-      --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --serif: "Fraunces", Georgia, "Times New Roman", serif;
+      --sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
       --radius-sm: 8px;
       --radius-md: 14px;
@@ -1240,6 +1242,9 @@
     [data-theme="dark"] .r-follow { background: var(--cream); color: var(--ink); }
     .r-follow:hover { background: var(--green); color: var(--white); }
     [data-theme="dark"] .r-follow:hover { background: var(--green); color: var(--white); }
+    .r-follow.is-following { background: var(--bg-soft); color: var(--text-soft); border: 1.5px solid var(--border); }
+    .r-follow.is-following:hover { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+    .r-follow:disabled { opacity: 0.6; cursor: wait; }
     .r-author-link {
       display: contents;
       text-decoration: none;
@@ -1319,6 +1324,78 @@
     .r-review-date { font: 500 12px var(--sans); color: var(--text-soft); }
     .r-review p { margin: 0; font: 400 15px/1.55 var(--sans); color: var(--text); }
     .r-review-stars { color: var(--yellow); display: inline-flex; gap: 1px; }
+    .r-review-mine-tag {
+      font: 700 10px var(--sans);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--green-dark);
+      background: var(--green-soft);
+      padding: 3px 8px; border-radius: 100px;
+    }
+
+    /* Compose / edit a review ---------------------------------- */
+    .r-review-compose {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 26px;
+      margin-bottom: 22px;
+    }
+    .r-review-compose-signin {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .r-review-compose-signin p { margin: 0; font: 400 15px var(--sans); color: var(--text-soft); }
+    .r-review-signin-btn {
+      padding: 10px 20px; border-radius: 100px;
+      background: var(--ochre); color: var(--white);
+      font: 600 13px var(--sans);
+      transition: background .15s;
+    }
+    .r-review-signin-btn:hover { background: var(--ochre-dark); }
+    .r-review-form h3 { font: 700 18px var(--serif); margin: 0 0 12px; }
+    .r-star-input { display: flex; align-items: center; gap: 2px; margin-bottom: 12px; }
+    .r-star {
+      font-size: 28px; line-height: 1;
+      width: 40px; height: 40px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--border);
+      transition: color .12s, transform .12s var(--easing);
+    }
+    .r-star:hover { transform: scale(1.15); }
+    .r-star.is-lit { color: var(--yellow); }
+    .r-star-hint { font: 500 12px var(--sans); color: var(--text-soft); margin-left: 8px; }
+    .r-review-form textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font: 400 14px/1.5 var(--sans);
+      resize: vertical;
+      min-height: 72px;
+      transition: border-color .15s;
+    }
+    .r-review-form textarea:focus { outline: none; border-color: var(--green); }
+    .r-review-form-actions {
+      display: flex; align-items: center; gap: 14px;
+      margin-top: 12px; flex-wrap: wrap;
+    }
+    .r-review-submit {
+      padding: 10px 22px; border-radius: 100px;
+      background: var(--ochre); color: var(--white);
+      font: 700 13px var(--sans);
+      transition: background .15s;
+    }
+    .r-review-submit:hover { background: var(--ochre-dark); }
+    .r-review-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+    .r-review-delete { font: 500 13px var(--sans); color: var(--danger); }
+    .r-review-delete:hover { text-decoration: underline; }
+    .r-review-form-error {
+      font: 500 13px var(--sans); color: var(--danger);
+      background: var(--danger-soft);
+      padding: 6px 12px; border-radius: 10px;
+    }
 
     /* ============================================================
        Floating action bar (mobile + scroll)
@@ -1798,9 +1875,24 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition-duration: 0.01s !important; animation-duration: 0.01s !important; }
     }
+    /* Skip link — hidden until keyboard-focused */
+    .skip-link {
+      position: fixed;
+      top: 14px; left: 14px;
+      z-index: 300;
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      background: var(--text); color: var(--bg);
+      font: 600 13px var(--sans);
+      transform: translateY(-64px);
+      transition: transform 0.2s var(--easing);
+    }
+    .skip-link:focus-visible { transform: translateY(0); }
   </style>
 </head>
 <body data-page="recipe">
+
+  <a class="skip-link" href="#method">Skip to the recipe</a>
 
   <div class="edition-flag-field" id="editionFlagField" hidden aria-hidden="true">
     <img class="edition-flag-piece f1" src="assets/nl-flag-wave.png" alt="" decoding="async" />
@@ -2069,47 +2161,41 @@
         <span class="r-section-tag">From the kitchen</span>
         <div class="r-reviews-head">
           <h2 style="margin:0;">Reviews</h2>
-          <div class="r-rating">
-            <span class="stars" aria-hidden="true">★★★★★</span>
-            <strong>4.8</strong>
-            <span>· 247 reviews</span>
+          <div class="r-rating" id="reviewSummary" hidden>
+            <span class="stars" id="reviewSummaryStars" aria-hidden="true"></span>
+            <strong id="reviewSummaryAvg">—</strong>
+            <span id="reviewSummaryCount"></span>
           </div>
         </div>
 
-        <div class="r-review">
-          <div class="r-review-head">
-            <div class="r-review-author">
-              <span class="r-review-avatar">MR</span>
-              <span class="r-review-name">Marta R.</span>
-              <span class="r-review-date">· 2 days ago</span>
-            </div>
-            <span class="r-review-stars" aria-label="5 stars">★★★★★</span>
+        <!-- Write / edit a review -->
+        <div class="r-review-compose" id="reviewCompose" hidden>
+          <div class="r-review-compose-signin" id="reviewSignin" hidden>
+            <p>Cooked this? Rate it and tell everyone how it went.</p>
+            <button class="r-review-signin-btn" id="reviewSigninBtn" type="button">Sign in to leave a review</button>
           </div>
-          <p>Made this on a snowy Tuesday and it tasted like a hug. The note about blooming the paprika was the move — won't skip that again.</p>
+          <form class="r-review-form" id="reviewForm" hidden>
+            <h3 id="reviewFormTitle">Leave a review</h3>
+            <div class="r-star-input" id="starInput" role="radiogroup" aria-label="Your rating">
+              <button type="button" class="r-star" data-star="1" role="radio" aria-checked="false" aria-label="1 star">★</button>
+              <button type="button" class="r-star" data-star="2" role="radio" aria-checked="false" aria-label="2 stars">★</button>
+              <button type="button" class="r-star" data-star="3" role="radio" aria-checked="false" aria-label="3 stars">★</button>
+              <button type="button" class="r-star" data-star="4" role="radio" aria-checked="false" aria-label="4 stars">★</button>
+              <button type="button" class="r-star" data-star="5" role="radio" aria-checked="false" aria-label="5 stars">★</button>
+              <span class="r-star-hint" id="starHint">Tap to rate</span>
+            </div>
+            <textarea id="reviewBody" maxlength="2000" rows="3"
+              placeholder="How did it go? Any swaps or tips for the next cook? (optional)"></textarea>
+            <div class="r-review-form-actions">
+              <button class="r-review-submit" id="reviewSubmit" type="submit">Post review</button>
+              <button class="r-review-delete" id="reviewDelete" type="button" hidden>Delete my review</button>
+              <span class="r-review-form-error" id="reviewError" role="alert" hidden></span>
+            </div>
+          </form>
         </div>
 
-        <div class="r-review">
-          <div class="r-review-head">
-            <div class="r-review-author">
-              <span class="r-review-avatar">DK</span>
-              <span class="r-review-name">Daniel K.</span>
-              <span class="r-review-date">· last week</span>
-            </div>
-            <span class="r-review-stars" aria-label="4 stars">★★★★☆</span>
-          </div>
-          <p>Subbed Greek yogurt and it still came together. Family asked for seconds. Will make again — next time with bone-in like the recipe suggests.</p>
-        </div>
-
-        <div class="r-review">
-          <div class="r-review-head">
-            <div class="r-review-author">
-              <span class="r-review-avatar">PM</span>
-              <span class="r-review-name">Priya M.</span>
-              <span class="r-review-date">· last month</span>
-            </div>
-            <span class="r-review-stars" aria-label="5 stars">★★★★★</span>
-          </div>
-          <p>First time making spaetzle from scratch — easier than I thought. The sauce is the star. Doubled the recipe and froze half; reheats beautifully.</p>
+        <div id="reviewList">
+          <div class="empty-state"><span class="spinner"></span></div>
         </div>
       </section>
     </div>
@@ -2676,14 +2762,36 @@
         if (bylineLink) { bylineLink.removeAttribute("href"); bylineLink.style.cursor = "default"; }
         if (authorLink) { authorLink.removeAttribute("href"); authorLink.style.cursor = "default"; }
       }
+      initFollowButton(r);
       $("#rHeroKcal").textContent = (r.macros && r.macros.calories) ? Math.round(r.macros.calories) : "—";
       $("#rTotalTime").textContent = (r.time >= 60 ? Math.round(r.time / 60 * 10) / 10 + " hr" : r.time + " min");
       $("#rDifficulty").textContent = difficultyLabel[r.difficulty];
       $("#rCrumbTags").textContent = (r.tags || []).join(", ") || "Everyday";
       $("#rCrumbCat").textContent = r.cuisine || (r.tags[0] || "Recipe");
+      /* Real publish date when available; hide the placeholder otherwise */
+      const dateEl = $("#rDate");
+      if (dateEl) {
+        if (r.createdAt) {
+          dateEl.textContent = new Date(r.createdAt).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+        } else {
+          /* No real date — drop the "Published …" placeholder rather than lie */
+          const sub = dateEl.closest(".r-byline-sub");
+          const role = $("#rByRole")?.textContent || "—";
+          if (sub) sub.innerHTML = `<span id="rByRole">${escapeHtml(role)}</span>`;
+        }
+      }
+      /* Show the actual dish in the hero; fall back to the mood shot,
+         then the local fallback, if the recipe has no photo of its own. */
       const heroImg = $("#rHeroBg");
-      heroImg.src = heroMoodUrl(1800);
-      heroImg.onerror = function () { this.onerror = null; this.src = fallbackPhoto; };
+      heroImg.src = r.photo ? photoUrl(r, 1800) : heroMoodUrl(1800);
+      heroImg.onerror = function () {
+        if (this.src.indexOf(heroMoodPhoto) === -1 && this.src.indexOf(fallbackPhoto) === -1) {
+          this.src = heroMoodUrl(1800);
+        } else {
+          this.onerror = null;
+          this.src = fallbackPhoto;
+        }
+      };
       if (window.AppShell && window.AppShell.setRecipeTitle) {
         window.AppShell.setRecipeTitle(r.title);
       } else {
@@ -2867,7 +2975,9 @@
                 }
               }
               return `
-                <li class="r-ingredient ${isDone ? 'is-done' : ''}" data-key="${key}">
+                <li class="r-ingredient ${isDone ? 'is-done' : ''}" data-key="${key}"
+                    role="checkbox" aria-checked="${isDone}" tabindex="0"
+                    aria-label="${escapeHtml(item.text)}">
                   <span class="r-check" aria-hidden="true"></span>
                   <span class="r-text">
                     <span class="r-amount">${formatAmount(scaled)}${item.unit ? ` ${escapeHtml(item.unit)}` : ''}</span>
@@ -2882,12 +2992,18 @@
       `).join("");
 
       $$(".r-ingredient", wrap).forEach(li => {
-        li.addEventListener("click", () => {
+        const toggle = () => {
           const key = li.dataset.key;
           const checked = new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]"));
           if (checked.has(key)) checked.delete(key); else checked.add(key);
           localStorage.setItem(STORAGE_INGREDIENTS, JSON.stringify([...checked]));
-          li.classList.toggle("is-done", checked.has(key));
+          const isDone = checked.has(key);
+          li.classList.toggle("is-done", isDone);
+          li.setAttribute("aria-checked", isDone);
+        };
+        li.addEventListener("click", toggle);
+        li.addEventListener("keydown", (e) => {
+          if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); }
         });
       });
     }
@@ -2898,6 +3014,9 @@
       $("#servingsCount").textContent = servings;
       $("#rServes").textContent = servings;
       $("#nutServings").textContent = servings;
+      const down = $("#servingsDown"), up = $("#servingsUp");
+      if (down) down.disabled = servings <= 1;
+      if (up) up.disabled = servings >= 16;
       renderIngredients();
     }
 
@@ -3903,6 +4022,7 @@
       initCmdk();
       initKeyboard();
       initAuthOnRecipePage();
+      refreshReviews();
     });
 
     /* Hydrate signed-in state so the recipe-page bookmark mirror works */
@@ -3927,6 +4047,226 @@
           syncSaveButtons();
         }
         updateEditAccess(user, profile);
+        if (recipe) {
+          initFollowButton(recipe);
+          refreshReviews();
+        }
+      });
+    }
+
+    /* ============================================================
+       Reviews — real ratings + comments stored in Supabase
+       ============================================================ */
+    const reviewsUI = { rating: 0, bound: false };
+
+    function recipeIsUuid() {
+      return recipe && typeof recipe.id === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(recipe.id);
+    }
+
+    function starsString(n) {
+      const full = Math.round(n);
+      return "★".repeat(full) + "☆".repeat(5 - full);
+    }
+
+    function reviewTimeAgo(iso) {
+      const sec = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (sec < 3600)    return "just now";
+      if (sec < 86400)   return Math.floor(sec / 3600) + "h ago";
+      if (sec < 604800)  return Math.floor(sec / 86400) + "d ago";
+      if (sec < 2592000) return Math.floor(sec / 604800) + "w ago";
+      return new Date(iso).toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+    }
+
+    function reviewAuthorName(rv) {
+      return rv.author?.display_name || rv.author?.username || "A cook";
+    }
+
+    function renderReviewList(data) {
+      const list = $("#reviewList");
+      if (!data.count) {
+        list.innerHTML = `
+          <div class="empty-state" style="padding:36px 20px">
+            <h3>No reviews yet.</h3>
+            <p>Be the first — cook it, then come back and tell everyone how it went.</p>
+          </div>`;
+        return;
+      }
+      list.innerHTML = data.reviews.map(rv => {
+        const name = reviewAuthorName(rv);
+        const initialsStr = name.trim().split(/\s+/).map(p => p[0]).slice(0, 2).join("").toUpperCase();
+        const avatar = rv.author?.avatar_url
+          ? `<img class="r-review-avatar" style="object-fit:cover" src="${escapeHtml(rv.author.avatar_url)}" alt="" />`
+          : `<span class="r-review-avatar">${escapeHtml(initialsStr)}</span>`;
+        const profileLink = rv.author?.username
+          ? `<a class="r-review-name" href="profile.html?u=${encodeURIComponent(rv.author.username)}">${escapeHtml(name)}</a>`
+          : `<span class="r-review-name">${escapeHtml(name)}</span>`;
+        return `
+          <div class="r-review">
+            <div class="r-review-head">
+              <div class="r-review-author">
+                ${avatar}
+                ${profileLink}
+                <span class="r-review-date">· ${reviewTimeAgo(rv.createdAt)}</span>
+                ${rv.isMine ? `<span class="r-review-mine-tag">Your review</span>` : ""}
+              </div>
+              <span class="r-review-stars" aria-label="${rv.rating} star${rv.rating === 1 ? "" : "s"}">${starsString(rv.rating)}</span>
+            </div>
+            ${rv.body ? `<p>${escapeHtml(rv.body)}</p>` : ""}
+          </div>`;
+      }).join("");
+    }
+
+    function renderReviewSummary(data) {
+      const wrap = $("#reviewSummary");
+      if (!data.count) { wrap.hidden = true; return; }
+      wrap.hidden = false;
+      $("#reviewSummaryStars").textContent = starsString(data.average);
+      $("#reviewSummaryAvg").textContent = data.average.toFixed(1);
+      $("#reviewSummaryCount").textContent = `· ${data.count} review${data.count === 1 ? "" : "s"}`;
+    }
+
+    function setStarRating(n, { silent = false } = {}) {
+      reviewsUI.rating = n;
+      $$("#starInput .r-star").forEach(btn => {
+        const v = Number(btn.dataset.star);
+        btn.classList.toggle("is-lit", v <= n);
+        btn.setAttribute("aria-checked", v === n ? "true" : "false");
+      });
+      const hints = ["Tap to rate", "Needs work", "It was OK", "Good", "Really good", "New favourite"];
+      $("#starHint").textContent = hints[n] || hints[0];
+      if (!silent) $("#reviewError").hidden = true;
+    }
+
+    function showReviewFormState(mine) {
+      const signedIn = !!currentUser;
+      $("#reviewSignin").hidden = signedIn;
+      $("#reviewForm").hidden = !signedIn;
+      if (!signedIn) return;
+      if (mine) {
+        $("#reviewFormTitle").textContent = "Edit your review";
+        $("#reviewSubmit").textContent = "Update review";
+        $("#reviewDelete").hidden = false;
+        $("#reviewBody").value = mine.body || "";
+        setStarRating(mine.rating, { silent: true });
+      } else {
+        $("#reviewFormTitle").textContent = "Leave a review";
+        $("#reviewSubmit").textContent = "Post review";
+        $("#reviewDelete").hidden = true;
+      }
+    }
+
+    async function refreshReviews() {
+      const section = $("#reviews");
+      if (!section) return;
+      /* Reviews only exist for Supabase-backed recipes — hide the whole
+         section (and its glance anchor) for offline/legacy recipes */
+      if (!(window.RECIPY && window.RECIPY.configured) || !recipeIsUuid()) {
+        section.hidden = true;
+        const anchor = document.querySelector('.r-anchor[href="#reviews"]');
+        if (anchor) anchor.hidden = true;
+        return;
+      }
+      section.hidden = false;
+      $("#reviewCompose").hidden = false;
+
+      const data = await window.RECIPY.reviews.forRecipe(recipe.id);
+      renderReviewSummary(data);
+      renderReviewList(data);
+      showReviewFormState(data.mine);
+      bindReviewForm();
+    }
+
+    function bindReviewForm() {
+      if (reviewsUI.bound) return;
+      reviewsUI.bound = true;
+
+      $("#reviewSigninBtn").addEventListener("click", () => window.AppShell.openAuthModal("signin"));
+
+      const starBtns = $$("#starInput .r-star");
+      starBtns.forEach((btn, i) => {
+        btn.addEventListener("click", () => setStarRating(Number(btn.dataset.star)));
+        btn.addEventListener("keydown", (e) => {
+          if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+          e.preventDefault();
+          const next = starBtns[(i + (e.key === "ArrowRight" ? 1 : starBtns.length - 1)) % starBtns.length];
+          next.focus();
+          setStarRating(Number(next.dataset.star));
+        });
+      });
+
+      $("#reviewForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const errEl = $("#reviewError");
+        errEl.hidden = true;
+        if (!reviewsUI.rating) {
+          errEl.textContent = "Pick a star rating first.";
+          errEl.hidden = false;
+          return;
+        }
+        const btn = $("#reviewSubmit");
+        btn.disabled = true;
+        try {
+          await window.RECIPY.reviews.upsert(recipe.id, reviewsUI.rating, $("#reviewBody").value);
+          toast("Review posted — thank you!");
+          await refreshReviews();
+        } catch (err) {
+          errEl.textContent = err.message || "Couldn't save your review.";
+          errEl.hidden = false;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      $("#reviewDelete").addEventListener("click", async () => {
+        if (!confirm("Delete your review? This can't be undone.")) return;
+        try {
+          await window.RECIPY.reviews.remove(recipe.id);
+          $("#reviewBody").value = "";
+          setStarRating(0, { silent: true });
+          toast("Review deleted");
+          await refreshReviews();
+        } catch (err) {
+          toast(err.message || "Couldn't delete your review.");
+        }
+      });
+    }
+
+    /* Author "Follow" button — wired to the follows API when possible,
+       hidden when it can't do anything (no username / not configured / own recipe) */
+    async function initFollowButton(r) {
+      const btn = document.querySelector(".r-follow");
+      if (!btn) return;
+      const configured = window.RECIPY && window.RECIPY.configured;
+      if (!configured || !r.authorUsername) { btn.hidden = true; return; }
+
+      let authorProfile = null;
+      try { authorProfile = await window.RECIPY.profiles.byUsername(r.authorUsername); } catch {}
+      if (!authorProfile) { btn.hidden = true; return; }
+
+      const setState = (following) => {
+        btn.textContent = following ? "Following" : "Follow";
+        btn.classList.toggle("is-following", following);
+        btn.setAttribute("aria-pressed", following ? "true" : "false");
+      };
+
+      if (currentUser) {
+        if (currentUser.id === authorProfile.id) { btn.hidden = true; return; }
+        try { setState(await window.RECIPY.follows.isFollowing(authorProfile.id)); } catch {}
+      }
+
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", async () => {
+        if (!currentUser) { window.AppShell.openAuthModal("signin"); return; }
+        btn.disabled = true;
+        try {
+          setState(await window.RECIPY.follows.toggle(authorProfile.id));
+        } catch (err) {
+          window.AppShell.toast(err.message || "Couldn't update follow");
+        } finally {
+          btn.disabled = false;
+        }
       });
     }
 

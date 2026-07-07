@@ -3,6 +3,39 @@
    (profile, feed, upload, admin). Mirrors the variable / typography
    choices baked into index.html so the whole site feels like one app.
    ============================================================ */
+
+/* Editorial webfonts: Fraunces (display serif, soft + food-friendly)
+   and Inter (workhorse sans). Loaded once here so every page gets them. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..700&family=Inter:ital,opsz,wght@0,14..32,400..800;1,14..32,400..700&display=swap");
+
+/* ============================================================
+   Cross-document view transitions — makes navigating between
+   pages feel like one continuous app instead of hard reloads.
+   Progressive enhancement: browsers without support just do a
+   normal navigation.
+   ============================================================ */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation: vtFadeOut 0.22s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+::view-transition-new(root) {
+  animation: vtFadeIn 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes vtFadeOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes vtFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Keep the floating nav visually pinned across navigations */
+.nav-wrap { view-transition-name: site-nav; }
+::view-transition-group(site-nav) {
+  animation-duration: 0.25s;
+}
+
 :root {
   /* Colour ----------------------------------------------------- */
   /* Warm palette (style guide) */
@@ -39,18 +72,26 @@
   --success-soft:  var(--sage-soft);
 
   /* Type ------------------------------------------------------- */
-  --sans:  "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --serif: Georgia, "Times New Roman", serif;
+  --sans:  "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
 
-  /* Radius & motion ------------------------------------------- */
-  --radius-pill: 100px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --easing: cubic-bezier(.22,.61,.36,1);
+  /* Radius & motion — kept in sync with index.html / recipe.html */
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-color: 46, 42, 37;
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-color), 0.06);
+  --shadow-md: 0 8px 24px rgba(var(--shadow-color), 0.10);
+  --shadow-lg: 0 24px 50px rgba(var(--shadow-color), 0.18);
 }
 
 [data-theme="dark"] {
   /* Dark Mode Style Guide tokens */
+  --shadow-color: 0, 0, 0;
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.50);
+  --shadow-lg: 0 24px 50px rgba(0, 0, 0, 0.65);
   --bg:        #1E1B18;
   --bg-soft:   #2A2622;
   --text:      #FAF6F0;
@@ -613,6 +654,11 @@ body.is-admin     [data-auth="admin"] { display: flex !important; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation: none !important;
   }
 }
 

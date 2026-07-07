@@ -7,6 +7,8 @@
   <title>Recipy — Recipes</title>
   <meta name="description" content="A cookbook for the curious. Hand-picked recipes from cookbook authors, home cooks and seasonal favorites." />
   <meta name="theme-color" content="#B4B56B" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
 
   <style>
@@ -45,8 +47,8 @@
       --tape: rgba(212, 163, 115, 0.5);
       --shadow-color: 46, 42, 37;
 
-      --serif: Georgia, "Times New Roman", serif;
-      --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --serif: "Fraunces", Georgia, "Times New Roman", serif;
+      --sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
       --radius-sm: 8px;
       --radius-md: 14px;
@@ -1348,7 +1350,7 @@
       border-radius: 100px; overflow: hidden; flex-shrink: 0;
     }
     .shop-stepper-btn {
-      width: 32px; height: 32px;
+      width: 40px; height: 40px;
       font: 600 18px/1 var(--sans); color: var(--text);
       display: inline-flex; align-items: center; justify-content: center;
       transition: background .15s;
@@ -1769,7 +1771,7 @@
       .footer-bottom-inner { grid-template-columns: 1fr; text-align: center; gap: 8px; }
       .footer-bottom-inner .right { text-align: center; }
       .pagination { padding: 32px 0 56px; gap: 2px; }
-      .page-btn { min-width: 36px; height: 36px; }
+      .page-btn { min-width: 44px; height: 44px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1973,9 +1975,51 @@
       color: var(--text);
     }
     .auth-config-warning strong { font-weight: 700; color: #b45309; }
+
+    /* Skip link — hidden until keyboard-focused */
+    .skip-link {
+      position: fixed;
+      top: 14px; left: 14px;
+      z-index: 300;
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      background: var(--text); color: var(--bg);
+      font: 600 13px var(--sans);
+      transform: translateY(-64px);
+      transition: transform 0.2s var(--easing);
+    }
+    .skip-link:focus-visible { transform: translateY(0); }
+
+    /* Scroll reveal — sections drift in as they enter the viewport.
+       Gated on html.js so content stays visible if scripts fail. */
+    html.js [data-reveal] {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s var(--easing), transform 0.6s var(--easing);
+    }
+    html.js [data-reveal].is-revealed { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      html.js [data-reveal] { opacity: 1; transform: none; }
+    }
+
+    /* Room for the fixed plan bar so it never hides page content */
+    body.has-plan-bar { padding-bottom: 96px; }
+    body.has-plan-bar .toasts { bottom: 104px; }
+
+    /* Grid error state (recipes failed to load) */
+    .grid-error {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 56px 24px;
+      color: var(--text-soft);
+    }
+    .grid-error h3 { font-family: var(--serif); font-size: 24px; color: var(--text); margin-bottom: 6px; }
   </style>
 </head>
 <body data-page="home">
+  <script>document.documentElement.classList.add("js");</script>
+
+  <a class="skip-link" href="#recipeGrid">Skip to recipes</a>
 
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
@@ -2009,7 +2053,7 @@
   <main>
     <!-- 3. Hero Banner -->
     <section class="hero" aria-label="Recipes hero">
-      <img class="hero-bg" id="heroBg" src="https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1800&q=80" alt="" aria-hidden="true" onerror="this.onerror=null;this.style.display='none';" />
+      <img class="hero-bg" id="heroBg" src="https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1800&q=80" alt="" aria-hidden="true" fetchpriority="high" onerror="this.onerror=null;this.style.display='none';" />
 
       <div class="hero-content container">
         <div class="hero-meta" id="heroMeta">RECIPY · ISSUE Nº47 · NOVEMBER</div>
@@ -2039,7 +2083,7 @@
 
       <aside class="hero-pick" id="heroPick" aria-label="Recipe of the day">
         <a class="hero-pick-link" id="pickLink" href="recipe.html?id=0" aria-label="Open recipe of the day">
-          <img id="pickImg" src="photo-pick-fallback.jpg" alt="Recipe of the day" loading="lazy" />
+          <img id="pickImg" src="photo-pick-fallback.jpg" alt="Recipe of the day" />
           <span class="pick-tag">Recipe of the Day</span>
           <h3 id="pickTitle">Loading…</h3>
           <p class="pick-meta"><strong id="pickTime">— min</strong> · <span id="pickDifficulty">Easy</span> · <span id="pickAuthor">—</span></p>
@@ -2048,7 +2092,7 @@
     </section>
 
     <!-- 3b. Master the Basics — Cookery School cross-link -->
-    <section class="basics-banner" aria-label="Cookery School guides">
+    <section class="basics-banner" aria-label="Cookery School guides" data-reveal>
       <div class="basics-inner">
         <div class="basics-intro">
           <span class="basics-tag">
@@ -2134,7 +2178,7 @@
     </section>
 
     <!-- 6. Pull-out quote -->
-    <section class="pullquote" aria-label="Editorial quote">
+    <section class="pullquote" aria-label="Editorial quote" data-reveal>
       <div class="inner">
         <svg class="quote-mark" viewBox="0 0 60 50" fill="currentColor" aria-hidden="true">
           <path d="M2 28 C 2 15, 11 5, 24 5 L 24 14 C 17 14, 12 19, 12 26 L 24 26 L 24 46 L 2 46 Z"></path>
@@ -2282,10 +2326,31 @@
        the shopping list can scale and aggregate amounts. */
     let recipes = [];
     async function loadRecipes() {
-      const list = window.RECIPY && window.RECIPY.recipes
-        ? await window.RECIPY.recipes.getAll({ fresh: true })
-        : (window.RECIPES || []);
-      recipes = list.slice();
+      try {
+        const list = window.RECIPY && window.RECIPY.recipes
+          ? await window.RECIPY.recipes.getAll({ fresh: true })
+          : (window.RECIPES || []);
+        recipes = list.slice();
+      } catch (e) {
+        console.warn("loadRecipes failed, falling back to bundled data", e);
+        recipes = (window.RECIPES || []).slice();
+      }
+      if (!recipes.length) showGridError();
+    }
+
+    function showGridError() {
+      const grid = $("#recipeGrid");
+      grid.innerHTML = `
+        <div class="grid-error" role="alert">
+          <h3>We couldn't load the recipes.</h3>
+          <p>Something went wrong on our end. Check your connection and try again.</p>
+          <button class="ctrl" type="button" id="gridRetry">Try again</button>
+        </div>`;
+      $("#gridRetry")?.addEventListener("click", async () => {
+        renderSkeletonCards();
+        await loadRecipes();
+        if (recipes.length) filterRecipes();
+      });
     }
     /* Lookup helper: resolves a plan/bookmark ID (either a UUID from
        Supabase or a legacy array index from older localStorage state)
@@ -2769,7 +2834,9 @@
         return r ? r.title.split(" ").slice(0, 2).join(" ") : "";
       }).filter(Boolean);
       namesEl.textContent = names.length ? "· " + names.slice(0, 3).join(", ") + (names.length > 3 ? "…" : "") : "";
-      bar.classList.toggle("show", plan.size > 0 && document.body.classList.contains("plan-mode"));
+      const barVisible = plan.size > 0 && document.body.classList.contains("plan-mode");
+      bar.classList.toggle("show", barVisible);
+      document.body.classList.toggle("has-plan-bar", barVisible);
     }
 
     function togglePlan(id, cardEl, btnEl) {
@@ -2788,7 +2855,7 @@
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
       }
       updatePlanBar();
-      toast(adding ? `Added to your week` : "Removed from plan");
+      /* No toast here — the plan bar count updating is feedback enough. */
     }
 
     /* Aggregate all ingredients from the plan, summing amounts where the
@@ -3029,6 +3096,7 @@
       },
       close() {
         this.el.classList.remove("open");
+        this.el.querySelector(".cmdk-card").setAttribute("aria-hidden", "true");
         document.body.style.overflow = "";
         this.input.blur();
       },
@@ -3340,13 +3408,38 @@
         "There you go — welcome to the test kitchen."
       ];
       logo.addEventListener("click", (e) => {
+        /* We're already on the homepage — a single click scrolls back to
+           the top; rapid repeat clicks unlock the easter egg. */
         e.preventDefault();
         count++;
-        logo.classList.remove("spin"); void logo.offsetWidth; logo.classList.add("spin");
-        if (count <= lines.length) toast(lines[count - 1]);
+        if (count === 1) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          logo.classList.remove("spin"); void logo.offsetWidth; logo.classList.add("spin");
+          if (count <= lines.length) toast(lines[count - 1]);
+        }
         clearTimeout(timer);
         timer = setTimeout(() => count = 0, 2500);
       });
+    }
+
+    /* Scroll-reveal: drift sections in as they enter the viewport */
+    function initReveal() {
+      const targets = $$("[data-reveal]");
+      if (!targets.length) return;
+      if (!("IntersectionObserver" in window)) {
+        targets.forEach(el => el.classList.add("is-revealed"));
+        return;
+      }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+            io.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
+      targets.forEach(el => io.observe(el));
     }
 
     function initKeyboardShortcuts() {
@@ -3446,6 +3539,7 @@
       initPagination();
       initSubscribe();
       initLogoEasterEgg();
+      initReveal();
       initKeyboardShortcuts();
       initPlanMode();
       initAuth();

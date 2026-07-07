@@ -19,6 +19,11 @@ admin queue all need Supabase. Setup is one evening of work.
 This creates every table, index, trigger, RLS policy, the two storage
 buckets (`recipes`, `cooks`) and enables realtime on `cooked_posts`.
 
+> **Already set up before reviews shipped?** Run
+> `scripts/reviews-migration.sql` in the SQL editor to add the
+> `reviews` table (star ratings + comments on recipe pages). Fresh
+> installs of `schema.sql` include it automatically.
+
 ## 3. Plug the keys into `config.js`
 
 1. In Supabase, go to **Settings → API**.

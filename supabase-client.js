@@ -826,6 +826,106 @@
   }
 
   /* ------------------------------------------------------------
+     REVIEWS — one rating (1–5) + optional text per user per recipe
+  ------------------------------------------------------------ */
+  function rowToReview(row, profileMap = {}, viewerId = null) {
+    const author = profileMap[row.user_id] || null;
+    return {
+      id:        row.id,
+      recipeId:  row.recipe_id,
+      userId:    row.user_id,
+      rating:    row.rating,
+      body:      row.body || "",
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      author,
+      isMine:    !!viewerId && row.user_id === viewerId,
+    };
+  }
+
+  /* Returns { reviews, average, count, mine } in one round trip set.
+     `mine` is the viewer's own review (or null) so the page can prefill
+     the form for editing. */
+  async function reviewsForRecipe(recipeId, limit = 50) {
+    const empty = { reviews: [], average: 0, count: 0, mine: null };
+    if (!CONFIGURED || !recipeId) return empty;
+
+    const { data, error } = await sb
+      .from("reviews")
+      .select("id, recipe_id, user_id, rating, body, created_at, updated_at")
+      .eq("recipe_id", recipeId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) {
+      console.warn("reviewsForRecipe", error);
+      return empty;
+    }
+
+    const rows = data || [];
+    const user = await authGetUser();
+    const viewerId = user?.id || null;
+
+    const userIds = [...new Set(rows.map((r) => r.user_id))];
+    let pmap = {};
+    if (userIds.length) {
+      const { data: profiles } = await sb
+        .from("profiles")
+        .select("id, username, display_name, avatar_url")
+        .in("id", userIds);
+      (profiles || []).forEach((p) => (pmap[p.id] = p));
+    }
+
+    const reviews = rows.map((r) => rowToReview(r, pmap, viewerId));
+    const count = reviews.length;
+    const average = count
+      ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10
+      : 0;
+    const mine = reviews.find((r) => r.isMine) || null;
+    /* Show the viewer's own review first so they can find/edit it easily */
+    if (mine) {
+      reviews.splice(reviews.indexOf(mine), 1);
+      reviews.unshift(mine);
+    }
+    return { reviews, average, count, mine };
+  }
+
+  /* Create or update the signed-in user's review for a recipe */
+  async function reviewsUpsert(recipeId, rating, body) {
+    if (!CONFIGURED) throw new Error("Reviews need Supabase to be configured.");
+    const user = await authGetUser();
+    if (!user) throw new Error("Sign in to leave a review.");
+    const r = Math.round(Number(rating));
+    if (!(r >= 1 && r <= 5)) throw new Error("Pick a star rating from 1 to 5.");
+    const { data, error } = await sb
+      .from("reviews")
+      .upsert(
+        {
+          recipe_id: recipeId,
+          user_id:   user.id,
+          rating:    r,
+          body:      (body || "").trim().slice(0, 2000),
+        },
+        { onConflict: "recipe_id,user_id" }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function reviewsRemove(recipeId) {
+    if (!CONFIGURED) throw new Error("Sign in required.");
+    const user = await authGetUser();
+    if (!user) throw new Error("Sign in required.");
+    const { error } = await sb
+      .from("reviews")
+      .delete()
+      .eq("recipe_id", recipeId)
+      .eq("user_id", user.id);
+    if (error) throw error;
+  }
+
+  /* ------------------------------------------------------------
      Public surface
   ------------------------------------------------------------ */
   window.RECIPY = {
@@ -885,6 +985,12 @@
       byUser:      postsByUser,
       likeToggle:  postsLikeToggle,
       subscribe:   postsSubscribe,
+    },
+
+    reviews: {
+      forRecipe: reviewsForRecipe,
+      upsert:    reviewsUpsert,
+      remove:    reviewsRemove,
     },
 
     stats: {

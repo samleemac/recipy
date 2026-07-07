@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <title>Feed · Recipy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
   <style>
     .feed-tabs {
@@ -490,6 +492,16 @@
     bindPeopleSearch();
     window.AppShell.onAuth(async (user) => {
       viewer = user;
+      /* Signed-out visitors can't follow anyone — show Everyone by default
+         instead of an empty "Following" tab telling them to sign in. */
+      if (!viewer && scope === "following") {
+        scope = "everyone";
+        $$(".feed-tab").forEach(b => {
+          const active = b.dataset.scope === "everyone";
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-selected", active ? "true" : "false");
+        });
+      }
       await loadFeed();
       if (window.RECIPY && window.RECIPY.configured) setupRealtime();
       /* If a search is active when auth state changes, re-run it so follow buttons update */

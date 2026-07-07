@@ -122,6 +122,23 @@ create table if not exists public.cooked_likes (
 );
 
 -- ============================================================
+-- reviews — one rating (1–5) + optional text per user per recipe
+-- ============================================================
+create table if not exists public.reviews (
+  id         uuid primary key default uuid_generate_v4(),
+  recipe_id  uuid not null references public.recipes(id)  on delete cascade,
+  user_id    uuid not null references public.profiles(id) on delete cascade,
+  rating     int  not null check (rating between 1 and 5),
+  body       text not null default '' check (char_length(body) <= 2000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (recipe_id, user_id)
+);
+
+create index if not exists reviews_recipe_idx  on public.reviews (recipe_id);
+create index if not exists reviews_created_idx on public.reviews (created_at desc);
+
+-- ============================================================
 -- updated_at trigger for recipes
 -- ============================================================
 create or replace function public.touch_updated_at()
@@ -134,6 +151,11 @@ end $$;
 drop trigger if exists recipes_touch on public.recipes;
 create trigger recipes_touch
   before update on public.recipes
+  for each row execute procedure public.touch_updated_at();
+
+drop trigger if exists reviews_touch on public.reviews;
+create trigger reviews_touch
+  before update on public.reviews
   for each row execute procedure public.touch_updated_at();
 
 -- ============================================================
@@ -209,6 +231,7 @@ alter table public.bookmarks    enable row level security;
 alter table public.follows      enable row level security;
 alter table public.cooked_posts enable row level security;
 alter table public.cooked_likes enable row level security;
+alter table public.reviews      enable row level security;
 
 -- profiles --------------------------------------------------
 drop policy if exists "profiles readable by anyone"    on public.profiles;
@@ -315,6 +338,37 @@ create policy "cooked likes owner write"
 
 create policy "cooked likes owner delete"
   on public.cooked_likes for delete using (user_id = auth.uid());
+
+-- reviews ---------------------------------------------------
+drop policy if exists "reviews public read"  on public.reviews;
+drop policy if exists "reviews owner write"  on public.reviews;
+drop policy if exists "reviews owner update" on public.reviews;
+drop policy if exists "reviews owner delete" on public.reviews;
+drop policy if exists "reviews admin delete" on public.reviews;
+
+create policy "reviews public read"
+  on public.reviews for select using (true);
+
+create policy "reviews owner write"
+  on public.reviews for insert
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.recipes r
+      where r.id = recipe_id and r.status = 'published'
+    )
+  );
+
+create policy "reviews owner update"
+  on public.reviews for update
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+create policy "reviews owner delete"
+  on public.reviews for delete using (user_id = auth.uid());
+
+create policy "reviews admin delete"
+  on public.reviews for delete using (public.is_admin());
 
 -- ============================================================
 -- Storage buckets

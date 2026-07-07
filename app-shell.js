@@ -384,7 +384,7 @@
       applyTheme(next);
       setStoredTheme(next);
       await persistThemeForUser(next);
-      toast(next === "dark" ? "Lights down. Cozy mode." : "Lights up.");
+      /* The theme change itself is the feedback — no toast needed. */
     });
   }
 
