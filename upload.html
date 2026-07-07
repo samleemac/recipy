@@ -318,6 +318,75 @@
       font: 700 12px var(--sans);
       padding: 0 0 0 4px;
     }
+
+    /* Unsaved-changes leave guard modal */
+    .leave-guard-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(30, 27, 24, 0.45);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .leave-guard-backdrop.open { display: flex; }
+    .leave-guard {
+      width: min(420px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      padding: 26px 26px 22px;
+      text-align: center;
+      animation: leaveGuardIn .22s var(--easing) both;
+    }
+    @keyframes leaveGuardIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .leave-guard { animation: none; }
+    }
+    .leave-guard-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--warning-soft);
+      color: var(--warning);
+      border-radius: 50%;
+    }
+    .leave-guard h2 {
+      font: 700 22px var(--serif);
+      letter-spacing: -0.01em;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    .leave-guard p {
+      font: 400 14px/1.55 var(--sans);
+      color: var(--text-soft);
+      margin: 0 0 20px;
+    }
+    .leave-guard-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .leave-guard-actions .btn { min-width: 130px; }
+    .leave-guard .btn-danger-ghost {
+      background: transparent;
+      border: 1.5px solid var(--danger);
+      color: var(--danger);
+      border-radius: 100px;
+      font: 600 14px var(--sans);
+      padding: 10px 18px;
+      transition: background .15s, color .15s;
+    }
+    .leave-guard .btn-danger-ghost:hover {
+      background: var(--danger-soft);
+    }
   </style>
 </head>
 <body data-page="upload">
@@ -471,6 +540,21 @@
       <div id="submissionsList" class="submissions-list" hidden></div>
     </div>
   </main>
+
+  <!-- Unsaved-changes leave guard -->
+  <div class="leave-guard-backdrop" id="leaveGuardBackdrop">
+    <div class="leave-guard" role="alertdialog" aria-modal="true" aria-labelledby="leaveGuardTitle" aria-describedby="leaveGuardBody">
+      <div class="leave-guard-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <h2 id="leaveGuardTitle">Unsaved changes</h2>
+      <p id="leaveGuardBody">Your recipe hasn't been submitted yet. If you leave now, everything you've typed will be lost.</p>
+      <div class="leave-guard-actions">
+        <button type="button" class="btn btn-primary" id="leaveGuardStay">Keep editing</button>
+        <button type="button" class="btn-danger-ghost" id="leaveGuardLeave">Discard &amp; leave</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
@@ -907,6 +991,7 @@
           await window.RECIPY.recipes.submit(recipe, photoFile);
           window.AppShell.toast("Submitted — we'll review it shortly.");
         }
+        guardDisarmed = true;   /* work is saved — let the redirect through */
         setTimeout(() => {
           const profile = window.AppShell.profile();
           if (profile) location.href = `profile.html?u=${encodeURIComponent(profile.username)}`;
@@ -917,6 +1002,119 @@
         submitBtn.disabled = false;
         submitBtn.textContent = editMode ? "Save & resubmit for review" : "Submit for review";
       }
+    });
+
+    /* -------------------- unsaved-changes guard --------------------
+       Three layers so it works everywhere:
+       1. beforeunload  — refresh, tab close, typed URLs, desktop back
+                          (Chrome/Firefox/Edge/desktop Safari).
+       2. History trap  — a sentinel history entry + popstate re-push,
+                          which catches the back button AND edge-swipe
+                          gestures on iPhone/iPad (iOS Safari ignores
+                          beforeunload) and trackpad two-finger swipes.
+       3. Click guard   — in-page links (Cancel, nav) get the styled
+                          confirm dialog instead of the native one.   */
+    let guardBaseline = "";
+    let guardArmed    = false;   /* sentinel history entry pushed */
+    let guardDisarmed = false;   /* user confirmed leave, or submit succeeded */
+
+    function snapshotFormState() {
+      const fieldIds = [
+        "#title", "#intro", "#cuisine", "#time", "#difficulty", "#servings",
+        "#servingNoun", "#macroKcal", "#macroCarbs", "#macroProtein",
+        "#macroFat", "#macroFibre", "#macroSugar", "#equipment",
+        "#factTitle", "#factBody", "#tagInput",
+      ];
+      return JSON.stringify({
+        fields: fieldIds.map(s => { const el = $(s); return el ? el.value : ""; }),
+        ingredientGroups, steps, tags,
+        photo: photoFile ? `${photoFile.name}:${photoFile.size}` : existingPhotoUrl,
+      });
+    }
+    function markFormClean() { guardBaseline = snapshotFormState(); }
+    function isFormDirty() {
+      if (guardDisarmed) return false;
+      const form = $("#uploadForm");
+      if (!form || form.hidden) return false;
+      return snapshotFormState() !== guardBaseline;
+    }
+
+    /* Push the sentinel entry the first time the form actually changes,
+       so a clean visit still leaves with a single back press. */
+    function maybeArmGuard() {
+      if (guardArmed || guardDisarmed || !isFormDirty()) return;
+      guardArmed = true;
+      history.pushState({ recipyUploadGuard: true }, "");
+    }
+    /* Input/change bubble from every field, including re-rendered rows and
+       the photo input. Clicks (add/remove/move/drag) mutate state without
+       input events — check shortly after, past the 180ms remove animation. */
+    $("#uploadForm").addEventListener("input", maybeArmGuard);
+    $("#uploadForm").addEventListener("change", maybeArmGuard);
+    $("#uploadForm").addEventListener("click", () => setTimeout(maybeArmGuard, 250));
+
+    window.addEventListener("popstate", () => {
+      if (guardDisarmed || !guardArmed) return;
+      if (!isFormDirty()) { guardArmed = false; return; }
+      /* User went back (button or swipe) — restore the sentinel so we stay
+         put, then ask. */
+      history.pushState({ recipyUploadGuard: true }, "");
+      showLeaveGuard(() => {
+        guardDisarmed = true;
+        /* Jump past both the sentinel and the original entry. If there was
+           no prior page, fall back to home; a successful navigation unloads
+           the page before the timer fires. */
+        history.go(-2);
+        setTimeout(() => { location.href = "index.html"; }, 600);
+      });
+    });
+
+    window.addEventListener("beforeunload", (e) => {
+      if (!isFormDirty()) return;
+      e.preventDefault();
+      e.returnValue = "";
+    });
+
+    /* In-page link navigation (Cancel button, nav links, logo…) */
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("a[href]");
+      if (!a) return;
+      const href = a.getAttribute("href");
+      if (!href || href.startsWith("#") || a.target === "_blank" || href.startsWith("mailto:")) return;
+      if (!isFormDirty()) return;
+      e.preventDefault();
+      showLeaveGuard(() => {
+        guardDisarmed = true;
+        location.href = a.href;
+      });
+    });
+
+    /* ---- modal wiring ---- */
+    const leaveBackdrop = $("#leaveGuardBackdrop");
+    let leaveCallback = null;
+    let leaveGuardReturnFocus = null;
+    function showLeaveGuard(onLeave) {
+      leaveCallback = onLeave;
+      leaveGuardReturnFocus = document.activeElement;
+      leaveBackdrop.classList.add("open");
+      $("#leaveGuardStay").focus();
+    }
+    function hideLeaveGuard() {
+      leaveBackdrop.classList.remove("open");
+      leaveCallback = null;
+      if (leaveGuardReturnFocus && leaveGuardReturnFocus.focus) leaveGuardReturnFocus.focus();
+      leaveGuardReturnFocus = null;
+    }
+    $("#leaveGuardStay").addEventListener("click", hideLeaveGuard);
+    $("#leaveGuardLeave").addEventListener("click", () => {
+      const cb = leaveCallback;
+      leaveBackdrop.classList.remove("open");
+      leaveCallback = null;
+      if (cb) cb();
+    });
+    leaveBackdrop.addEventListener("click", (e) => { if (e.target === leaveBackdrop) hideLeaveGuard(); });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && leaveBackdrop.classList.contains("open")) hideLeaveGuard();
     });
 
     /* -------------------- gate by sign-in -------------------- */
@@ -1111,6 +1309,7 @@
       renderIngredients();
       renderSteps();
       renderTags();
+      markFormClean();
     }
 
     // Merge a snake_case pending_changes payload onto a live recipe for prefill.
@@ -1163,6 +1362,7 @@
       renderIngredients();
       renderSteps();
       renderTags();
+      markFormClean();
       // If we're already on history tab, load submissions
       if (currentTab === "history") {
         loadSubmissions();
