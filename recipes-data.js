@@ -3856,8 +3856,7 @@ window.RECIPES = [
         title: "Coat the chickpeas",
         time: 3,
         desc: "In a mixing bowl, combine the drained chickpeas, diced cucumber and most of the sliced chilli. Spoon over most of the mango miso sauce and fold gently until every chickpea is coated.",
-        ingredientKeys: ["0-0", "0-1", "0-2"],
-        ingredientGroupNames: ["Mango miso sauce"]
+        ingredientGroupNames: ["Miso mango chickpeas", "Mango miso sauce"]
       },
       {
         title: "Rest for flavour",
@@ -3876,8 +3875,7 @@ window.RECIPES = [
         title: "Top and finish",
         time: 4,
         desc: "Spoon the creamy mango chickpeas over each bowl. Add avocado slices and the reserved chilli. Finish with sumac, cracked black pepper, a squeeze of lime and a drizzle of olive oil. Serve straight away.",
-        ingredientKeys: ["0-0", "0-1", "0-2", "2-3", "2-4", "2-5", "2-6"],
-        ingredientGroupNames: ["Garnish"]
+        ingredientKeys: ["0-0", "0-1", "0-2", "2-3", "2-4", "2-5", "2-6", "3-0", "3-1", "3-2"]
       }
     ]
   }
