@@ -307,7 +307,8 @@
 
     const slug = new URLSearchParams(location.search).get("slug") || "";
     let guide = null;
-    let gateResolved = false;
+    let editorReady = false;
+    let guestTimer = null;
 
     /* JSON textareas: field id → { errEl id, validate } */
     const JSON_FIELDS = [
@@ -463,14 +464,13 @@
       }
     }
 
-    async function boot(user, profile) {
-      if (gateResolved) return;
-
-      const configured = window.RECIPY && window.RECIPY.configured;
-      if (!configured) { gateResolved = true; showGate("Supabase isn't configured — guides can't be edited here."); return; }
-      if (!user) { gateResolved = true; showGate(); return; }
-      if (profile?.role !== "admin") { gateResolved = true; showGate("Your account doesn't have admin access."); return; }
-      gateResolved = true;
+    async function openEditor() {
+      if (editorReady) {
+        showLoading(false);
+        $("#gate").hidden = true;
+        $("#editorRoot").hidden = false;
+        return;
+      }
 
       guide = await window.RECIPY.techniques.getBySlug(slug);
       const isUuid = guide && typeof guide.id === "string" &&
@@ -483,8 +483,47 @@
       }
 
       fillForm(guide);
+      editorReady = true;
       showLoading(false);
+      $("#gate").hidden = true;
       $("#editorRoot").hidden = false;
+    }
+
+    async function onAuth(user, profile) {
+      if (guestTimer) { clearTimeout(guestTimer); guestTimer = null; }
+
+      const configured = window.RECIPY && window.RECIPY.configured;
+      if (!configured) {
+        showGate("Supabase isn't configured — guides can't be edited here.");
+        return;
+      }
+
+      /* Session still hydrating: user known but profile not loaded yet.
+         AppShell.onAuth can fire in this gap — wait, don't lock the gate. */
+      if (user && !profile) {
+        showLoading(true);
+        $("#gate").hidden = true;
+        $("#editorRoot").hidden = true;
+        return;
+      }
+
+      if (!user) {
+        /* Give the session a moment to arrive before showing the guest gate */
+        showLoading(true);
+        $("#gate").hidden = true;
+        $("#editorRoot").hidden = true;
+        guestTimer = setTimeout(() => {
+          if (!window.AppShell?.user()) showGate();
+        }, 2500);
+        return;
+      }
+
+      if (profile.role !== "admin") {
+        showGate("Your account doesn't have admin access.");
+        return;
+      }
+
+      await openEditor();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -493,14 +532,7 @@
         $("#" + f.id).addEventListener("blur", () => parseJsonField(f));
       });
       if (window.AppShell && window.AppShell.onAuth) {
-        /* Wait for the first definitive auth state; guests get the gate */
-        let first = true;
-        window.AppShell.onAuth((user, profile) => {
-          /* Skip the initial null callback fired before the session loads */
-          if (first && !user) { first = false; setTimeout(() => { if (!gateResolved) boot(null, null); }, 2500); return; }
-          first = false;
-          boot(user, profile);
-        });
+        window.AppShell.onAuth(onAuth);
       } else {
         showGate();
       }
