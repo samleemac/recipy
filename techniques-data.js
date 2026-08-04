@@ -555,5 +555,181 @@ window.TECHNIQUES = [
       }
     ],
     relatedIngredientKeywords: ["chickpea", "chickpeas", "aquafaba"]
+  },
+
+  /* ============================================================
+     4. How to Make Dairy-Free Cheese
+     ============================================================ */
+  {
+    slug: "how-to-make-dairy-free-cheese",
+    title: "How to Make Dairy-Free Cheese",
+    subtitle: "Three plant-based classics from one kitchen kit — soft ricotta, sliceable feta and stretchy mozzarella, all made at home.",
+    heroPhoto: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d",
+    icon: "🧀",
+    skillLevel: "Beginner",
+    readTime: 8,
+    tags: ["Cheese", "Vegan", "Dairy-free"],
+    methodsSectionTag: "Pick a cheese",
+    methodsSectionTitle: "Three homemade cheeses",
+    methodsTablistLabel: "Dairy-free cheeses",
+    intro: "Shop-bought dairy-free cheese is hit-and-miss — these three recipes put the texture and tang under your control. They share a simple idea: soak nuts, blend with salt, acid and nutritional yeast, then set (or not) depending on the style. Use the tabs below to switch between ricotta, feta and mozzarella. Each batch makes about 200g.",
+    fact: {
+      title: "Did you know?",
+      body: "Citric acid is what gives these cheeses their bright, dairy-like tang — the same acid that helps traditional mozzarella stretch. Nutritional yeast adds the savoury depth you'd otherwise get from aged milk fats."
+    },
+    methods: [
+      {
+        key: "ricotta",
+        label: "Ricotta",
+        heat: "None (blend)",
+        time: "8+ hrs soak · 20 min hands-on",
+        yield: "Makes 200g (approx.)",
+        ingredients: [
+          "150g whole unsalted almonds (not supplied)",
+          "125ml cold water",
+          "¾ tsp fine salt",
+          "¼ tsp citric acid",
+          "1 tsp nutritional yeast"
+        ],
+        equipment: [
+          "Large bowl",
+          "Blender"
+        ],
+        steps: [
+          "Place the almonds in a bowl and cover with boiling water. Leave to soak for 8–10 hours.",
+          "Remove the almond skins (if present) before proceeding.",
+          "Place the almonds and all other ingredients in a blender and process at the highest setting until a smooth consistency is achieved. Ricotta can be eaten immediately.",
+          "Storage: Dairy-free ricotta keeps for up to 3 days in an airtight container in the fridge."
+        ],
+        doneness: [
+          { label: "Ready to eat", time: "Straight after blending", cue: "Smooth, spoonable, no gritty bits" },
+          { label: "Chilled", time: "1–2 hrs in fridge", cue: "Slightly firmer, easier to dollop or spread" }
+        ],
+        commonMistake: "Stopping the blender too early. Almond skins left on, or a short blend, leave the ricotta sandy — keep going until it's properly smooth, scraping down the sides as needed."
+      },
+      {
+        key: "feta",
+        label: "Feta",
+        heat: "Low to 60°C / 140°F",
+        time: "8+ hrs soak · ~2.5 hrs total",
+        yield: "Makes 200g (approx.)",
+        ingredients: [
+          "80g whole unsalted almonds (not supplied)",
+          "190ml cold water",
+          "1½ tbsp agar",
+          "1 tsp fine salt",
+          "¼ tsp citric acid",
+          "1 tsp nutritional yeast"
+        ],
+        equipment: [
+          "Thermometer (supplied)",
+          "Medium pan",
+          "Small tray",
+          "Large bowl",
+          "Blender"
+        ],
+        steps: [
+          "Place the almonds in a bowl and cover with boiling water. Leave to soak for 8–10 hours.",
+          "Remove the almond skins (if present) before proceeding.",
+          "Place the almonds and all other ingredients in a blender and process at the highest setting until a smooth, creamy consistency is achieved.",
+          "Pour the mixture into a medium saucepan and heat on a low setting to 60°C (140°F), stirring continuously.",
+          "When the required temperature has been reached, the agar will activate and the mixture will thicken. If needed, continue to heat and stir until it thickens.",
+          "Spoon the mixture into a small tray, cover and leave to cool for 10 minutes before transferring the tray to the fridge.",
+          "After 2 hours, the feta will be ready to eat.",
+          "Storage: Dairy-free feta keeps for up to 2 days in an airtight container in the fridge."
+        ],
+        doneness: [
+          { label: "Agar activated", time: "At 60°C", cue: "Mixture thickens and coats the spoon" },
+          { label: "Set & ready", time: "2 hrs chilled", cue: "Firm enough to cube or crumble" }
+        ],
+        commonMistake: "Rushing the heat or skipping the thermometer. Agar needs to hit about 60°C to set properly — if you stay too cool, the feta stays soft and won't slice."
+      },
+      {
+        key: "mozzarella",
+        label: "Mozzarella",
+        heat: "Low to 60°C / 140°F",
+        time: "8+ hrs soak · 30–40 min cook & set",
+        yield: "Makes 200g (approx.)",
+        ingredients: [
+          "80g whole unsalted cashew nuts (not supplied)",
+          "125ml unsweetened soya milk (not supplied)",
+          "1½ tbsp tapioca",
+          "½ tsp fine salt",
+          "¼ tsp citric acid",
+          "½ tbsp agar",
+          "1 tsp nutritional yeast",
+          "Iced water (for shaping)"
+        ],
+        equipment: [
+          "Thermometer (supplied)",
+          "2 × large bowls",
+          "Medium pan",
+          "Small tray",
+          "Blender"
+        ],
+        steps: [
+          "Place the cashews in a bowl and cover with boiling water. Leave to soak for 8–10 hours.",
+          "Drain and rinse with clean water.",
+          "Place the cashews and all other ingredients (except the iced water) in a blender and process at the highest setting until a smooth, thick consistency is achieved.",
+          "Pour the mixture into a medium saucepan and heat on a low setting to 60°C (140°F), stirring continuously.",
+          "When the required temperature has been reached, continue to heat and stir for at least 1 more minute until set.",
+          "Spoon the mixture into a small tray, cover, and leave to cool. When cool enough to handle, roll into small balls and place into the iced water. After 10–20 minutes, the mozzarella is ready to eat.",
+          "Storage: Dairy-free mozzarella keeps for up to 3 days in an airtight container in the fridge."
+        ],
+        doneness: [
+          { label: "Set in pan", time: "1 min past 60°C", cue: "Thick, stretchy, pulls from the sides" },
+          { label: "Balls ready", time: "10–20 min in iced water", cue: "Holds shape, cool and springy" }
+        ],
+        commonMistake: "Skipping the iced-water bath. Rolling the balls and chilling them in iced water firms the outside so they keep their shape — without it they stay sticky and soft."
+      }
+    ],
+    seasoningIdeas: [
+      "Olive oil + cracked black pepper",
+      "Fresh herbs (basil, oregano, thyme)",
+      "Lemon zest + chilli flakes",
+      "Sun-dried tomatoes",
+      "Balsamic glaze",
+      "Toasted nuts & seeds",
+      "Garlic oil drizzle",
+      "Za'atar or dried oregano"
+    ],
+    toolsNeeded: [
+      "Blender",
+      "Large bowl",
+      "Thermometer",
+      "Medium pan",
+      "Small tray",
+      "Airtight container"
+    ],
+    topTips: [
+      "Soak the nuts the night before — every cheese here starts with an 8–10 hour soak in boiling water.",
+      "A high-powered blender makes a noticeably smoother cheese; scrape down the sides and give it longer than you think.",
+      "For feta and mozzarella, trust the thermometer: 60°C (140°F) is when agar activates and the set begins.",
+      "Citric acid and nutritional yeast are doing the flavour work — don't skip either if you want that dairy-like tang and savouriness.",
+      "These are best within a couple of days; label the container so you know which cheese is which."
+    ],
+    troubleshooting: [
+      {
+        q: "Why is my ricotta gritty?",
+        a: "Usually under-blended almonds or skins left on. Peel after soaking, blend on the highest setting, and scrape the jug down until the texture is completely smooth."
+      },
+      {
+        q: "My feta won't set — what went wrong?",
+        a: "The mixture likely never reached 60°C, so the agar didn't activate. Heat gently while stirring, check with a thermometer, and keep going until it thickens before you tray it."
+      },
+      {
+        q: "Why is my mozzarella sticky and hard to roll?",
+        a: "It needs a short cool-down in the tray first, then the iced-water bath. If it's still too hot or soft, wait a few more minutes before rolling."
+      },
+      {
+        q: "Can I swap almonds and cashews?",
+        a: "Stick to the nuts listed for each cheese — almonds give ricotta and feta their body; cashews plus soya milk and tapioca are what make mozzarella creamy and stretchy."
+      },
+      {
+        q: "How long do they keep?",
+        a: "Ricotta and mozzarella keep up to 3 days refrigerated in an airtight container; feta is best within 2 days."
+      }
+    ],
+    relatedIngredientKeywords: ["dairy-free cheese", "vegan feta", "vegan mozzarella", "ricotta", "almond ricotta"]
   }
 ];

@@ -215,6 +215,49 @@
     [data-theme="dark"] .method-meta .stat svg { color: var(--sage); }
     .method-meta .stat span { color: var(--text-soft); font-weight: 500; }
 
+    .method-lists {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      max-width: 720px;
+      margin: 0 0 24px;
+    }
+    .method-list-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+    }
+    .method-list-card h3 {
+      font: 700 11px var(--sans);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin: 0 0 10px;
+    }
+    .method-list-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 7px;
+    }
+    .method-list-card li {
+      position: relative;
+      padding-left: 14px;
+      font: 400 14px/1.45 var(--sans);
+      color: var(--text);
+    }
+    .method-list-card li::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0.55em;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--sage-dark);
+    }
+    [data-theme="dark"] .method-list-card li::before { background: var(--sage); }
+
     .method-steps {
       list-style: none;
       counter-reset: mstep;
@@ -567,6 +610,9 @@
       document.title = `${guide.title} · Cookery School · Recipy`;
       if (window.AppShell && window.AppShell.setRecipeTitle) window.AppShell.setRecipeTitle(guide.title);
 
+      const requestedMethod = new URLSearchParams(location.search).get("method") || "";
+      const initialMethodIndex = Math.max(0, guide.methods.findIndex(m => m.key === requestedMethod));
+
       const heroChips = `
         <span class="t-chip">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
@@ -580,11 +626,32 @@
       `;
 
       const methodTabs = guide.methods.map((m, i) => `
-        <button class="method-tab ${i === 0 ? "is-active" : ""}" role="tab" aria-selected="${i === 0}" data-method="${escapeHtml(m.key)}" type="button">${escapeHtml(m.label)}</button>
+        <button class="method-tab ${i === initialMethodIndex ? "is-active" : ""}" role="tab" aria-selected="${i === initialMethodIndex}" data-method="${escapeHtml(m.key)}" type="button">${escapeHtml(m.label)}</button>
       `).join("");
 
-      const methodPanels = guide.methods.map((m, i) => `
-        <div class="method-panel ${i === 0 ? "is-active" : ""}" role="tabpanel" data-method="${escapeHtml(m.key)}" ${i === 0 ? "" : "hidden"}>
+      const methodPanels = guide.methods.map((m, i) => {
+        const lists = (m.ingredients || m.equipment) ? `
+          <div class="method-lists">
+            ${m.ingredients && m.ingredients.length ? `
+              <div class="method-list-card">
+                <h3>Ingredients</h3>
+                <ul>${m.ingredients.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+              </div>` : ""}
+            ${m.equipment && m.equipment.length ? `
+              <div class="method-list-card">
+                <h3>Equipment</h3>
+                <ul>${m.equipment.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+              </div>` : ""}
+          </div>` : "";
+
+        const yieldStat = m.yield ? `
+            <span class="stat">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v4H3z"/><path d="M5 7v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7"/><path d="M10 11h4"/></svg>
+              <span>Yield</span> ${escapeHtml(m.yield)}
+            </span>` : "";
+
+        return `
+        <div class="method-panel ${i === initialMethodIndex ? "is-active" : ""}" role="tabpanel" data-method="${escapeHtml(m.key)}" ${i === initialMethodIndex ? "" : "hidden"}>
           <div class="method-meta">
             <span class="stat">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
@@ -594,7 +661,10 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               <span>Time</span> ${escapeHtml(m.time)}
             </span>
+            ${yieldStat}
           </div>
+
+          ${lists}
 
           <ol class="method-steps">
             ${m.steps.map(s => `<li>${escapeHtml(s)}</li>`).join("")}
@@ -622,7 +692,12 @@
             </div>
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
+
+      const methodsTag = guide.methodsSectionTag || "Pick a method";
+      const methodsTitle = guide.methodsSectionTitle || "The ways to cook it";
+      const methodsAria = guide.methodsTablistLabel || "Cooking methods";
 
       $("#guideRoot").innerHTML = `
         <section class="t-hero">
@@ -648,9 +723,9 @@
           </section>
 
           <section class="t-section" id="methods">
-            <span class="t-section-tag">Pick a method</span>
-            <h2>The ways to cook it</h2>
-            <div class="method-tabs" role="tablist" aria-label="Cooking methods">${methodTabs}</div>
+            <span class="t-section-tag">${escapeHtml(methodsTag)}</span>
+            <h2>${escapeHtml(methodsTitle)}</h2>
+            <div class="method-tabs" role="tablist" aria-label="${escapeHtml(methodsAria)}">${methodTabs}</div>
             ${methodPanels}
           </section>
 
@@ -728,6 +803,13 @@
           p.classList.toggle("is-active", active);
           p.hidden = !active;
         });
+        const url = new URL(location.href);
+        if (key && guide.methods.some(m => m.key === key)) {
+          url.searchParams.set("method", key);
+        } else {
+          url.searchParams.delete("method");
+        }
+        history.replaceState(null, "", url);
       }
       tabs.forEach((tab, i) => {
         tab.addEventListener("click", () => activate(tab));
