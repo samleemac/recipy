@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "migrate": "node scripts/migrate-recipes.mjs",
+    "seed:techniques": "node scripts/seed-techniques.mjs",
     "audit:cookmode": "node scripts/audit-cookmode-ingredients.mjs"
   },
   "dependencies": {

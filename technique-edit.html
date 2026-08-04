@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Edit guide · Cookery School · Recipy</title>
+  <meta name="description" content="Admin editor for Recipy Cookery School technique guides." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#B4B56B" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    body {
+      transition: background-color .35s var(--easing), color .35s var(--easing);
+    }
+    main { position: relative; z-index: 2; }
+
+    .te-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px 90px;
+    }
+    .te-head { margin-bottom: 30px; }
+    .te-head .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font: 700 11px var(--sans);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sage-dark);
+      background: var(--sage-soft);
+      border: 1px solid rgba(180, 181, 107, 0.35);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 14px;
+    }
+    [data-theme="dark"] .te-head .kicker { color: var(--sage); background: rgba(162, 164, 92, 0.14); }
+    .te-head h1 {
+      font: 700 clamp(28px, 4.5vw, 40px)/1.1 var(--serif);
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    .te-head p { font: 400 14px/1.6 var(--sans); color: var(--text-soft); margin: 0; max-width: 560px; }
+    .te-head p strong { color: var(--text); }
+
+    .te-gate {
+      max-width: 560px;
+      margin: 80px auto;
+      padding: 0 24px;
+      text-align: center;
+    }
+    .te-gate h1 { font: 700 30px var(--serif); color: var(--text); margin: 0 0 10px; }
+    .te-gate p { font: 400 15px/1.6 var(--sans); color: var(--text-soft); margin: 0 0 22px; }
+
+    form[hidden] { display: none; }
+
+    .te-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+    .te-section h2 {
+      font: 700 11px var(--sans);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sage-dark);
+      margin: 0 0 18px;
+    }
+    [data-theme="dark"] .te-section h2 { color: var(--sage); }
+
+    .te-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .te-grid .full { grid-column: 1 / -1; }
+    @media (max-width: 640px) { .te-grid { grid-template-columns: 1fr; } }
+
+    .te-field label {
+      display: block;
+      font: 600 12px var(--sans);
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .te-field .hint { font-weight: 400; color: var(--text-soft); }
+    .te-field input,
+    .te-field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: 400 14px/1.5 var(--sans);
+      color: var(--text);
+    }
+    .te-field textarea { resize: vertical; min-height: 90px; }
+    .te-field textarea.code {
+      font: 400 12.5px/1.55 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+      min-height: 160px;
+      white-space: pre;
+    }
+    .te-field textarea.code.tall { min-height: 340px; }
+    .te-field input:focus,
+    .te-field textarea:focus {
+      outline: none;
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px var(--sage-soft);
+    }
+    .te-field.has-error input,
+    .te-field.has-error textarea { border-color: #C0392B; }
+    .te-field .field-error {
+      display: none;
+      font: 500 12px var(--sans);
+      color: #C0392B;
+      margin-top: 6px;
+    }
+    .te-field.has-error .field-error { display: block; }
+
+    .te-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .te-actions .btn { padding: 12px 26px; border-radius: 100px; font: 600 14px var(--sans); }
+    .te-actions .cancel {
+      font: 600 13px var(--sans);
+      color: var(--text-soft);
+    }
+    .te-actions .cancel:hover { color: var(--text); }
+    .te-live-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font: 500 12px var(--sans);
+      color: var(--text-soft);
+    }
+    .te-error {
+      display: none;
+      background: rgba(192, 57, 43, 0.08);
+      border: 1px solid rgba(192, 57, 43, 0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font: 500 13px/1.5 var(--sans);
+      color: #C0392B;
+      margin-bottom: 16px;
+    }
+    .te-error.show { display: block; }
+
+    .te-loading { text-align: center; padding: 100px 0; }
+  </style>
+</head>
+<body data-page="learn">
+  <div class="nav-wrap" id="navWrap"><div id="appNav"></div></div>
+
+  <main>
+    <div class="te-loading" id="loadingState"><span class="spinner"></span></div>
+
+    <div class="te-gate" id="gate" hidden>
+      <h1>Admins only</h1>
+      <p id="gateMsg">Sign in with an admin account to edit Cookery School guides.</p>
+      <a class="btn btn-primary" href="learn.html">Back to the Cookery School</a>
+    </div>
+
+    <div class="te-container" id="editorRoot" hidden>
+      <div class="te-head">
+        <span class="kicker">🎓 Cookery School · Admin</span>
+        <h1 id="pageTitle">Edit guide</h1>
+        <p>Changes save <strong>directly to the live site</strong> — there is no review step. List fields and methods are edited as JSON.</p>
+      </div>
+
+      <div class="te-error" id="formError" role="alert"></div>
+
+      <form id="editForm" novalidate>
+        <div class="te-section">
+          <h2>Basics</h2>
+          <div class="te-grid">
+            <div class="te-field full">
+              <label for="fTitle">Title</label>
+              <input id="fTitle" required />
+            </div>
+            <div class="te-field full">
+              <label for="fSubtitle">Subtitle</label>
+              <textarea id="fSubtitle" rows="2"></textarea>
+            </div>
+            <div class="te-field full">
+              <label for="fHeroPhoto">Hero photo URL</label>
+              <input id="fHeroPhoto" type="url" />
+            </div>
+            <div class="te-field">
+              <label for="fIcon">Icon <span class="hint">(emoji)</span></label>
+              <input id="fIcon" maxlength="8" />
+            </div>
+            <div class="te-field">
+              <label for="fSkillLevel">Skill level</label>
+              <input id="fSkillLevel" />
+            </div>
+            <div class="te-field">
+              <label for="fReadTime">Read time <span class="hint">(minutes)</span></label>
+              <input id="fReadTime" type="number" min="1" max="60" />
+            </div>
+            <div class="te-field">
+              <label for="fTags">Tags <span class="hint">(comma-separated)</span></label>
+              <input id="fTags" />
+            </div>
+          </div>
+        </div>
+
+        <div class="te-section">
+          <h2>Intro &amp; fact</h2>
+          <div class="te-grid">
+            <div class="te-field full">
+              <label for="fIntro">Intro</label>
+              <textarea id="fIntro" rows="5"></textarea>
+            </div>
+            <div class="te-field">
+              <label for="fFactTitle">Fact title</label>
+              <input id="fFactTitle" />
+            </div>
+            <div class="te-field full">
+              <label for="fFactBody">Fact body</label>
+              <textarea id="fFactBody" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="te-section">
+          <h2>Methods <span class="hint" style="text-transform:none;letter-spacing:0">— JSON array (tabs on the guide page)</span></h2>
+          <div class="te-grid">
+            <div class="te-field">
+              <label for="fMethodsSectionTag">Section tag <span class="hint">(e.g. "Pick a cheese" — blank for default)</span></label>
+              <input id="fMethodsSectionTag" />
+            </div>
+            <div class="te-field">
+              <label for="fMethodsSectionTitle">Section title <span class="hint">(blank for default)</span></label>
+              <input id="fMethodsSectionTitle" />
+            </div>
+            <div class="te-field full">
+              <label for="fMethods">Methods JSON <span class="hint">(each needs key, label, heat, time, steps[], doneness[], commonMistake)</span></label>
+              <textarea id="fMethods" class="code tall" spellcheck="false"></textarea>
+              <p class="field-error" id="errMethods"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="te-section">
+          <h2>Lists</h2>
+          <div class="te-grid">
+            <div class="te-field">
+              <label for="fSeasoningIdeas">Seasoning ideas <span class="hint">(JSON array of strings)</span></label>
+              <textarea id="fSeasoningIdeas" class="code" spellcheck="false"></textarea>
+              <p class="field-error" id="errSeasoningIdeas"></p>
+            </div>
+            <div class="te-field">
+              <label for="fToolsNeeded">Tools needed <span class="hint">(JSON array of strings)</span></label>
+              <textarea id="fToolsNeeded" class="code" spellcheck="false"></textarea>
+              <p class="field-error" id="errToolsNeeded"></p>
+            </div>
+            <div class="te-field">
+              <label for="fTopTips">Top tips <span class="hint">(JSON array of strings)</span></label>
+              <textarea id="fTopTips" class="code" spellcheck="false"></textarea>
+              <p class="field-error" id="errTopTips"></p>
+            </div>
+            <div class="te-field">
+              <label for="fTroubleshooting">Troubleshooting <span class="hint">(JSON array of {q, a})</span></label>
+              <textarea id="fTroubleshooting" class="code" spellcheck="false"></textarea>
+              <p class="field-error" id="errTroubleshooting"></p>
+            </div>
+            <div class="te-field full">
+              <label for="fRelatedKeywords">Related recipe keywords <span class="hint">(comma-separated — used for "Recipes that use this")</span></label>
+              <input id="fRelatedKeywords" />
+            </div>
+          </div>
+        </div>
+
+        <div class="te-actions">
+          <button class="btn btn-primary" type="submit" id="saveBtn">Save changes</button>
+          <a class="cancel" id="cancelLink" href="learn.html">Cancel</a>
+          <span class="te-live-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Saves publish immediately — no review queue.
+          </span>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    <div class="logo">RECIPY<span class="logo-dot" aria-hidden="true"></span></div>
+    <div>&copy; Recipy 2026 · <a href="learn.html">Cookery School</a> <a href="index.html">All recipes</a></div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="techniques-data.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js"></script>
+  <script>
+    const $ = (s, r = document) => r.querySelector(s);
+
+    const slug = new URLSearchParams(location.search).get("slug") || "";
+    let guide = null;
+    let gateResolved = false;
+
+    /* JSON textareas: field id → { errEl id, validate } */
+    const JSON_FIELDS = [
+      { id: "fMethods",         err: "errMethods",         label: "Methods",         kind: "methods" },
+      { id: "fSeasoningIdeas",  err: "errSeasoningIdeas",  label: "Seasoning ideas", kind: "strings" },
+      { id: "fToolsNeeded",     err: "errToolsNeeded",     label: "Tools needed",    kind: "strings" },
+      { id: "fTopTips",         err: "errTopTips",         label: "Top tips",        kind: "strings" },
+      { id: "fTroubleshooting", err: "errTroubleshooting", label: "Troubleshooting", kind: "qa" },
+    ];
+
+    function showLoading(on) { $("#loadingState").hidden = !on; }
+
+    function showGate(msg) {
+      showLoading(false);
+      $("#editorRoot").hidden = true;
+      if (msg) $("#gateMsg").textContent = msg;
+      $("#gate").hidden = false;
+    }
+
+    function csvToArray(v) {
+      return String(v || "").split(",").map(s => s.trim()).filter(Boolean);
+    }
+
+    function parseJsonField(field) {
+      const input = $("#" + field.id);
+      const errEl = $("#" + field.err);
+      const wrap = input.closest(".te-field");
+      const raw = input.value.trim();
+      try {
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(parsed)) throw new Error("must be a JSON array");
+        if (field.kind === "strings" && parsed.some(x => typeof x !== "string")) {
+          throw new Error("every item must be a string");
+        }
+        if (field.kind === "qa" && parsed.some(x => !x || typeof x.q !== "string" || typeof x.a !== "string")) {
+          throw new Error('every item needs string "q" and "a" fields');
+        }
+        if (field.kind === "methods") {
+          parsed.forEach((m, i) => {
+            if (!m || typeof m !== "object") throw new Error(`method ${i + 1} is not an object`);
+            for (const req of ["key", "label"]) {
+              if (typeof m[req] !== "string" || !m[req]) throw new Error(`method ${i + 1} is missing "${req}"`);
+            }
+            if (!Array.isArray(m.steps)) throw new Error(`method ${i + 1} needs a "steps" array`);
+          });
+        }
+        wrap.classList.remove("has-error");
+        errEl.textContent = "";
+        return { ok: true, value: parsed };
+      } catch (e) {
+        wrap.classList.add("has-error");
+        errEl.textContent = `${field.label}: ${e.message}`;
+        return { ok: false };
+      }
+    }
+
+    function fillForm(g) {
+      $("#pageTitle").textContent = `Edit · ${g.title}`;
+      document.title = `Edit · ${g.title} · Recipy`;
+      $("#cancelLink").href = `technique.html?slug=${encodeURIComponent(g.slug)}`;
+
+      $("#fTitle").value = g.title || "";
+      $("#fSubtitle").value = g.subtitle || "";
+      $("#fHeroPhoto").value = g.heroPhoto || "";
+      $("#fIcon").value = g.icon || "";
+      $("#fSkillLevel").value = g.skillLevel || "";
+      $("#fReadTime").value = g.readTime || 5;
+      $("#fTags").value = (g.tags || []).join(", ");
+      $("#fIntro").value = g.intro || "";
+      $("#fFactTitle").value = g.fact?.title || "";
+      $("#fFactBody").value = g.fact?.body || "";
+      $("#fMethodsSectionTag").value = g.methodsSectionTag || "";
+      $("#fMethodsSectionTitle").value = g.methodsSectionTitle || "";
+      $("#fMethods").value = JSON.stringify(g.methods || [], null, 2);
+      $("#fSeasoningIdeas").value = JSON.stringify(g.seasoningIdeas || [], null, 2);
+      $("#fToolsNeeded").value = JSON.stringify(g.toolsNeeded || [], null, 2);
+      $("#fTopTips").value = JSON.stringify(g.topTips || [], null, 2);
+      $("#fTroubleshooting").value = JSON.stringify(g.troubleshooting || [], null, 2);
+      $("#fRelatedKeywords").value = (g.relatedIngredientKeywords || []).join(", ");
+    }
+
+    function collectForm() {
+      const jsonValues = {};
+      let allValid = true;
+      for (const field of JSON_FIELDS) {
+        const res = parseJsonField(field);
+        if (!res.ok) { allValid = false; continue; }
+        jsonValues[field.id] = res.value;
+      }
+      if (!allValid) return null;
+
+      const factTitle = $("#fFactTitle").value.trim();
+      const factBody = $("#fFactBody").value.trim();
+
+      return {
+        title:                     $("#fTitle").value.trim(),
+        subtitle:                  $("#fSubtitle").value.trim(),
+        heroPhoto:                 $("#fHeroPhoto").value.trim(),
+        icon:                      $("#fIcon").value.trim(),
+        skillLevel:                $("#fSkillLevel").value.trim() || "Beginner",
+        readTime:                  Math.max(1, parseInt($("#fReadTime").value, 10) || 5),
+        tags:                      csvToArray($("#fTags").value),
+        intro:                     $("#fIntro").value.trim(),
+        fact:                      (factTitle || factBody) ? { title: factTitle, body: factBody } : null,
+        methods:                   jsonValues.fMethods,
+        seasoningIdeas:            jsonValues.fSeasoningIdeas,
+        toolsNeeded:               jsonValues.fToolsNeeded,
+        topTips:                   jsonValues.fTopTips,
+        troubleshooting:           jsonValues.fTroubleshooting,
+        methodsSectionTag:         $("#fMethodsSectionTag").value.trim() || null,
+        methodsSectionTitle:       $("#fMethodsSectionTitle").value.trim() || null,
+        methodsTablistLabel:       guide.methodsTablistLabel || null,
+        relatedIngredientKeywords: csvToArray($("#fRelatedKeywords").value),
+      };
+    }
+
+    function setFormError(msg) {
+      const el = $("#formError");
+      el.textContent = msg || "";
+      el.classList.toggle("show", !!msg);
+      if (msg) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    async function save(e) {
+      e.preventDefault();
+      setFormError("");
+
+      if (!$("#fTitle").value.trim()) {
+        setFormError("The guide needs a title.");
+        return;
+      }
+      const payload = collectForm();
+      if (!payload) {
+        setFormError("Fix the highlighted JSON fields before saving.");
+        return;
+      }
+      if (!confirm("Publish these changes live? They take effect immediately.")) return;
+
+      const btn = $("#saveBtn");
+      btn.disabled = true;
+      btn.textContent = "Saving…";
+      try {
+        await window.RECIPY.techniques.update(guide.id, payload);
+        if (window.AppShell?.toast) window.AppShell.toast("Guide updated — changes are live.");
+        setTimeout(() => {
+          location.href = `technique.html?slug=${encodeURIComponent(guide.slug)}`;
+        }, 600);
+      } catch (err) {
+        console.warn("technique save", err);
+        setFormError(err.message || "Couldn't save the guide. Try again.");
+        btn.disabled = false;
+        btn.textContent = "Save changes";
+      }
+    }
+
+    async function boot(user, profile) {
+      if (gateResolved) return;
+
+      const configured = window.RECIPY && window.RECIPY.configured;
+      if (!configured) { gateResolved = true; showGate("Supabase isn't configured — guides can't be edited here."); return; }
+      if (!user) { gateResolved = true; showGate(); return; }
+      if (profile?.role !== "admin") { gateResolved = true; showGate("Your account doesn't have admin access."); return; }
+      gateResolved = true;
+
+      guide = await window.RECIPY.techniques.getBySlug(slug);
+      const isUuid = guide && typeof guide.id === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(guide.id);
+      if (!guide || !isUuid) {
+        showGate(guide
+          ? "This guide isn't in the database yet — run the techniques migration and seed first."
+          : "We couldn't find that guide.");
+        return;
+      }
+
+      fillForm(guide);
+      showLoading(false);
+      $("#editorRoot").hidden = false;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      $("#editForm").addEventListener("submit", save);
+      JSON_FIELDS.forEach(f => {
+        $("#" + f.id).addEventListener("blur", () => parseJsonField(f));
+      });
+      if (window.AppShell && window.AppShell.onAuth) {
+        /* Wait for the first definitive auth state; guests get the gate */
+        let first = true;
+        window.AppShell.onAuth((user, profile) => {
+          /* Skip the initial null callback fired before the session loads */
+          if (first && !user) { first = false; setTimeout(() => { if (!gateResolved) boot(null, null); }, 2500); return; }
+          first = false;
+          boot(user, profile);
+        });
+      } else {
+        showGate();
+      }
+    });
+  </script>
+</body>
+</html>

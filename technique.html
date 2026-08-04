@@ -555,6 +555,26 @@
       .method-tabs { width: 100%; overflow-x: auto; flex-wrap: nowrap; border-radius: 16px; }
       .method-steps li { padding: 14px 16px 14px 52px; }
     }
+
+    /* ============================================================
+       Admin edit FAB (mirrors recipe.html's .r-fab styling)
+       ============================================================ */
+    .t-fab-edit {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 60;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 12px 20px;
+      border-radius: 100px;
+      background: var(--ink);
+      color: var(--white);
+      font: 600 13px var(--sans);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      transition: transform .2s var(--easing), background .15s;
+    }
+    .t-fab-edit:hover { transform: translateY(-2px); }
+    [data-theme="dark"] .t-fab-edit { background: var(--cream); color: var(--ink); }
   </style>
 </head>
 <body data-page="technique">
@@ -564,6 +584,11 @@
   <main id="guideRoot">
     <div class="t-notfound" id="loadingState"><span class="spinner"></span></div>
   </main>
+
+  <button class="t-fab-edit" id="fabEditGuide" hidden>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+    Edit guide
+  </button>
 
   <footer>
     <div class="logo">RECIPY<span class="logo-dot" aria-hidden="true"></span></div>
@@ -585,7 +610,18 @@
     }
 
     const slug = new URLSearchParams(location.search).get("slug") || "";
-    const guide = (window.TECHNIQUES || []).find(t => t.slug === slug);
+    let guide = null;
+
+    async function resolveGuide() {
+      try {
+        if (window.RECIPY && window.RECIPY.techniques) {
+          return await window.RECIPY.techniques.getBySlug(slug);
+        }
+      } catch (e) {
+        console.warn("resolveGuide", e);
+      }
+      return (window.TECHNIQUES || []).find(t => t.slug === slug) || null;
+    }
 
     /* Generic tool icons cycled through the tools grid */
     const TOOL_ICONS = [
@@ -871,9 +907,29 @@
       }).join("");
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    /* ----- Admin-only edit access (direct publish, no review queue) ----- */
+    function updateEditAccess(user, profile) {
+      const editBtn = $("#fabEditGuide");
+      if (!editBtn) return;
+      const configured = window.RECIPY && window.RECIPY.configured;
+      const isUuid = guide && typeof guide.id === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(guide.id);
+      const isAdmin = profile?.role === "admin";
+      const canEdit = configured && isUuid && isAdmin;
+      editBtn.hidden = !canEdit;
+      if (canEdit && !editBtn.dataset.bound) {
+        editBtn.dataset.bound = "1";
+        editBtn.addEventListener("click", () => {
+          location.href = `technique-edit.html?slug=${encodeURIComponent(guide.slug)}`;
+        });
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      guide = await resolveGuide();
       if (!guide) { renderNotFound(); return; }
       renderGuide();
+      if (window.AppShell && window.AppShell.onAuth) window.AppShell.onAuth(updateEditAccess);
     });
   </script>
 </body>

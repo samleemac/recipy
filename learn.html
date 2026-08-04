@@ -309,9 +309,16 @@
       return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
     }
 
-    function renderGuides() {
+    async function renderGuides() {
       const grid = document.getElementById("guideGrid");
-      const guides = window.TECHNIQUES || [];
+      let guides = window.TECHNIQUES || [];
+      try {
+        if (window.RECIPY && window.RECIPY.techniques) {
+          guides = await window.RECIPY.techniques.getAll();
+        }
+      } catch (e) {
+        console.warn("renderGuides", e);
+      }
       const cards = guides.map(g => `
         <a class="guide-card" href="technique.html?slug=${encodeURIComponent(g.slug)}">
           <div class="guide-card-media">

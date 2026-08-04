@@ -407,6 +407,112 @@
   }
 
   /* ------------------------------------------------------------
+     TECHNIQUES (Cookery School guides)
+     Editorial content, admin-managed. Admin edits publish directly —
+     no pending/review state. Falls back to window.TECHNIQUES
+     (techniques-data.js) when Supabase is unconfigured or errors.
+  ------------------------------------------------------------ */
+  function rowToTechnique(row) {
+    if (!row) return null;
+    return {
+      id:                        row.id,
+      slug:                      row.slug,
+      title:                     row.title,
+      subtitle:                  row.subtitle || "",
+      heroPhoto:                 row.hero_photo || "",
+      icon:                      row.icon || "",
+      skillLevel:                row.skill_level || "Beginner",
+      readTime:                  row.read_time || 5,
+      tags:                      row.tags || [],
+      intro:                     row.intro || "",
+      fact:                      row.fact || null,
+      methods:                   row.methods || [],
+      seasoningIdeas:            row.seasoning_ideas || [],
+      toolsNeeded:               row.tools_needed || [],
+      topTips:                   row.top_tips || [],
+      troubleshooting:           row.troubleshooting || [],
+      methodsSectionTag:         row.methods_section_tag || null,
+      methodsSectionTitle:       row.methods_section_title || null,
+      methodsTablistLabel:       row.methods_tablist_label || null,
+      relatedIngredientKeywords: row.related_ingredient_keywords || [],
+      updatedAt:                 row.updated_at,
+    };
+  }
+
+  function techniqueToRow(t) {
+    return {
+      title:                       t.title,
+      subtitle:                    t.subtitle || "",
+      hero_photo:                  t.heroPhoto || "",
+      icon:                        t.icon || "",
+      skill_level:                 t.skillLevel || "Beginner",
+      read_time:                   t.readTime || 5,
+      tags:                        t.tags || [],
+      intro:                       t.intro || "",
+      fact:                        t.fact || null,
+      methods:                     t.methods || [],
+      seasoning_ideas:             t.seasoningIdeas || [],
+      tools_needed:                t.toolsNeeded || [],
+      top_tips:                    t.topTips || [],
+      troubleshooting:             t.troubleshooting || [],
+      methods_section_tag:         t.methodsSectionTag || null,
+      methods_section_title:       t.methodsSectionTitle || null,
+      methods_tablist_label:       t.methodsTablistLabel || null,
+      related_ingredient_keywords: t.relatedIngredientKeywords || [],
+    };
+  }
+
+  async function techniquesGetAll() {
+    if (!CONFIGURED) return (window.TECHNIQUES || []).slice();
+    const { data, error } = await sb
+      .from("techniques")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error || !data || !data.length) {
+      if (error) console.warn("techniquesGetAll", error);
+      return (window.TECHNIQUES || []).slice();
+    }
+    return data.map(rowToTechnique);
+  }
+
+  async function techniquesGetBySlug(slug) {
+    if (!CONFIGURED) {
+      return (window.TECHNIQUES || []).find((t) => t.slug === slug) || null;
+    }
+    const { data, error } = await sb
+      .from("techniques")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error || !data) {
+      if (error) console.warn("techniquesGetBySlug", error);
+      return (window.TECHNIQUES || []).find((t) => t.slug === slug) || null;
+    }
+    return rowToTechnique(data);
+  }
+
+  /* Direct publish: writes the live row immediately (RLS restricts
+     updates to admins). Unlike recipes there is no review queue. */
+  async function techniquesUpdate(id, technique) {
+    if (!CONFIGURED) throw new Error("Supabase is not configured.");
+    const user = await authGetUser();
+    if (!user) throw new Error("Sign in to edit a guide.");
+
+    const row = techniqueToRow(technique);
+    row.updated_by = user.id;
+
+    const { data, error } = await sb
+      .from("techniques")
+      .update(row)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Save failed — you need an admin account to edit guides.");
+    return rowToTechnique(data);
+  }
+
+  /* ------------------------------------------------------------
      AUTH
   ------------------------------------------------------------ */
   async function authGetUser() {
@@ -956,6 +1062,12 @@
       update:      recipesUpdate,
       approve:     recipesApprove,
       reject:      recipesReject,
+    },
+
+    techniques: {
+      getAll:    techniquesGetAll,
+      getBySlug: techniquesGetBySlug,
+      update:    techniquesUpdate,
     },
 
     profiles: {
