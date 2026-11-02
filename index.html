@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="fridge.css" />
 
   <style>
     /* ============================================================
@@ -2126,6 +2127,9 @@
       </div>
     </section>
 
+    <!-- 3b. Cook from your kitchen -->
+    <section class="fridge" id="fridge" aria-label="Find recipes by the ingredients you have"></section>
+
     <!-- 4. Filter / Category Bar -->
     <div class="filter-bar" id="filterBar">
       <div class="filter-inner">
@@ -2317,6 +2321,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
   <script src="recipes-data.js"></script>
+  <script src="fridge.js"></script>
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
   <script>
@@ -2528,6 +2533,7 @@
                     <span class="author-sub">${escapeHtml(role)} · ${difficultyLabel[r.difficulty]}</span>
                   </div>
                 </div>
+                ${window.RecipyFridge ? window.RecipyFridge.cardBadge(r) : ""}
               </div>
             </div>
           </article>
@@ -2700,8 +2706,11 @@
         return matchSearch && matchFilter;
       });
 
-      /* Apply sort */
-      if (state.sort === "quickest") {
+      /* Ingredient matching takes over ranking when it's in use */
+      const fridgeOn = window.RecipyFridge && window.RecipyFridge.isActive();
+      if (fridgeOn) {
+        filteredRecipes = window.RecipyFridge.rank(filteredRecipes);
+      } else if (state.sort === "quickest") {
         filteredRecipes.sort((a, b) => a.recipe.time - b.recipe.time);
       } else if (state.sort === "easiest") {
         filteredRecipes.sort((a, b) => a.recipe.difficulty - b.recipe.difficulty);
@@ -2723,7 +2732,10 @@
       const total = recipes.length;
       const visible = filteredRecipes.length;
       const countEl = $("#resultCount");
-      countEl.innerHTML = `Showing <strong>${visible}</strong> of <strong>${total}</strong> recipes`;
+      countEl.innerHTML = fridgeOn
+        ? `<strong>${visible}</strong> recipes use what you've got`
+        : `Showing <strong>${visible}</strong> of <strong>${total}</strong> recipes`;
+      $("#recipeGrid").classList.toggle("is-fridge", !!fridgeOn);
 
       $("#emptyState").hidden = visible > 0;
       $("#clearFilters").hidden = state.filters.size === 0 && !state.query;
@@ -3534,6 +3546,12 @@
       await setHeroStats();
       setHeroPick();
       filterRecipes();
+      if (window.RecipyFridge) {
+        window.RecipyFridge.mount($("#fridge"), {
+          getRecipes: () => recipes,
+          onChange: () => filterRecipes()
+        });
+      }
       updateBookmarkBadge();
       initPills();
       initCmdk();
