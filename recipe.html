@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="timing.css" />
+  <link rel="stylesheet" href="ingredient-lens.css" />
 
   <style>
     /* Ensure [hidden] always wins over later display rules */
@@ -2281,6 +2282,7 @@
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
   <script src="timing.js"></script>
+  <script src="ingredient-lens.js"></script>
   <script>
     /* ============================================================
        Shared data — Supabase first, with window.RECIPES as a fallback
@@ -2992,6 +2994,9 @@
                     ${escapeHtml(item.text)}
                     ${dutchLabel}
                   </span>
+                  <button type="button" class="r-lens-btn" data-lens="${key}" aria-label="When you'll use ${escapeHtml(item.text)}, swaps and more" title="Steps, swaps & more">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                  </button>
                 </li>
               `;
             }).join("")}
@@ -3011,6 +3016,7 @@
         };
         li.addEventListener("click", toggle);
         li.addEventListener("keydown", (e) => {
+          if (e.target.closest(".r-lens-btn")) return;
           if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); }
         });
       });
@@ -3026,6 +3032,7 @@
       if (down) down.disabled = servings <= 1;
       if (up) up.disabled = servings >= 16;
       renderIngredients();
+      if (window.RecipyLens) window.RecipyLens.refresh();
     }
 
     function initServingsStepper() {
@@ -4018,6 +4025,27 @@
       initServingsStepper();
       renderSteps();
       if (window.RecipyTiming) window.RecipyTiming.mount($("#timing"), $("#rPlanChip"), recipe, () => servings);
+      if (window.RecipyLens && !window.__lensMounted) {
+        window.__lensMounted = true;
+        let lensGuides = (window.TECHNIQUES || []).slice();
+        if (window.RECIPY && window.RECIPY.techniques) window.RECIPY.techniques.getAll().then(g => { if (g && g.length) lensGuides = g; }).catch(() => {});
+        const readChecked = () => { try { return new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]")); } catch (e) { return new Set(); } };
+        window.RecipyLens.mount({
+          ingredientGroups: () => ingredientGroups,
+          steps: () => steps,
+          factor: () => servings / baseServings,
+          formatAmount,
+          recipe: () => recipe,
+          allRecipes: () => (recipes && recipes.length ? recipes : (window.RECIPES || [])),
+          techniques: () => lensGuides,
+          toast,
+          isChecked: key => readChecked().has(key),
+          toggleChecked: key => {
+            const li = document.querySelector(`.r-ingredient[data-key="${key}"]`);
+            if (li) li.click();
+          }
+        });
+      }
       renderRelated();
       initScrollspy();
       initScrollEffects();

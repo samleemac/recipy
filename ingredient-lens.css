@@ -1,0 +1,160 @@
+/* ============================================================
+   Recipy — Ingredient lens
+   ============================================================ */
+.r-ingredient { align-items: center; }
+.r-ingredient .r-check { margin-top: 0; }
+.r-lens-btn {
+  flex: none;
+  width: 30px; height: 30px;
+  margin: -4px -2px -4px 0;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  opacity: .55;
+  transition: opacity .15s, background .15s, color .15s, border-color .15s;
+}
+.r-ingredient:hover .r-lens-btn,
+.r-lens-btn:focus-visible { opacity: 1; background: var(--surface); border-color: var(--border); color: var(--text); }
+.r-lens-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+@media (hover: none) { .r-lens-btn { opacity: .85; } }
+.r-ingredient.is-lensed { background: var(--sage-soft); border-radius: 10px; }
+[data-theme="dark"] .r-ingredient.is-lensed { background: rgba(162, 164, 92, 0.14); }
+.r-ingredient.is-lensed .r-lens-btn { opacity: 1; background: var(--green); border-color: var(--green); color: #1f1d14; }
+
+/* steps that use the open ingredient */
+.r-step.is-lens {
+  border-color: var(--green) !important;
+  box-shadow: 0 0 0 3px var(--sage-soft), 0 14px 30px rgba(0,0,0,.06);
+}
+[data-theme="dark"] .r-step.is-lens { box-shadow: 0 0 0 3px rgba(162, 164, 92, 0.22); }
+.r-step.lens-flash { animation: lensFlash 1.2s var(--easing); }
+@keyframes lensFlash { 0%, 100% { transform: none; } 20% { transform: scale(1.012); } }
+
+/* Panel */
+.lens {
+  position: fixed;
+  z-index: 300;
+  top: 148px; right: 24px;
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100vh - 172px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 20px 18px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 70px rgba(0,0,0,.22), 0 6px 18px rgba(0,0,0,.08);
+  opacity: 0;
+  transform: translateX(16px);
+  transition: opacity .2s var(--easing), transform .22s var(--easing);
+}
+.lens.open { opacity: 1; transform: none; }
+.lens[hidden] { display: none; }
+
+.lens-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.lens-eyebrow { font: 700 10px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--green-dark); }
+[data-theme="dark"] .lens-eyebrow { color: var(--green); }
+.lens-head h3 { margin: 4px 0 0; font: 600 24px/1.15 var(--serif); letter-spacing: -0.01em; color: var(--text); }
+.lens-amount { color: var(--green-dark); }
+[data-theme="dark"] .lens-amount { color: var(--green); }
+.lens-note { margin: 4px 0 0; font: 400 13px var(--sans); color: var(--text-soft); }
+.lens-close {
+  flex: none; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg-soft); color: var(--text);
+  font: 400 22px/1 var(--sans); cursor: pointer;
+}
+
+.lens-sec { margin-top: 18px; }
+.lens-sec h4 { margin: 0 0 8px; font: 700 11px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--text-soft); }
+.lens-sub { margin: -4px 0 8px; font: 400 13px var(--sans); color: var(--text-soft); }
+.lens-empty { margin: 0; font: 400 14px var(--sans); color: var(--text-soft); }
+
+.lens-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lens-steps button {
+  width: 100%;
+  display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.lens-steps button:hover { border-color: var(--green); }
+.lens-step-n {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--green); color: #1f1d14;
+  font: 800 13px var(--sans);
+}
+.lens-steps strong { display: block; font: 700 14px/1.3 var(--sans); }
+.lens-steps small { display: block; margin-top: 2px; font: 400 13px/1.4 var(--sans); color: var(--text-soft); }
+
+.lens-swaps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lens-swaps li {
+  display: grid; gap: 1px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--ochre-soft);
+}
+.lens-swaps strong { font: 700 14px var(--sans); color: var(--text); }
+.lens-swaps span { font: 400 13px/1.35 var(--sans); color: var(--text-soft); }
+
+.lens-others { display: grid; gap: 6px; }
+.lens-others a {
+  display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center;
+  padding: 6px; margin: 0 -6px;
+  border-radius: 12px;
+  color: var(--text);
+}
+.lens-others a:hover { background: var(--bg-soft); }
+.lens-thumb { width: 44px; height: 44px; border-radius: 10px; background: var(--border) center / cover no-repeat; }
+.lens-others strong { display: block; font: 600 14px/1.25 var(--sans); }
+.lens-others small { font: 500 12px var(--sans); color: var(--text-soft); }
+
+.lens-guide {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed var(--green);
+  color: var(--text);
+}
+.lens-guide > span:first-child { font-size: 22px; }
+.lens-guide small { display: block; font: 700 10px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--text-soft); }
+.lens-guide strong { font: 600 15px var(--serif); }
+
+.lens-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+.lens-btn {
+  height: 44px; border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text);
+  font: 700 14px var(--sans); cursor: pointer;
+}
+.lens-btn:hover { border-color: var(--text); }
+.lens-btn--primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+.lens-btn--primary.is-on { background: var(--green); border-color: var(--green); color: #1f1d14; }
+
+@media (max-width: 760px) {
+  .lens {
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    max-height: 82vh;
+    border-radius: 22px 22px 0 0;
+    padding: 18px 18px 22px;
+    transform: translateY(24px);
+  }
+  .lens.open { transform: none; }
+}
+
+@media print { .lens, .r-lens-btn { display: none !important; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lens, .r-lens-btn { transition: none; }
+  .r-step.lens-flash { animation: none; }
+}
