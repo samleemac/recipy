@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="timing.css" />
 
   <style>
     /* Ensure [hidden] always wins over later display rules */
@@ -1963,6 +1964,7 @@
           <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Serves <strong id="rServes">4</strong></span>
           <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> <strong id="rDifficulty">Intermediate</strong></span>
           <span class="chip chip-accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg> <strong id="rHeroKcal">—</strong> kcal / serving</span>
+          <button type="button" class="chip chip-plan" id="rPlanChip" hidden></button>
         </div>
 
         <div class="r-actions">
@@ -1995,6 +1997,7 @@
         <nav class="r-anchors" aria-label="Recipe sections">
           <a class="r-anchor is-current" href="#intro">Intro</a>
           <a class="r-anchor" href="#macros">Macros</a>
+          <a class="r-anchor" href="#timing">Plan</a>
           <a class="r-anchor" href="#method">Method</a>
           <a class="r-anchor" href="#equipment">Equipment</a>
           <a class="r-anchor" href="#notes">Notes</a>
@@ -2066,6 +2069,9 @@
           </div>
         </div>
       </section>
+
+      <!-- Plan dinner: reverse-scheduled from when you want to eat -->
+      <section class="r-section" id="timing" aria-label="Plan dinner" hidden></section>
 
       <!-- Method -->
       <section class="r-section" id="method">
@@ -2274,6 +2280,7 @@
   <script src="techniques-data.js"></script>
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
+  <script src="timing.js"></script>
   <script>
     /* ============================================================
        Shared data — Supabase first, with window.RECIPES as a fallback
@@ -2657,6 +2664,7 @@
       renderHero();
       renderIngredients();
       renderSteps();
+      if (window.RecipyTiming) window.RecipyTiming.mount($("#timing"), $("#rPlanChip"), recipe, () => servings);
       animateDonut();
       updateLangToggle();
       // Keep cook mode in sync if it's open.
@@ -4009,6 +4017,7 @@
       renderIngredients();
       initServingsStepper();
       renderSteps();
+      if (window.RecipyTiming) window.RecipyTiming.mount($("#timing"), $("#rPlanChip"), recipe, () => servings);
       renderRelated();
       initScrollspy();
       initScrollEffects();

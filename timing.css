@@ -1,0 +1,247 @@
+/* ============================================================
+   Recipy — "Plan dinner" reverse scheduler
+   ============================================================ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Hero chip ("Eat at 7pm? Start 6:25pm") */
+.r-quick .chip.chip-plan {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2E2A25;
+  border-color: transparent;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.r-quick .chip.chip-plan:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+.r-quick .chip.chip-plan strong { color: #8A6A3E; }
+
+/* Section */
+.plan {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background:
+    radial-gradient(90% 120% at 100% 0%, var(--ochre-soft) 0%, transparent 60%),
+    var(--surface);
+  padding: 32px;
+  overflow: hidden;
+}
+
+.plan__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 26px;
+}
+
+.plan__head h2 { margin: 0 !important; }
+
+.plan__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+}
+
+.plan__slot,
+.plan__custom input {
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: 600 14px var(--sans);
+  cursor: pointer;
+}
+
+.plan__slot { padding: 0 14px; transition: background .15s ease, color .15s ease; }
+.plan__slot--other { color: var(--text-soft); font-weight: 500; }
+.plan__slot:hover { background: var(--surface); }
+.plan__slot.is-on {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.plan__custom { display: inline-flex; }
+.plan__custom input {
+  padding: 0 10px;
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+  color-scheme: light;
+}
+[data-theme="dark"] .plan__custom input { color-scheme: dark; }
+.plan__custom.is-on input { background: var(--text); color: var(--bg); }
+
+/* Answer */
+.plan__answer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: center;
+  padding: 22px 26px;
+  border-radius: 18px;
+  background: var(--text);
+  color: var(--bg);
+  margin-bottom: 30px;
+}
+
+.plan__label {
+  display: block;
+  font: 700 11px var(--sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  opacity: .7;
+}
+
+.plan__time {
+  display: block;
+  font: 600 clamp(44px, 6vw, 64px)/1 var(--serif);
+  letter-spacing: -0.02em;
+  margin: 6px 0 6px;
+  color: var(--sage);
+}
+
+.plan__in { font: 500 14px var(--sans); opacity: .82; }
+
+.plan__answer.is-late .plan__time { color: var(--ochre); }
+
+/* Dark theme: keep the answer card dark (a lighter step up), not inverted */
+[data-theme="dark"] .plan { background: var(--surface); }
+[data-theme="dark"] .plan__answer {
+  background: #14120F;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+[data-theme="dark"] .plan__slot.is-on,
+[data-theme="dark"] .plan__custom.is-on input { background: var(--sage); color: #1f1d14; }
+
+.plan__cta { display: grid; gap: 8px; justify-items: stretch; min-width: 250px; }
+
+.plan__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: transparent;
+  color: inherit;
+  font: 600 14px var(--sans);
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.plan__btn:hover { transform: translateY(-1px); }
+
+.plan__btn--primary {
+  background: var(--ochre);
+  border-color: var(--ochre);
+  color: #2E2A25;
+}
+.plan__btn--primary:hover { background: var(--ochre-dark); }
+
+.plan__note {
+  margin: 2px 0 0;
+  max-width: 260px;
+  font: 400 12px/1.4 var(--sans);
+  opacity: .7;
+}
+
+/* Timeline */
+.plan__line {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.plan__step {
+  flex: var(--grow, 5) 1 0;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+
+.plan__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--sage);
+  margin-bottom: 8px;
+}
+
+.plan__step:nth-child(even) .plan__bar { background: var(--sage-dark); }
+
+.plan__clock {
+  font: 700 15px var(--sans);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__what {
+  font: 500 13px/1.3 var(--sans);
+  color: var(--text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.plan__what b { color: var(--text-soft); font-weight: 600; }
+
+.plan__mins { font: 500 12px var(--sans); color: var(--text-soft); }
+
+.plan__step--eat { flex: 0 0 110px; }
+.plan__step--eat .plan__bar {
+  background: repeating-linear-gradient(90deg, var(--ochre) 0 6px, transparent 6px 10px);
+}
+.plan__step--eat .plan__clock { color: var(--ochre-dark); }
+[data-theme="dark"] .plan__step--eat .plan__clock { color: var(--ochre); }
+
+@media (max-width: 760px) {
+  .plan { padding: 22px 18px; border-radius: 20px; }
+
+  .plan__picker {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .plan__picker::-webkit-scrollbar { display: none; }
+  .plan__slot, .plan__custom { flex: none; }
+
+  .plan__answer { grid-template-columns: 1fr; gap: 16px; padding: 20px; }
+  .plan__cta { min-width: 0; }
+  .plan__note { max-width: none; }
+
+  /* vertical timeline on phones */
+  .plan__line { flex-direction: column; gap: 0; }
+  .plan__step {
+    grid-template-columns: 66px 1fr auto;
+    align-items: baseline;
+    column-gap: 12px;
+    padding: 10px 0 10px 18px;
+    position: relative;
+  }
+  .plan__bar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    height: auto;
+    margin: 0;
+  }
+  .plan__step:first-child .plan__bar { top: 12px; border-radius: 999px 999px 0 0; }
+  .plan__step--eat { flex: none; }
+  .plan__step--eat .plan__bar {
+    background: repeating-linear-gradient(180deg, var(--ochre) 0 6px, transparent 6px 10px);
+  }
+}
+
+@media print { #timing, .chip-plan { display: none !important; } }
