@@ -843,7 +843,7 @@
         ? sb.from("profiles").select("id, username, display_name, avatar_url").in("id", userIds)
         : Promise.resolve({ data: [] }),
       recipeIds.length
-        ? sb.from("recipes").select("id, slug, title, photo_url").in("id", recipeIds)
+        ? sb.from("recipes").select("id, slug, title, photo_url, time, difficulty").in("id", recipeIds)
         : Promise.resolve({ data: [] }),
       user && posts.length
         ? sb.from("cooked_likes").select("post_id").eq("user_id", user.id)
@@ -919,7 +919,7 @@
     const ids = [...new Set((data || []).map((p) => p.recipe_id))];
     const rmap = {};
     if (ids.length) {
-      const { data: rs } = await sb.from("recipes").select("id, slug, title, photo_url").in("id", ids);
+      const { data: rs } = await sb.from("recipes").select("id, slug, title, photo_url, time, difficulty").in("id", ids);
       (rs || []).forEach((r) => (rmap[r.id] = r));
     }
     return (data || []).map((p) => ({

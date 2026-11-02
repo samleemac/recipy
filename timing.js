@@ -323,7 +323,11 @@
     root.hidden = false; if (chip) chip.hidden = false;
     if (!eatAt) eatAt = loadPreferred() || slots()[0];
     render();
-    if (!bound) { bind(); bound = true; }
+    if (!bound) {
+      bind(); bound = true;
+      /* arriving from "Cook it tonight" (recipe.html#timing): the section only exists now */
+      if (location.hash === "#timing") requestAnimationFrame(() => root.scrollIntoView({ block: "start" }));
+    }
   }
 
   window.RecipyTiming = { mount };

@@ -183,24 +183,203 @@
       .people-search { padding: 12px; }
       .people-row { grid-template-columns: 40px 1fr auto; gap: 10px; padding: 8px; }
     }
+
+    /* ===========================================================
+       Cooking-club layout: feed + "Most cooked" rail
+       =========================================================== */
+    .app-container.feed-page { max-width: 1120px; }
+    .feed-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 620px) 340px;
+      gap: 40px;
+      justify-content: start;
+      align-items: start;
+    }
+    .feed-layout > * { min-width: 0; }
+    .feed-list, .feed-skeletons { max-width: none; margin: 0; }
+    .feed-rail {
+      position: sticky;
+      top: 100px;
+      display: grid;
+      gap: 16px;
+    }
+    .rail-card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+    .rail-title {
+      margin: 0 0 12px;
+      font: 700 18px var(--serif);
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .people-search.rail-card { margin: 0; }
+    .people-search .people-search-bar {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 2px 14px;
+    }
+
+    /* Most cooked */
+    .rail-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .rail-item {
+      display: grid;
+      grid-template-columns: 18px 52px 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 6px;
+      margin: 0 -6px;
+      border-radius: 14px;
+      transition: background .15s;
+    }
+    .rail-item:hover { background: var(--bg); }
+    .rail-rank { font: 700 15px var(--serif); color: var(--text-soft); text-align: center; }
+    .rail-thumb {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--border) center / cover no-repeat;
+    }
+    .rail-item-text { min-width: 0; display: grid; gap: 4px; }
+    .rail-item-title {
+      font: 600 14px/1.25 var(--sans); color: var(--text);
+      overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .rail-item-meta { display: flex; align-items: center; gap: 8px; font: 500 12px var(--sans); color: var(--text-soft); }
+    .rail-faces { display: inline-flex; }
+    .rail-faces > * {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid var(--bg-soft);
+      margin-left: -6px;
+      object-fit: cover;
+      display: inline-grid; place-items: center;
+      background: var(--sage); color: var(--ink);
+      font: 700 8px var(--sans);
+    }
+    .rail-faces > :first-child { margin-left: 0; }
+
+    /* Share prompt */
+    .rail-cta {
+      background:
+        radial-gradient(120% 120% at 100% 0%, var(--ochre-soft) 0%, transparent 60%),
+        var(--bg-soft);
+    }
+    .rail-cta-emoji { font-size: 26px; line-height: 1; display: block; margin-bottom: 10px; }
+    .rail-cta p { margin: 0 0 14px; font: 400 14px/1.5 var(--sans); color: var(--text-soft); }
+    .rail-cta strong { color: var(--text); }
+    .rail-cta-btn { width: 100%; }
+
+    /* Cards: photo-led, recipe-first */
+    .feed-card { background: var(--surface); }
+    .feed-photo {
+      position: relative;
+      aspect-ratio: 5 / 4;
+    }
+    .feed-photo::after {
+      content: "";
+      position: absolute; inset: 0 0 auto 0; height: 45%;
+      background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,0));
+      pointer-events: none;
+    }
+    .feed-byline {
+      display: inline-flex; align-items: center; gap: 10px;
+      min-width: 0;
+    }
+    .feed-photo .feed-byline {
+      position: absolute; top: 14px; left: 14px; z-index: 1;
+      padding: 5px 14px 5px 5px;
+      border-radius: 100px;
+      background: rgba(20, 17, 14, 0.45);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .feed-byline .avatar-md { width: 36px; height: 36px; font-size: 13px; }
+    .feed-byline .name { display: block; font: 700 14px var(--sans); color: var(--text); }
+    .feed-byline .meta { display: block; font: 400 12px var(--sans); color: var(--text-soft); margin-top: 1px; }
+    .feed-photo .feed-byline .name { color: #fff; }
+    .feed-photo .feed-byline .meta { color: rgba(255,255,255,.8); }
+
+    .feed-caption {
+      margin: 0;
+      padding: 18px 20px 4px;
+    }
+    .feed-caption p {
+      margin: 0;
+      font: 500 italic 19px/1.4 var(--serif);
+      color: var(--text);
+    }
+    .feed-caption footer { margin-top: 6px; font: 600 13px var(--sans); color: var(--text-soft); }
+
+    .feed-recipe {
+      display: flex; align-items: center; gap: 12px;
+      margin: 14px 16px 4px;
+      padding: 10px;
+      border-radius: 16px;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+    }
+    .feed-recipe-thumb {
+      flex: none; width: 56px; height: 56px; border-radius: 12px;
+      background: var(--border) center / cover no-repeat;
+    }
+    .feed-recipe-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .feed-recipe-label { font: 700 10px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--green-dark); }
+    [data-theme="dark"] .feed-recipe-label { color: var(--green); }
+    .feed-recipe-title { font: 700 15px/1.25 var(--sans); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .feed-recipe-meta { font: 500 12px var(--sans); color: var(--text-soft); }
+    .feed-cook-btn {
+      flex: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 11px 16px;
+      border-radius: 100px;
+      background: var(--text);
+      color: var(--bg);
+      font: 700 13px var(--sans);
+      transition: transform .15s var(--easing), background .15s;
+    }
+    .feed-cook-btn:hover { transform: translateX(2px); }
+    .feed-actions { align-items: center; padding: 8px 12px 14px; }
+
+    @media (max-width: 1000px) {
+      .feed-layout { grid-template-columns: minmax(0, 1fr); gap: 0; max-width: 620px; margin: 0 auto; }
+      /* phones: Most cooked strip → feed → share prompt → find cooks */
+      .feed-rail { display: contents; }
+      .rail-trending { order: 1; margin-bottom: 18px; }
+      .feed-main { order: 2; }
+      .rail-cta { order: 3; margin-top: 22px; }
+      .people-search.rail-card { order: 4; margin-top: 12px; }
+      /* on phones, "Most cooked" becomes a swipeable strip */
+      .rail-trending { padding: 14px 0 12px; }
+      .rail-trending .rail-title { padding: 0 16px; font-size: 16px; margin-bottom: 8px; }
+      .rail-list { display: flex; gap: 10px; overflow-x: auto; padding: 0 16px 4px; scrollbar-width: none; scroll-snap-type: x mandatory; }
+      .rail-list::-webkit-scrollbar { display: none; }
+      .rail-list li { flex: 0 0 240px; scroll-snap-align: start; }
+      .rail-item { margin: 0; background: var(--bg); border: 1px solid var(--border); }
+      .rail-cta { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; }
+      .rail-cta-emoji { grid-row: span 2; margin: 0; }
+      .rail-cta .rail-title { margin: 0; font-size: 16px; }
+      .rail-cta p { grid-column: 2; margin: 0; font-size: 13px; }
+      .rail-cta-btn { grid-column: 1 / -1; margin-top: 10px; }
+    }
+    @media (max-width: 640px) {
+      .feed-caption { padding: 14px 16px 2px; }
+      .feed-caption p { font-size: 17px; }
+      .feed-recipe { margin: 12px 12px 2px; flex-wrap: wrap; }
+      .feed-cook-btn { width: 100%; justify-content: center; }
+    }
   </style>
 </head>
 <body data-page="feed">
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
   <div class="nav-wrap" id="navWrap"><div id="appNav"></div></div>
 
-  <main class="app-container tight">
+  <main class="app-container feed-page">
     <h1 class="page-title">Feed</h1>
-    <p class="page-sub">What people are cooking right now.</p>
+    <p class="page-sub">What people are cooking right now. See something you like? Cook it tonight.</p>
 
-    <section class="people-search" aria-label="Find people">
-      <div class="people-search-bar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input id="peopleSearchInput" type="text" placeholder="Find people on Recipy — username or display name" aria-label="Find people on Recipy" autocomplete="off" />
-      </div>
-      <div class="people-results" id="peopleResults"></div>
-    </section>
-
+    <div class="feed-layout">
+    <div class="feed-main">
     <div class="feed-tabs" role="tablist" aria-label="Feed scope">
       <button class="feed-tab is-active" role="tab" aria-selected="true"  data-scope="following">Following</button>
       <button class="feed-tab"           role="tab" aria-selected="false" data-scope="everyone">Everyone</button>
@@ -208,6 +387,31 @@
 
     <div class="feed-new-banner" id="newBanner"><button id="newBannerBtn">↑ New posts — tap to load</button></div>
     <div id="feedRoot"><div class="empty-state"><span class="spinner"></span></div></div>
+    </div>
+
+    <aside class="feed-rail" aria-label="Cooking on Recipy">
+    <section class="rail-card rail-trending" id="railTrending" hidden>
+      <h2 class="rail-title">Most cooked on Recipy</h2>
+      <ol class="rail-list" id="railTrendingList"></ol>
+    </section>
+
+    <section class="rail-card rail-cta">
+      <span class="rail-cta-emoji" aria-hidden="true">🍳</span>
+      <h2 class="rail-title">Cooked something good?</h2>
+      <p>Pick a recipe, cook it in Cook Mode, then tap <strong>Share to Feed</strong> at the end. Your photo shows up here for everyone to try.</p>
+      <a class="btn btn-primary rail-cta-btn" href="index.html#fridge">Find tonight's recipe</a>
+    </section>
+
+    <section class="people-search rail-card" aria-label="Find people">
+      <h2 class="rail-title">Find cooks</h2>
+      <div class="people-search-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="peopleSearchInput" type="text" placeholder="Username or name" aria-label="Find people on Recipy" autocomplete="off" />
+      </div>
+      <div class="people-results" id="peopleResults"></div>
+    </section>
+    </aside>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -242,6 +446,7 @@
     function renderFeed(posts) {
       const root = $("#feedRoot");
       if (!posts.length) {
+        $("#railTrending").hidden = true;
         if (scope === "following" && viewer) {
           root.innerHTML = `<div class="empty-state"><h3>Your feed is quiet.</h3><p>Follow some cooks from <a href="index.html">recipe pages</a> to see their posts here, or switch to <strong>Everyone</strong>.</p></div>`;
         } else if (!viewer) {
@@ -252,48 +457,97 @@
         return;
       }
       root.innerHTML = `<div class="feed-list tab-fade-in">${posts.map(renderCard).join("")}</div>`;
+      renderTrending(posts);
       $$(".feed-like").forEach(el => el.addEventListener("click", onLike));
+    }
+
+    const DIFFICULTY = { 1: "Easy", 2: "Intermediate", 3: "Advanced" };
+    function photoUrl(u, w) {
+      if (!u) return "";
+      return /unsplash\.com/.test(u) ? `${u}${u.includes("?") ? "&" : "?"}auto=format&fit=crop&w=${w}&q=78` : u;
     }
 
     function renderCard(p) {
       const photo = p.photoUrl || (p.recipe && p.recipe.photo_url) || "";
       const author = p.author || { username: "someone", display_name: "Someone" };
+      const authorName = author.display_name || author.username || "Someone";
+      const firstName = authorName.split(/\s+/)[0];
       const profileHref = `profile.html?u=${encodeURIComponent(author.username || "")}`;
-      const recipeHref  = p.recipe ? `recipe.html?slug=${encodeURIComponent(p.recipe.slug)}` : "#";
-      const photoBlock  = photo
-        ? `<div class="feed-photo" role="img" aria-label="${escapeHtml(p.recipe ? `Photo of ${p.recipe.title}` : 'Photo of the cook')}" style="background-image:url(${escapeHtml(photo + '?auto=format&fit=crop&w=900&q=78')})"></div>`
-        : "";
+      const r = p.recipe;
+      const recipeHref  = r ? `recipe.html?slug=${encodeURIComponent(r.slug)}` : "#";
       const avatarBlock = author.avatar_url
-        ? `<img class="avatar-md" style="object-fit:cover" src="${escapeHtml(author.avatar_url)}" alt="${escapeHtml(author.display_name || author.username)}" />`
+        ? `<img class="avatar-md" style="object-fit:cover" src="${escapeHtml(author.avatar_url)}" alt="" />`
         : `<span class="avatar-md">${escapeHtml(initialsFrom(author))}</span>`;
+      const byline = `
+        <a class="feed-byline" href="${profileHref}">
+          ${avatarBlock}
+          <span><span class="name">${escapeHtml(authorName)}</span><span class="meta">cooked this · ${timeAgo(p.createdAt)}</span></span>
+        </a>`;
+      const meta = r ? [r.time ? `${r.time} min` : "", DIFFICULTY[r.difficulty] || ""].filter(Boolean).join(" · ") : "";
+      const thumb = r && r.photo_url ? `<span class="feed-recipe-thumb" style="background-image:url(${escapeHtml(photoUrl(r.photo_url, 200))})" aria-hidden="true"></span>` : "";
+
       return `
-        <article class="feed-card" data-id="${escapeHtml(p.id)}">
-          <header class="feed-head">
-            <a href="${profileHref}">
-              ${avatarBlock}
-              <div>
-                <div class="name">${escapeHtml(author.display_name || author.username)}</div>
-                <div class="meta">cooked · ${timeAgo(p.createdAt)}</div>
-              </div>
+        <article class="feed-card${photo ? "" : " no-photo"}" data-id="${escapeHtml(p.id)}">
+          ${photo
+            ? `<div class="feed-photo" role="img" aria-label="${escapeHtml(r ? `${authorName}'s ${r.title}` : `Photo from ${authorName}`)}" style="background-image:url(${escapeHtml(photoUrl(photo, 1000))})">${byline}</div>`
+            : `<header class="feed-head">${byline}</header>`}
+          ${p.caption ? `<blockquote class="feed-caption"><p>${escapeHtml(p.caption)}</p><footer>— ${escapeHtml(firstName)}</footer></blockquote>` : ""}
+          <div class="feed-recipe">
+            ${thumb}
+            <a class="feed-recipe-text" href="${recipeHref}">
+              <span class="feed-recipe-label">The recipe</span>
+              <span class="feed-recipe-title">${r ? escapeHtml(r.title) : "A recipe"}</span>
+              ${meta ? `<span class="feed-recipe-meta">${escapeHtml(meta)}</span>` : ""}
             </a>
-          </header>
-          ${photoBlock}
-          <div class="feed-body">
-            ${p.caption ? `<p class="feed-caption">${escapeHtml(p.caption)}</p>` : ""}
-            <div class="feed-recipe-row">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><line x1="3" y1="11" x2="21" y2="11"></line></svg>
-              <span style="flex:1">${p.recipe ? escapeHtml(p.recipe.title) : 'A recipe'}</span>
-              ${p.recipe ? `<a href="${recipeHref}">View →</a>` : ""}
-            </div>
+            ${r ? `<a class="feed-cook-btn" href="${recipeHref}#timing">Cook it tonight<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>` : ""}
           </div>
           <div class="feed-actions">
             <button class="feed-action feed-like ${p.likedByMe ? 'is-liked' : ''}" data-id="${escapeHtml(p.id)}" type="button" aria-label="${p.likedByMe ? 'Unlike this post' : 'Like this post'}" aria-pressed="${p.likedByMe ? 'true' : 'false'}">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="${p.likedByMe ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
               <span class="likeCount">${p.likes}</span>
             </button>
+            ${r ? `<a class="feed-action" href="${recipeHref}">See the recipe</a>` : ""}
           </div>
         </article>
       `;
+    }
+
+    /* "Most cooked" rail: which recipes people in this view are actually making */
+    function renderTrending(posts) {
+      const box = $("#railTrending");
+      const byRecipe = new Map();
+      posts.forEach(p => {
+        if (!p.recipe) return;
+        const k = p.recipe.slug;
+        if (!byRecipe.has(k)) byRecipe.set(k, { recipe: p.recipe, cooks: new Map(), count: 0, latest: p.createdAt });
+        const e = byRecipe.get(k);
+        e.count++;
+        if (p.author) e.cooks.set(p.author.id || p.author.username, p.author);
+        if (p.createdAt > e.latest) e.latest = p.createdAt;
+      });
+      const list = [...byRecipe.values()].sort((a, b) => (b.count - a.count) || (a.latest < b.latest ? 1 : -1)).slice(0, 5);
+      if (!list.length) { box.hidden = true; return; }
+      box.hidden = false;
+      $("#railTrendingList").innerHTML = list.map((e, i) => {
+        const cooks = [...e.cooks.values()].slice(0, 3);
+        const href = `recipe.html?slug=${encodeURIComponent(e.recipe.slug)}`;
+        return `
+          <li>
+            <a class="rail-item" href="${href}">
+              <span class="rail-rank">${i + 1}</span>
+              <span class="rail-thumb" style="background-image:url(${escapeHtml(photoUrl(e.recipe.photo_url, 160))})" aria-hidden="true"></span>
+              <span class="rail-item-text">
+                <span class="rail-item-title">${escapeHtml(e.recipe.title)}</span>
+                <span class="rail-item-meta">
+                  <span class="rail-faces" aria-hidden="true">${cooks.map(c => c.avatar_url
+                    ? `<img src="${escapeHtml(c.avatar_url)}" alt="">`
+                    : `<span>${escapeHtml(initialsFrom(c))}</span>`).join("")}</span>
+                  Cooked ${e.count}×${e.recipe.time ? ` · ${e.recipe.time} min` : ""}
+                </span>
+              </span>
+            </a>
+          </li>`;
+      }).join("");
     }
 
     async function onLike(e) {
