@@ -3878,5 +3878,106 @@ window.RECIPES = [
         ingredientKeys: ["0-0", "0-1", "0-2", "2-3", "2-4", "2-5", "2-6", "3-0", "3-1", "3-2"]
       }
     ]
+  },
+
+  /* ============================================================ 27. One-Pan Curry Noodles (changes needed) ============================================================ */
+  {
+    id: 27,
+    slug: "one-pan-curry-noodles",
+    title: "One-Pan Curry Noodles (changes needed)",
+    author: "The Mackinley Kitchen",
+    authorUsername: "mackinley-kitchen",
+    role: "Recipe Developer",
+    cuisine: "Fusion",
+    time: 20,
+    difficulty: 1,
+    baseServings: 4,
+    servingNoun: "bowl",
+    tags: ["Vegan", "Quick", "Noodles", "Comfort"],
+    photo: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624",
+    fact: {
+      title: "Changes still needed",
+      body: "This is a first pass of Carleigh Bodrug’s one-pan curry noodles from PlantYou, dropped in so it can be cooked and rewritten. Amounts, photo and method still need a proper pass before it is treated as finished."
+    },
+    intro: "Ramen, broccoli, pepper, onion, edamame and cashews simmer in one pan with coconut milk and a quick curry broth. About 20 minutes, one pot — and still marked as needing changes.",
+    macros: {
+      calories: 389,
+      carbs: 26,
+      protein: 13,
+      fat: 29,
+      fibre: 5,
+      sugar: 9
+    },
+    equipment: [
+      "Large deep pan with a lid",
+      "Sharp knife",
+      "Chopping board"
+    ],
+    ingredientGroups: [
+      {
+        name: "Noodles and vegetables",
+        items: [
+          { amount: 2, unit: "packs", text: "ramen noodles, left in squares (or 170g other noodles)" },
+          { amount: 1, unit: "", text: "red pepper, sliced" },
+          { amount: 1, unit: "", text: "yellow onion, sliced" },
+          { amount: 1, unit: "cup", text: "edamame, thawed" },
+          { amount: 1, unit: "cup", text: "broccoli florets, chopped" },
+          { amount: 1, unit: "cup", text: "cashews" }
+        ]
+      },
+      {
+        name: "Curry broth",
+        items: [
+          { amount: 1, unit: "tsp", text: "curry powder" },
+          { amount: 1, unit: "tsp", text: "ground cumin" },
+          { amount: 1, unit: "tsp", text: "paprika" },
+          { amount: 1, unit: "cup", text: "vegetable stock" },
+          { amount: 1, unit: "cup", text: "coconut milk" },
+          { amount: 1, unit: "tbsp", text: "soy sauce" },
+          { amount: 1, unit: "tbsp", text: "maple syrup" }
+        ]
+      },
+      {
+        name: "To finish",
+        items: [
+          { amount: 1, unit: "small handful", text: "fresh coriander (cilantro), leaves picked" },
+          { amount: 1, unit: "", text: "lime, cut into wedges" }
+        ]
+      }
+    ],
+    steps: [
+      {
+        title: "Slice the vegetables",
+        time: 5,
+        desc: "Slice the red pepper and yellow onion. Chop the broccoli into small florets so it softens in the same few minutes as the noodles.",
+        ingredientKeys: ["0-1", "0-2", "0-4"]
+      },
+      {
+        title: "Load the pan",
+        time: 2,
+        desc: "Put the dry ramen squares, pepper, onion, thawed edamame, broccoli, cashews, curry powder, cumin and paprika into a large deep pan. There is no need to heat the pan first — everything starts together.",
+        ingredientGroupNames: ["Noodles and vegetables"],
+        ingredientKeys: ["1-0", "1-1", "1-2"]
+      },
+      {
+        title: "Add the curry broth",
+        time: 3,
+        desc: "Pour in the vegetable stock, coconut milk, soy sauce and maple syrup. Cover and bring to a gentle simmer over medium heat.",
+        tip: "Keep the heat at a low simmer so the coconut milk does not split and the noodles have time to drink the broth.",
+        ingredientKeys: ["1-3", "1-4", "1-5", "1-6"]
+      },
+      {
+        title: "Stir and finish cooking",
+        time: 5,
+        desc: "After 2–3 minutes, lift the lid and stir so the softening noodles break apart and the spices mix through. Cover again and simmer for another 3–5 minutes, until the noodles are tender and the vegetables have softened.",
+        ingredientGroupNames: ["Noodles and vegetables", "Curry broth"]
+      },
+      {
+        title: "Taste and serve",
+        time: 2,
+        desc: "Taste and adjust the seasoning. Divide between bowls and finish with fresh coriander and a squeeze of lime. Eat straight away — the noodles keep drinking the broth as they sit.",
+        ingredientKeys: ["0-0", "2-0", "2-1"]
+      }
+    ]
   }
 ];
