@@ -1,0 +1,203 @@
+/* ============================================================
+   Recipy — "Paste your recipe" importer (upload.html)
+   ============================================================ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.importer {
+  position: relative;
+  border-radius: var(--radius-md, 18px);
+  padding: 24px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, var(--sage-soft) 0%, transparent 60%),
+    var(--bg-soft);
+  border: 1.5px solid var(--sage);
+  box-shadow: 0 10px 30px rgba(var(--shadow-color, 46, 42, 37), 0.07);
+}
+
+.importer[hidden] { display: none; }
+
+.importer__head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.importer__badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--sage);
+  color: #1f1d14;
+}
+
+.importer__title {
+  margin: 0 0 4px;
+  font: 700 22px/1.2 var(--serif);
+  letter-spacing: -0.01em;
+}
+
+.importer__sub {
+  margin: 0;
+  max-width: 62ch;
+  font: 400 14px/1.5 var(--sans);
+  color: var(--text-soft);
+}
+
+.importer__drop {
+  position: relative;
+  border-radius: 14px;
+}
+
+.importer__text {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: 400 14px/1.55 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  resize: vertical;
+}
+
+.importer__text::placeholder { color: var(--text-soft); opacity: .8; }
+.importer__text:focus { outline: none; border-style: solid; border-color: var(--sage); }
+
+.importer__dropmsg {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  border: 2px dashed var(--sage-dark);
+  background: color-mix(in srgb, var(--sage) 22%, var(--bg));
+  font: 700 16px var(--sans);
+  color: var(--text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+}
+
+.importer__drop.is-over .importer__dropmsg { opacity: 1; }
+
+.importer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.importer__go svg { margin-right: 2px; }
+.importer__file { cursor: pointer; }
+
+.importer__link {
+  border: 0;
+  background: none;
+  padding: 6px 4px;
+  font: 600 14px var(--sans);
+  color: var(--ochre-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+[data-theme="dark"] .importer__link { color: var(--ochre); }
+
+/* Result */
+.importer__result {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  font: 400 14px/1.5 var(--sans);
+}
+
+.importer__result.is-error p {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.importer__done strong,
+.importer__warn strong { display: block; margin-bottom: 8px; font-weight: 700; }
+
+.importer__found {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.importer__found li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.importer__found li span { color: var(--sage-dark); font-weight: 800; }
+[data-theme="dark"] .importer__found li span { color: var(--sage); }
+.importer__found li em { font-style: normal; font-weight: 400; color: var(--text-soft); max-width: 28ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.importer__warn {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--warning-soft);
+  color: var(--text);
+}
+
+.importer__warn ul { margin: 0; padding-left: 18px; }
+.importer__warn li + li { margin-top: 4px; }
+
+.importer__after {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.importer__hint { font-size: 13px; color: var(--text-soft); }
+
+/* Once imported, the paste box steps back so the form takes focus */
+.importer.is-done .importer__text { min-height: 72px; height: 72px; opacity: .7; }
+
+/* Fields filled by the import get a sage marker until edited */
+.is-imported.form-input,
+.is-imported.form-textarea,
+.is-imported.form-select {
+  border-color: var(--sage);
+  background: color-mix(in srgb, var(--sage) 9%, var(--bg-soft));
+}
+
+#ingredientGroups.is-imported .group-card,
+#stepList.is-imported > * {
+  border-color: var(--sage);
+}
+
+@media (max-width: 640px) {
+  .importer { padding: 18px; }
+  .importer__head { gap: 12px; }
+  .importer__title { font-size: 19px; }
+  .importer__actions .btn { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .importer__dropmsg { transition: none; }
+}

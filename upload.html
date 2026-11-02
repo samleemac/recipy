@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="recipe-import.css" />
   <style>
     /* Tab navigation */
     .upload-tabs {
@@ -409,6 +410,9 @@
       <div id="guard"><div class="empty-state"><span class="spinner"></span></div></div>
 
       <form class="upload-form" id="uploadForm" hidden>
+      <!-- Paste a recipe: fills the whole form -->
+      <section class="importer" id="importer" aria-label="Import a recipe from text or a file"></section>
+
       <!-- Basics -->
       <section class="section">
         <h2>The basics</h2>
@@ -562,6 +566,7 @@
   <script src="config.js"></script>
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
+  <script src="recipe-import.js"></script>
   <script>
     const $ = (s, r = document) => r.querySelector(s);
     const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -1334,6 +1339,72 @@
         steps: pc.steps ?? recipe.steps,
         photo: recipe.pendingPhoto || recipe.photo,
       };
+    }
+
+    /* -------------------- paste-a-recipe importer -------------------- */
+    const IMPORT_FIELDS = ["#title", "#intro", "#cuisine", "#time", "#difficulty", "#servings", "#servingNoun",
+      "#macroKcal", "#macroCarbs", "#macroProtein", "#macroFat", "#macroFibre", "#macroSugar",
+      "#equipment", "#factTitle", "#factBody"];
+
+    function markImported(sel) {
+      const el = $(sel);
+      if (!el) return;
+      el.classList.add("is-imported");
+      el.addEventListener("input", () => el.classList.remove("is-imported"), { once: true });
+    }
+
+    const importHost = {
+      snapshot() {
+        const values = {};
+        IMPORT_FIELDS.forEach(sel => { const el = $(sel); if (el) values[sel] = el.value; });
+        return {
+          values,
+          ingredientGroups: JSON.parse(JSON.stringify(ingredientGroups)),
+          steps: JSON.parse(JSON.stringify(steps)),
+          tags: tags.slice()
+        };
+      },
+      restore(state) {
+        Object.entries(state.values).forEach(([sel, v]) => { const el = $(sel); if (el) { el.value = v; el.classList.remove("is-imported"); } });
+        ingredientGroups = state.ingredientGroups;
+        steps = state.steps;
+        tags = state.tags;
+        renderIngredients(); renderSteps(); renderTags();
+        maybeArmGuard();
+      },
+      /* Only overwrite what the import actually found; the photo is never touched */
+      apply(r) {
+        const put = (sel, v) => { if (v === undefined || v === null || v === "") return; setVal(sel, v); markImported(sel); };
+        put("#title", r.title);
+        put("#intro", r.intro);
+        put("#time", r.time);
+        put("#servings", r.baseServings);
+        const m = r.macros || {};
+        put("#macroKcal", m.calories); put("#macroCarbs", m.carbs); put("#macroProtein", m.protein);
+        put("#macroFat", m.fat); put("#macroFibre", m.fibre); put("#macroSugar", m.sugar);
+        if (r.equipment && r.equipment.length) put("#equipment", r.equipment.join("\n"));
+        if (r.fact) { put("#factTitle", r.fact.title); put("#factBody", r.fact.body); }
+        if (r.ingredientGroups && r.ingredientGroups.length) {
+          ingredientGroups = r.ingredientGroups.map(g => ({
+            name: g.name || "",
+            items: g.items.map(it => ({ amount: it.amount || "", unit: it.unit || "", text: it.text || "" }))
+          }));
+          renderIngredients();
+          $("#ingredientGroups").classList.add("is-imported");
+        }
+        if (r.steps && r.steps.length) {
+          steps = r.steps.map(s => ({ title: s.title || "", time: s.time || "", desc: s.desc || "", tip: s.tip || "", timers: s.timers || [] }));
+          renderSteps();
+          $("#stepList").classList.add("is-imported");
+        }
+        maybeArmGuard();
+      }
+    };
+
+    if (window.RecipyImport && !editSlug) {
+      window.RecipyImport.mountUI($("#importer"), importHost);
+    } else {
+      $("#importer").hidden = true;
     }
 
     window.AppShell.onAuth((user, profile) => {
