@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="fridge.css" />
   <link rel="stylesheet" href="hero-tonight.css" />
   <link rel="stylesheet" href="basics-studio.css" />
+  <link rel="stylesheet" href="shopping.css" />
 
   <style>
     /* ============================================================
@@ -2283,14 +2284,20 @@
       </button>
     </div>
     <div class="shop-modal-body" id="shopBody"></div>
-    <div class="shop-modal-foot">
-      <p>Tap each item to tick it off as you add it to your shopping app.</p>
-      <div class="shop-foot-actions">
-        <button class="shop-btn shop-btn-clear" id="shopClearChecked" type="button">Clear ticked</button>
-        <button class="shop-btn shop-btn-done" id="shopDone" type="button">Done</button>
-      </div>
+    <div class="shop-modal-foot sl-foot">
+      <button class="shop-btn shop-btn-clear" id="shopClearChecked" type="button">Clear ticks</button>
+      <button class="shop-btn shop-btn-done sl-done" id="shopDone" type="button">Done</button>
+      <button class="sl-send" id="shopSendBtn" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        Send list
+      </button>
     </div>
+    <div class="sl-sheet" id="shopSheet" role="region" aria-label="Send this list" hidden></div>
   </aside>
+
+  <button class="sl-fab" id="shopFab" type="button" hidden>
+    <span aria-hidden="true">🛒</span> Shopping list <b id="shopFabCount">0</b>
+  </button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
@@ -2299,6 +2306,8 @@
   <script src="hero-tonight.js"></script>
   <script src="techniques-data.js"></script>
   <script src="basics-studio.js"></script>
+  <script src="shopping-list.js"></script>
+  <script src="shopping-ui.js"></script>
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
   <script>
@@ -2804,7 +2813,10 @@
     }
     function getServingsForRecipe(id) {
       const saved = getPlanServings();
-      return saved[String(id)] !== undefined ? saved[String(id)] : 2;
+      if (saved[String(id)] !== undefined) return saved[String(id)];
+      /* default to what the recipe actually makes, not a flat 2 */
+      const r = recipeByPlanId(id);
+      return (r && r.baseServings) || 2;
     }
     function setServingsForRecipe(id, n) {
       const saved = getPlanServings();
@@ -2833,6 +2845,11 @@
       const barVisible = plan.size > 0 && document.body.classList.contains("plan-mode");
       bar.classList.toggle("show", barVisible);
       document.body.classList.toggle("has-plan-bar", barVisible);
+      const fab = $("#shopFab");
+      if (fab) {
+        fab.hidden = plan.size === 0 || barVisible;
+        $("#shopFabCount").textContent = plan.size;
+      }
     }
 
     function togglePlan(id, cardEl, btnEl) {
@@ -2969,6 +2986,7 @@
     }
 
     function renderShoppingList() {
+      if (window.RecipyShopUI) { window.RecipyShopUI.render(); return; }
       const plan = getPlan();
       const body = $("#shopBody");
       const subhead = $("#shopSubhead");
@@ -3025,6 +3043,10 @@
       document.body.style.overflow = "hidden";
     }
     function closeShoppingList() {
+      if (window.RecipyShopUI) {
+        window.RecipyShopUI.closeSheet();
+        if (window.RecipyShopUI.isShared()) window.RecipyShopUI.exitShared();
+      }
       $("#shopBackdrop").classList.remove("open");
       $("#shopModal").classList.remove("open");
       document.body.style.overflow = "";
@@ -3051,10 +3073,44 @@
       $("#shopDone").addEventListener("click", closeShoppingList);
       $("#shopBackdrop").addEventListener("click", closeShoppingList);
       $("#shopClearChecked").addEventListener("click", () => {
-        localStorage.removeItem(SHOP_KEY);
+        if (window.RecipyShopUI && window.RecipyShopUI.isShared()) {
+          Object.keys(localStorage).filter(k => k.startsWith("recipy.sharedchecked.")).forEach(k => localStorage.removeItem(k));
+        } else {
+          localStorage.removeItem(SHOP_KEY);
+        }
         renderShoppingList();
-        toast("Cleared ticked items");
+        toast("Ticks cleared");
       });
+      $("#shopFab").addEventListener("click", openShoppingList);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && $("#shopModal").classList.contains("open")) closeShoppingList();
+      });
+
+      if (window.RecipyShopUI) {
+        window.RecipyShopUI.mount({
+          planEntries: () => [...getPlan()].map(id => ({ id, recipe: recipeByPlanId(id), servings: getServingsForRecipe(id) })),
+          setServings: (id, n) => setServingsForRecipe(id, n),
+          checked: getShopChecked,
+          saveChecked: saveShopChecked,
+          addToPlan: (ents) => {
+            const plan = getPlan();
+            ents.forEach(e => {
+              plan.add(String(e.recipe.id));
+              setServingsForRecipe(e.recipe.id, e.servings);
+            });
+            savePlan(plan);
+            updatePlanBar();
+            filterRecipes(false);
+          },
+          toast
+        });
+        /* opened from a friend's link: ?list=… */
+        const listParam = new URLSearchParams(location.search).get("list");
+        const decoded = listParam && window.RecipyShop.decode(listParam);
+        if (decoded && window.RecipyShopUI.openShared(decoded, recipes)) {
+          openShoppingList();
+        }
+      }
 
       // Restore plan-mode state if plan is non-empty
       if (getPlan().size > 0) updatePlanBar();
