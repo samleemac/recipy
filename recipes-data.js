@@ -3979,5 +3979,113 @@ window.RECIPES = [
         ingredientKeys: ["0-0", "2-0", "2-1"]
       }
     ]
+  },
+
+  /* ============================================================ 28. Pumpkin Pasta (changes needed) ============================================================ */
+  {
+    id: 28,
+    slug: "pumpkin-pasta",
+    title: "Pumpkin Pasta (changes needed)",
+    author: "The Mackinley Kitchen",
+    authorUsername: "mackinley-kitchen",
+    role: "Recipe Developer",
+    cuisine: "Italian-inspired",
+    time: 40,
+    difficulty: 2,
+    baseServings: 4,
+    servingNoun: "serving",
+    tags: ["Vegan", "Pasta", "Comfort"],
+    photo: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601",
+    fact: {
+      title: "Changes still needed",
+      body: "First pass of a pumpkin pasta caption from @bradtheboxer. The post gave the hemp seeds, soy milk, roast time and a splash of sherry, but not the mushroom, sage, garlic, ginger or pasta amounts, or how many it serves. Nutrition was not included. Treat the blanks as still to be filled in."
+    },
+    intro: "Roasted pie pumpkin blended with hemp seeds and soy milk, tossed with pasta and mushrooms that have been cooked until they squeak, then finished with sage, ginger and sherry. Several amounts are still missing.",
+    equipment: [
+      "Baking tray",
+      "Large frying pan",
+      "Blender",
+      "Large saucepan",
+      "Colander",
+      "Sharp knife",
+      "Chopping board"
+    ],
+    ingredientGroups: [
+      {
+        name: "Roast pumpkin",
+        items: [
+          { amount: 1, unit: "", text: "pie pumpkin, halved and deseeded" },
+          { amount: 1, unit: "drizzle", text: "olive oil, for the cut surfaces (amount not given)" },
+          { amount: 1, unit: "pinch", text: "fine salt, for the pumpkin" },
+          { amount: 0.25, unit: "cup", text: "hemp seeds" },
+          { amount: 1.5, unit: "cups", text: "soy milk" }
+        ]
+      },
+      {
+        name: "Mushrooms",
+        items: [
+          { amount: 1, unit: "", text: "batch of mushrooms (weight not given)" },
+          { amount: 3, unit: "tbsp", text: "plant-based butter (a few tablespoons)" },
+          { amount: 1, unit: "", text: "onion, diced" },
+          { amount: 1, unit: "pinch", text: "fine salt" },
+          { amount: 1, unit: "small handful", text: "fresh sage (amount not given)" },
+          { amount: 1, unit: "", text: "garlic, minced (amount not given)" },
+          { amount: 1, unit: "", text: "piece of fresh ginger, grated (amount not given)" },
+          { amount: 1, unit: "splash", text: "sherry" }
+        ]
+      },
+      {
+        name: "Pasta",
+        items: [
+          { amount: 1, unit: "", text: "dried pasta (amount not given)" },
+          { amount: 2, unit: "ladles", text: "starchy pasta water" }
+        ]
+      },
+      {
+        name: "To finish",
+        items: [
+          { amount: 1, unit: "small handful", text: "fresh parsley, chopped" }
+        ]
+      }
+    ],
+    steps: [
+      {
+        title: "Roast the pumpkin",
+        time: 25,
+        desc: "Heat the oven to 200°C (180°C fan / 400°F). Cut the pie pumpkin in half, scrape out the seeds, then rub the cut faces with olive oil and salt. Roast cut side up for 25 minutes, until the flesh is soft enough to scoop.",
+        tip: "Start the pasta and the mushrooms while the pumpkin is in the oven so the sauce is ready when the roast comes out.",
+        ingredientKeys: ["0-0", "0-1", "0-2"]
+      },
+      {
+        title: "Cook the pasta",
+        time: 12,
+        desc: "Bring a large saucepan of well-salted water to the boil and cook the pasta until just al dente. Before draining, scoop out a couple of ladles of the cooking water.",
+        ingredientKeys: ["2-0", "2-1"]
+      },
+      {
+        title: "Dry-fry the mushrooms",
+        time: 6,
+        desc: "Put the mushrooms in a dry frying pan over a high heat. Cook, stirring now and then, until they stop releasing water and start to squeak against the pan.",
+        ingredientKeys: ["1-0"]
+      },
+      {
+        title: "Add butter, onion and sherry",
+        time: 5,
+        desc: "Turn the heat down and add the plant-based butter, diced onion and a pinch of salt. After a minute or two, add the sage, minced garlic and grated ginger and cook for another minute. Splash in the sherry and let it bubble until the alcohol has cooked off, then take the pan off the heat.",
+        ingredientKeys: ["1-1", "1-2", "1-3", "1-4", "1-5", "1-6", "1-7"]
+      },
+      {
+        title: "Blend the pumpkin sauce",
+        time: 4,
+        desc: "Scoop the roasted pumpkin out of its skin. Blend the flesh with the hemp seeds and soy milk until smooth.",
+        ingredientKeys: ["0-0", "0-3", "0-4"]
+      },
+      {
+        title: "Toss and serve",
+        time: 3,
+        desc: "Combine the pumpkin sauce with the mushrooms, cooked pasta and a ladle or two of pasta water until the noodles are coated. Scatter over the parsley and serve straight away.",
+        ingredientKeys: ["0-0", "1-0", "2-0", "2-1", "3-0"]
+      }
+    ]
   }
 ];
