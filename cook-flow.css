@@ -64,9 +64,91 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.cf-stories { display: flex; gap: 6px; margin-bottom: 26px; }
-.cf-seg { flex: 1; height: 4px; border-radius: 99px; background: var(--cf-line); overflow: hidden; }
-.cf-seg i { display: block; height: 100%; background: var(--cf-sage); border-radius: 99px; transition: width .35s var(--easing); }
+/* progress: one segment per step, split into one piece per part */
+.cf-stories { display: flex; gap: 8px; align-items: center; margin-bottom: 26px; }
+.cf-seg { flex: 1; display: flex; gap: 3px; }
+.cf-seg i { flex: 1; height: 4px; border-radius: 99px; background: var(--cf-line); transition: background .3s var(--easing), height .2s; }
+.cf-seg i.on { background: var(--cf-sage); }
+.cf-seg.is-current i { height: 6px; }
+.cf-seg i.now { background: var(--cf-ochre); box-shadow: 0 0 0 3px rgba(227, 176, 124, 0.18); }
+
+/* "Part 2 of 3" */
+.cf-parts {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-left: auto;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  background: rgba(227, 176, 124, 0.14);
+  border: 1px solid rgba(227, 176, 124, 0.35);
+  font: 700 13px var(--sans);
+  color: var(--cf-ochre);
+  animation: cfPop .35s var(--easing);
+}
+.cf-parts-dots { display: inline-flex; gap: 4px; }
+.cf-parts-dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--cf-ochre); }
+.cf-parts-dots i.done { background: var(--cf-ochre); opacity: .55; }
+.cf-parts-dots i.now { background: var(--cf-ochre); }
+@keyframes cfPop { 0% { transform: scale(.92); opacity: .4; } 100% { transform: none; opacity: 1; } }
+
+.cf-beat-body { min-width: 0; }
+.cf-beat-label {
+  display: block;
+  margin: 6px 0 6px;
+  font: 700 11px var(--sans);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--cf-ochre);
+}
+
+.cf-peek-more {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 600 14px var(--sans); color: var(--cf-soft);
+}
+.cf-peek-more::before { content: ""; width: 18px; height: 2px; background: var(--cf-ochre); border-radius: 2px; }
+
+/* Step done checkpoint */
+.cf-check { justify-content: flex-start; }
+.cf-check-card {
+  margin: 4vh auto 0;
+  width: min(620px, 100%);
+  padding: 34px 32px 28px;
+  border-radius: 26px;
+  background: var(--cf-bg-2);
+  border: 1px solid var(--cf-line);
+  text-align: center;
+  cursor: default;
+  animation: cfIn .4s var(--easing);
+}
+.cf-check-tick {
+  display: inline-grid; place-items: center;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--cf-sage); color: #1B1A12;
+  font: 800 30px var(--sans);
+  margin-bottom: 12px;
+  animation: cfTick .5s var(--easing);
+}
+@keyframes cfTick { 0% { transform: scale(.4); } 70% { transform: scale(1.1); } 100% { transform: none; } }
+.cf-check-done { margin: 0 0 22px; font: 600 15px var(--sans); color: var(--cf-soft); }
+.cf-check-label { font: 700 11px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--cf-ochre); }
+.cf-check-card h3 { margin: 8px 0 6px; font: 600 clamp(28px, 3.4vw, 40px)/1.12 var(--serif); color: var(--cf-text); }
+.cf-check-meta { margin: 0 0 18px; font: 500 14px var(--sans); color: var(--cf-soft); }
+.cf-check-need { justify-content: center; margin: 0 0 22px; }
+.cf-check-ready { background: transparent !important; border: 0 !important; padding: 8px 2px !important; font: 700 11px var(--sans) !important; letter-spacing: .14em; text-transform: uppercase; color: var(--cf-soft) !important; }
+.cf-check-actions { display: grid; gap: 10px; justify-items: center; }
+.cf-check-go {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 58px; padding: 0 30px;
+  border-radius: 999px;
+  background: var(--cf-sage); color: #1B1A12;
+  font: 800 17px var(--sans);
+  cursor: pointer;
+  transition: transform .15s var(--easing);
+}
+.cf-check-go:hover { transform: translateY(-1px); }
+.cf-check-back { background: none; border: 0; color: var(--cf-soft); font: 600 14px var(--sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px; }
+
+/* Next button: different look when it will finish the step */
+.cookmode.is-flow .cookmode-side-btn.next.is-step-end { background: var(--cf-ochre); border-color: var(--cf-ochre); color: #1B1A12; }
 
 .cf-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-bottom: 14px; }
 .cf-step { font: 700 12px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--cf-sage); }
@@ -176,13 +258,36 @@
 .cf-peek strong { font: 600 17px var(--serif); color: var(--cf-soft); }
 .cf-peek-need { flex-basis: 100%; font: 500 14px var(--sans); color: var(--cf-ochre); }
 
+/* Prev / Next as clear pills at the bottom (desktop) */
+.cookmode.is-flow .cookmode-side-btn {
+  top: auto; bottom: 34px; transform: none;
+  width: auto; height: 52px; padding: 0 22px;
+  flex-direction: row; gap: 8px;
+  border-radius: 999px;
+}
+.cookmode.is-flow .cookmode-side-btn span { font: 700 14px var(--sans); letter-spacing: 0; text-transform: none; }
+.cookmode.is-flow .cookmode-side-btn.prev { left: 28px; }
+.cookmode.is-flow .cookmode-side-btn.next { right: 28px; padding: 0 24px 0 20px; }
+.cookmode.is-flow .cookmode-side-btn.next svg { order: 2; }
+.cookmode.is-flow .cf { padding-bottom: 110px; }
+.cookmode.is-flow.open ~ .cook-timers { bottom: 100px; }
+
+/* the base hover moves buttons by -50% (for edge buttons); keep pills in place */
+.cookmode.is-flow .cookmode-side-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.cookmode.is-flow .cookmode-side-btn.next:hover:not(:disabled) { background: #D6D88E; border-color: #D6D88E; }
+.cookmode.is-flow .cookmode-side-btn.next.is-step-end:hover:not(:disabled) { background: #EBBE8F; border-color: #EBBE8F; }
+/* the step-done card has its own big Start button */
+.cookmode.is-flow.is-checkpoint .cookmode-side-btn.next { display: none; }
+/* the segmented bar at the top replaces the thin bar at the bottom */
+.cookmode.is-flow .cookmode-foot { display: none; }
+
 /* Side buttons on the dark canvas */
 .cookmode.is-flow .cookmode-side-btn { background: var(--cf-bg-2); color: var(--cf-text); border: 1px solid var(--cf-line); box-shadow: none; }
 .cookmode.is-flow .cookmode-side-btn.next { background: var(--cf-sage); color: #1B1A12; border-color: var(--cf-sage); }
 .cookmode.is-flow .cookmode-side-btn:disabled { opacity: .3; }
 
 /* Running timers sit at the bottom so they never cover the words */
-.cookmode.is-flow.open ~ .cook-timers { top: auto; bottom: 34px; }
+.cookmode.is-flow.open ~ .cook-timers { top: auto; }
 
 /* Finish screen + timers keep working on the dark canvas */
 .cookmode.is-flow .cook-finish { color: var(--cf-text); }
@@ -204,7 +309,11 @@
   .cf-ctrl { width: 42px; padding: 0; justify-content: center; }
   .cf-heard { flex: 1; max-width: none; }
   .cf { padding: 14px 20px 120px; min-height: calc(100vh - 120px); }
-  .cf-stories { margin-bottom: 18px; }
+  .cf-stories { margin-bottom: 18px; gap: 5px; }
+  .cf-seg { gap: 2px; }
+  .cf-parts { margin-left: 0; }
+  .cf-check-card { padding: 26px 20px 22px; margin-top: 2vh; }
+  .cf-check-go { width: 100%; justify-content: center; }
   .cf-title { font-size: 16px; }
   .cf-need span { font-size: 14px; padding: 6px 12px; }
   .cf-beat { grid-template-columns: 30px 1fr; gap: 12px; }

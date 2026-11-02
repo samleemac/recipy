@@ -16,6 +16,7 @@
 (function () {
   const PREF_KEY = "recipy-cookflow-v1";
   let host, root, beat = 0, lastStep = -1, beatsCache = new Map(), pendingFromEnd = false;
+  let checkpoint = false; /* the "Step done" card between steps */
   let prefs = { voice: false, speak: false, hinted: false };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF_KEY) || "{}")); prefs.voice = false; } catch (e) {}
   const savePrefs = () => { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {} };
@@ -143,7 +144,7 @@
     root.innerHTML = `
       <div class="cf" data-step="${stepIdx}">
         <div class="cf-stories" aria-hidden="true">
-          ${steps.map((_, i) => `<span class="cf-seg"><i style="width:${i < stepIdx ? 100 : i > stepIdx ? 0 : Math.round((beat + 1) / beats.length * 100)}%"></i></span>`).join("")}
+          ${storiesHtml(stepIdx, beat)}
         </div>
 
         <div class="cf-meta">
@@ -151,6 +152,11 @@
           <span class="cf-dot" aria-hidden="true">·</span>
           <span class="cf-title">${esc(s.title || "")}</span>
           ${s.time ? `<span class="cf-dur">${s.time} min</span>` : ""}
+          ${beats.length > 1 ? `
+          <span class="cf-parts" aria-label="Part ${beat + 1} of ${beats.length} in this step">
+            <span class="cf-parts-dots" aria-hidden="true">${beats.map((_, i) => `<i class="${i < beat ? "done" : i === beat ? "now" : ""}"></i>`).join("")}</span>
+            Part ${beat + 1} of ${beats.length}
+          </span>` : ""}
         </div>
 
         ${beat === 0 && need.length ? `
@@ -162,20 +168,23 @@
           ${beatsHtml.map((h, i) => `
             <li class="cf-beat ${i < beat ? "is-past" : i === beat ? "is-now" : "is-next"}"${i === beat ? ' aria-current="step"' : ""}>
               <span class="cf-beat-mark" aria-hidden="true">${i < beat ? "✓" : i + 1}</span>
-              <p>${h}</p>
+              <div class="cf-beat-body">
+                ${i === beat && beats.length > 1 ? `<span class="cf-beat-label">${i === beats.length - 1 ? "Last part of this step" : `Part ${i + 1} of ${beats.length}`}</span>` : ""}
+                <p>${h}</p>
+              </div>
             </li>`).join("")}
         </ol>
 
         ${s.tip && isLastBeat ? `<div class="cf-tip"><b>Tip</b> ${esc(s.tip)}</div>` : ""}
 
-        ${!prefs.hinted && stepIdx === 0 && beat === 0 ? `<p class="cf-hint">Tap anywhere for the next bit · tap the left edge to go back</p>` : ""}
+        ${!prefs.hinted && stepIdx === 0 && beat === 0 ? `<p class="cf-hint">Each step comes in short parts. Tap anywhere for the next part · tap the left edge to go back</p>` : ""}
 
         <div class="cf-peek">
           ${isLastBeat
             ? next
               ? `<span class="cf-peek-label">Up next</span><strong>${esc(next.title || `Step ${stepIdx + 2}`)}</strong>${nextNeed.length ? `<span class="cf-peek-need">Get ready: ${esc(nextNeed.join(", "))}</span>` : ""}`
               : `<span class="cf-peek-label">Last bit</span><strong>Then plate up</strong>`
-            : `<span class="cf-peek-label">${beats.length - beat - 1} more in this step</span>`}
+            : `<span class="cf-peek-more">${beats.length - beat - 1 === 1 ? "1 more part" : `${beats.length - beat - 1} more parts`} before the next step</span>`}
         </div>
       </div>`;
 
@@ -187,7 +196,53 @@
     if (prefs.speak) speak(beats[beat]);
   }
 
+  function storiesHtml(stepIdx, b, stepDone) {
+    return host.steps().map((_, i) => {
+      const n = beatsFor(i).length;
+      const pieces = Array.from({ length: n }, (_, k) => {
+        const on = i < stepIdx || (i === stepIdx && (stepDone || k <= b));
+        const now = i === stepIdx && !stepDone && k === b;
+        return `<i class="${on ? "on" : ""}${now ? " now" : ""}"></i>`;
+      }).join("");
+      return `<span class="cf-seg${i === stepIdx ? " is-current" : ""}">${pieces}</span>`;
+    }).join("");
+  }
+
+  function renderCheckpoint(stepIdx) {
+    const steps = host.steps();
+    const s = steps[stepIdx], next = steps[stepIdx + 1];
+    const need = (host.ingredientsForStep(next, stepIdx + 1) || []).slice(0, 6);
+    root.innerHTML = `
+      <div class="cf cf-check" data-step="${stepIdx}">
+        <div class="cf-stories" aria-hidden="true">${storiesHtml(stepIdx, 0, true)}</div>
+        <div class="cf-check-card" role="status">
+          <span class="cf-check-tick" aria-hidden="true">✓</span>
+          <p class="cf-check-done">Step ${stepIdx + 1} done · ${esc(s.title || "")}</p>
+          <span class="cf-check-label">Next up · Step ${stepIdx + 2} of ${steps.length}</span>
+          <h3>${esc(next.title || `Step ${stepIdx + 2}`)}</h3>
+          <p class="cf-check-meta">${next.time ? `About ${next.time} min · ` : ""}${beatsFor(stepIdx + 1).length} part${beatsFor(stepIdx + 1).length === 1 ? "" : "s"}</p>
+          ${need.length ? `
+            <div class="cf-need cf-check-need" aria-label="Get ready">
+              <span class="cf-check-ready">Get ready</span>
+              ${need.map(n => `<span><b>${esc(n.amountStr || "")}</b> ${esc(String(n.text).replace(/,.*$/, ""))}</span>`).join("")}
+            </div>` : ""}
+          <div class="cf-check-actions">
+            <button type="button" class="cf-check-go" data-continue>Start step ${stepIdx + 2}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+            <button type="button" class="cf-check-back" data-backto>Back to step ${stepIdx + 1}</button>
+          </div>
+        </div>
+      </div>`;
+    syncChrome();
+    if (prefs.speak) speak(`Step ${stepIdx + 1} done. Next up, ${next.title || ""}.`);
+    const go = root.querySelector("[data-continue]");
+    if (go) go.focus({ preventScroll: true });
+  }
+
   function syncChrome() {
+    const cm = document.getElementById("cookmode");
+    if (cm) cm.classList.toggle("is-checkpoint", checkpoint);
     const steps = host.steps();
     const i = host.stepIndex();
     const beats = beatsFor(i);
@@ -196,9 +251,19 @@
     const prev = document.getElementById("cookmodePrev");
     if (prev) prev.disabled = atStart;
     const label = document.getElementById("cookmodeNextLabel");
-    if (label) label.textContent = atEnd ? "Finish" : beat === beats.length - 1 ? "Next step" : "Next";
+    if (label) {
+      label.textContent = checkpoint ? `Start step ${i + 2}`
+        : atEnd ? "Finish"
+        : beat === beats.length - 1 ? `Finish step ${i + 1} ✓`
+        : `Next part · ${beat + 2} of ${beats.length}`;
+    }
+    if (prev) prev.disabled = atStart && !checkpoint;
     const nextBtn = document.getElementById("cookmodeNext");
-    if (nextBtn) nextBtn.classList.toggle("is-finish", atEnd);
+    if (nextBtn) {
+      nextBtn.classList.toggle("is-finish", atEnd);
+      nextBtn.classList.toggle("is-step-end", !checkpoint && !atEnd && beat === beats.length - 1);
+      nextBtn.setAttribute("aria-label", label ? label.textContent : "Next");
+    }
     const bar = document.getElementById("cookmodeBar");
     if (bar) {
       const total = steps.reduce((n, _, k) => n + beatsFor(k).length, 0);
@@ -215,12 +280,15 @@
     if (!prefs.hinted) { prefs.hinted = true; savePrefs(); }
     const i = host.stepIndex();
     if (!root.querySelector(".cf")) { host.nextStep(); return; } /* finish screen etc. */
+    if (checkpoint) { checkpoint = false; host.nextStep(); return; } /* marks the step done, shows the next */
     if (beat < beatsFor(i).length - 1) { beat++; render(i); pulse("next"); return; }
-    host.nextStep(); /* marks the step done and renders the next one (or the finish view) */
+    if (i < host.steps().length - 1) { checkpoint = true; renderCheckpoint(i); return; }
+    host.nextStep(); /* last step: straight to the finish view */
   }
   function back() {
     const i = host.stepIndex();
     if (!root.querySelector(".cf")) { host.prevStep(); return; }
+    if (checkpoint) { checkpoint = false; render(i); return; }
     if (beat > 0) { beat--; render(i); pulse("back"); return; }
     if (i > 0) { pendingFromEnd = true; host.prevStep(); }
   }
@@ -283,6 +351,8 @@
         return;
       }
       if (!root.querySelector(".cf")) return;
+      if (e.target.closest("[data-continue]")) { forward(); return; }
+      if (e.target.closest("[data-backto]")) { back(); return; }
       if (e.target.closest("button, a, input, textarea, .cf-need")) return;
       const rect = root.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -343,7 +413,7 @@
   }
 
   /* called when the recipe's servings change: amounts in the text update */
-  function invalidate() { beatsCache.clear(); }
+  function invalidate() { beatsCache.clear(); checkpoint = false; lastStep = -1; }
 
   window.RecipyCook = {
     mount, render, forward, back, onClose, invalidate,
