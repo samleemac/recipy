@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="fridge.css" />
+  <link rel="stylesheet" href="hero-tonight.css" />
 
   <style>
     /* ============================================================
@@ -2053,43 +2054,15 @@
 
   <main>
     <!-- 3. Hero Banner -->
-    <section class="hero" aria-label="Recipes hero">
+    <section class="hero hero--tonight" aria-label="Find a recipe for tonight">
       <img class="hero-bg" id="heroBg" src="https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1800&q=80" alt="" aria-hidden="true" fetchpriority="high" onerror="this.onerror=null;this.style.display='none';" />
 
-      <div class="hero-content container">
-        <div class="hero-meta" id="heroMeta">RECIPY · ISSUE Nº47 · NOVEMBER</div>
-        <h1 class="hero-title">
-          Recipes
-          <svg class="hand-underline" viewBox="0 0 280 22" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M4 14 Q 45 4, 90 11 T 175 10 T 245 12 T 276 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"></path>
-          </svg>
-        </h1>
-        <p class="hero-kicker" id="heroKicker">Good evening — perfect for something cozy.</p>
-
-        <div class="hero-stats" aria-label="Recipy in numbers">
-          <div class="stat">
-            <span class="num" id="statRecipes" data-count-to="0">0</span>
-            <span class="label">Recipes</span>
-          </div>
-          <div class="stat">
-            <span class="num" id="statCooks" data-count-to="0">0</span>
-            <span class="label">Home cooks</span>
-          </div>
-          <div class="stat">
-            <span class="num" id="statNewWeek" data-count-to="0">0</span>
-            <span class="label">New this week</span>
-          </div>
+      <div class="hero-content container tonight" id="tonightHero">
+        <div class="tn-left">
+          <div class="hero-meta" id="heroMeta">RECIPY · ISSUE Nº47 · NOVEMBER</div>
+          <h1 class="hero-title tn-title">What's for dinner<br><em>tonight?</em></h1>
         </div>
       </div>
-
-      <aside class="hero-pick" id="heroPick" aria-label="Recipe of the day">
-        <a class="hero-pick-link" id="pickLink" href="recipe.html?id=0" aria-label="Open recipe of the day">
-          <img id="pickImg" src="photo-pick-fallback.jpg" alt="Recipe of the day" />
-          <span class="pick-tag">Recipe of the Day</span>
-          <h3 id="pickTitle">Loading…</h3>
-          <p class="pick-meta"><strong id="pickTime">— min</strong> · <span id="pickDifficulty">Easy</span> · <span id="pickAuthor">—</span></p>
-        </a>
-      </aside>
     </section>
 
     <!-- 3b. Master the Basics — Cookery School cross-link -->
@@ -2322,6 +2295,7 @@
   <script src="config.js"></script>
   <script src="recipes-data.js"></script>
   <script src="fridge.js"></script>
+  <script src="hero-tonight.js"></script>
   <script src="supabase-client.js"></script>
   <script src="app-shell.js"></script>
   <script>
@@ -2593,7 +2567,8 @@
       const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
       const now = new Date();
       const issueNum = 47 + (now.getMonth());
-      $("#heroMeta").textContent = `RECIPY · ISSUE Nº${issueNum} · ${months[now.getMonth()].toUpperCase()}`;
+      const meta = $("#heroMeta");
+      if (meta) meta.textContent = `RECIPY · ISSUE Nº${issueNum} · ${months[now.getMonth()].toUpperCase()}`;
     }
 
     function setHeroGreeting() {
@@ -2605,7 +2580,8 @@
       else if (h < 17) { greet = "Afternoon, friend"; mood = "a bite before dinner?"; }
       else if (h < 21) { greet = "Good evening";    mood = "perfect for something cozy."; }
       else             { greet = "Late dinner?";    mood = "we've got slow burns for tonight."; }
-      $("#heroKicker").textContent = `${greet} — ${mood}`;
+      const kicker = $("#heroKicker");
+      if (kicker) kicker.textContent = `${greet} — ${mood}`;
     }
 
     async function setHeroStats() {
@@ -2642,6 +2618,7 @@
       const seed = day.getFullYear() * 1000 + day.getMonth() * 50 + day.getDate();
       const idx = seed % recipes.length;
       const r = recipes[idx];
+      if (!r || !$("#pickTitle")) return;
       $("#pickTitle").textContent = r.title;
       $("#pickTime").textContent  = r.time + " min";
       $("#pickDifficulty").textContent = difficultyLabel[r.difficulty];
@@ -3546,6 +3523,16 @@
       await setHeroStats();
       setHeroPick();
       filterRecipes();
+      if (window.RecipyTonight) {
+        const months = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+        const now = new Date();
+        window.RecipyTonight.mount($("#tonightHero"), {
+          getRecipes: () => recipes,
+          recipeHref,
+          fallbackPhoto,
+          metaText: `RECIPY · ISSUE Nº${47 + now.getMonth()} · ${months[now.getMonth()]}`
+        });
+      }
       if (window.RecipyFridge) {
         window.RecipyFridge.mount($("#fridge"), {
           getRecipes: () => recipes,
