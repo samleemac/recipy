@@ -268,6 +268,160 @@
       .profile-meta h1 { font-size: 28px; }
       .avatar-photo { width: 80px; height: 80px; }
     }
+
+    /* ===========================================================
+       Kitchen profile: photo cover, signature, setup checklist
+       =========================================================== */
+    .profile-cover {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 4px;
+      height: 220px;
+      margin-top: 8px;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: relative;
+    }
+    .profile-cover span { background: var(--border) center / cover no-repeat; }
+    .profile-cover.n1 span, .profile-cover.n2 span:first-child { grid-column: span 2; }
+    .profile-cover::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,.28));
+    }
+    .profile-cover.is-empty {
+      height: 140px;
+      background:
+        radial-gradient(60% 120% at 15% 0%, var(--sage-soft), transparent 70%),
+        radial-gradient(60% 120% at 85% 100%, var(--ochre-soft), transparent 70%),
+        var(--bg-soft);
+    }
+    .profile-cover.is-empty::after { display: none; }
+
+    .profile-head {
+      grid-template-columns: 128px 1fr auto;
+      align-items: start;
+      padding-top: 0;
+      margin-top: -56px;
+      position: relative;
+      z-index: 1;
+    }
+    .profile-head > .avatar-photo,
+    .profile-head > .avatar-lg {
+      width: 128px; height: 128px;
+      border: 5px solid var(--bg);
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+      font-size: 40px;
+    }
+    .profile-meta { padding-top: 66px; }
+    .profile-head .profile-actions { align-self: end; }
+
+    /* Signature */
+    .kitchen-sig {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1.2fr 1.6fr;
+      gap: 12px;
+      margin: 0 0 28px;
+    }
+    .sig-block, .sig-start {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      min-width: 0;
+    }
+    .sig-label { font: 700 10px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--text-soft); }
+    .sig-bar { display: flex; height: 12px; border-radius: 99px; overflow: hidden; gap: 2px; }
+    .sig-seg.s0, .sig-legend i.s0 { background: var(--sage-dark); }
+    .sig-seg.s1, .sig-legend i.s1 { background: var(--ochre); }
+    .sig-seg.s2, .sig-legend i.s2 { background: var(--sage); }
+    .sig-seg.s3, .sig-legend i.s3 { background: var(--ochre-dark); }
+    .sig-seg.s-rest { background: var(--border); }
+    .sig-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 13px var(--sans); color: var(--text); }
+    .sig-legend li { display: inline-flex; align-items: center; gap: 6px; }
+    .sig-legend i { width: 8px; height: 8px; border-radius: 50%; }
+    .sig-legend b { color: var(--text-soft); font-weight: 600; }
+    .sig-big { font: 600 40px/1 var(--serif); color: var(--text); letter-spacing: -0.02em; }
+    .sig-big small { font: 600 15px var(--sans); color: var(--text-soft); letter-spacing: 0; }
+    .sig-note { font: 500 12px var(--sans); color: var(--text-soft); }
+    .sig-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sig-tags span {
+      padding: 5px 10px; border-radius: 99px;
+      background: var(--bg); border: 1px solid var(--border);
+      font: 600 13px var(--sans); color: var(--text);
+    }
+    .sig-tags b { color: var(--text-soft); font-weight: 600; margin-left: 2px; }
+    .sig-start {
+      grid-template-columns: 76px 1fr;
+      align-items: center;
+      gap: 14px;
+      background:
+        radial-gradient(120% 140% at 100% 0%, var(--ochre-soft) 0%, transparent 60%),
+        var(--bg-soft);
+      transition: transform .2s var(--easing), border-color .2s;
+    }
+    .sig-start:hover { transform: translateY(-2px); border-color: var(--ochre); }
+    .sig-start-thumb { width: 76px; height: 76px; border-radius: 14px; background: var(--border) center / cover no-repeat; }
+    .sig-start-text { display: grid; gap: 4px; min-width: 0; }
+    .sig-start-text strong { font: 700 16px/1.25 var(--serif); color: var(--text); }
+    .sig-start .sig-note { color: var(--ochre-dark); font-weight: 700; }
+    [data-theme="dark"] .sig-start .sig-note { color: var(--ochre); }
+
+    /* Setup checklist (own profile) */
+    .kitchen-setup {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 18px 22px;
+      align-items: center;
+      padding: 18px 22px;
+      margin: 0 0 20px;
+      border-radius: var(--radius-md);
+      border: 1.5px dashed var(--sage);
+      background: var(--sage-soft);
+    }
+    [data-theme="dark"] .kitchen-setup { background: var(--green-soft); }
+    .setup-ring {
+      --p: 0;
+      width: 64px; height: 64px; border-radius: 50%;
+      display: grid; place-items: center;
+      background:
+        radial-gradient(closest-side, var(--bg) 74%, transparent 76% 100%),
+        conic-gradient(var(--sage-dark) calc(var(--p) * 1%), var(--border) 0);
+      font: 700 15px var(--sans); color: var(--text);
+    }
+    .setup-text h2 { margin: 0 0 4px; font: 700 19px var(--serif); }
+    .setup-text p { margin: 0; font: 400 14px/1.45 var(--sans); color: var(--text-soft); max-width: 46ch; }
+    .setup-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .setup-steps li { display: flex; align-items: center; gap: 8px; font: 600 14px var(--sans); }
+    .setup-steps li::before {
+      content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--sage-dark);
+    }
+    .setup-steps li.is-done { color: var(--text-soft); text-decoration: line-through; }
+    .setup-steps li.is-done::before { background: var(--sage-dark); box-shadow: inset 0 0 0 3px var(--sage-soft); }
+    .setup-steps a, .setup-steps button {
+      color: var(--text); text-decoration: underline; text-underline-offset: 3px;
+      background: none; border: 0; padding: 0; font: inherit; cursor: pointer;
+    }
+
+    @media (max-width: 1000px) {
+      .kitchen-sig { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .profile-cover { height: 150px; grid-auto-columns: 1fr; }
+      .profile-cover span:nth-child(n+4) { display: none; }
+      .profile-head { grid-template-columns: 1fr; gap: 12px; margin-top: -48px; padding-left: 4px; }
+      .profile-head > .avatar-photo, .profile-head > .avatar-lg { width: 96px; height: 96px; font-size: 32px; }
+      .profile-meta { padding-top: 0; }
+      .profile-head .profile-actions { grid-column: 1; align-self: start; }
+      .kitchen-sig { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .sig-cuisines, .sig-start { grid-column: 1 / -1; }
+      .kitchen-setup { grid-template-columns: auto 1fr; }
+      .setup-steps { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body data-page="profile">
@@ -376,9 +530,108 @@
       return `<div class="${cls}">${escapeHtml(initialsFrom((p && (p.display_name || p.username)) || 'U'))}</div>`;
     }
 
+    /* ---------- Kitchen signature: who this cook is, from what they cook ---------- */
+    function kitchenStats(recipes) {
+      const pub = recipes.filter(r => r.status === "published");
+      if (!pub.length) return null;
+      const tally = (arr) => {
+        const m = new Map();
+        arr.forEach(v => { if (v) m.set(v, (m.get(v) || 0) + 1); });
+        return [...m.entries()].sort((a, b) => b[1] - a[1]);
+      };
+      const cuisines = tally(pub.map(r => (r.cuisine || "").trim()));
+      const IGNORE = new Set(["veg", "light", "quick"]);
+      const tags = tally(pub.flatMap(r => (r.tags || []).filter(t => !IGNORE.has(String(t).toLowerCase()))));
+      const times = pub.map(r => r.time || 0).filter(Boolean).sort((a, b) => a - b);
+      const median = times.length ? times[Math.floor(times.length / 2)] : 0;
+      const quickest = pub.filter(r => r.time).sort((a, b) => a.time - b.time)[0] || pub[0];
+      const easyShare = Math.round(pub.filter(r => (r.difficulty || 1) === 1).length / pub.length * 100);
+      return { pub, cuisines, tags, median, quickest, easyShare };
+    }
+
+    function coverHtml(recipes, cooks) {
+      const photos = [];
+      cooks.forEach(c => { const u = c.photoUrl || (c.recipe && c.recipe.photo_url); if (u) photos.push(u); });
+      recipes.filter(r => r.status === "published").forEach(r => { if (r.photo) photos.push(r.photo); });
+      const uniq = [...new Set(photos)].slice(0, 7);
+      if (!uniq.length) return `<div class="profile-cover is-empty" aria-hidden="true"></div>`;
+      const sized = u => /unsplash\.com/.test(u) ? `${u}${u.includes("?") ? "&" : "?"}auto=format&fit=crop&w=500&q=70` : u;
+      return `<div class="profile-cover n${uniq.length}" aria-hidden="true">${uniq.map(u => `<span style="background-image:url(${escapeHtml(sized(u))})"></span>`).join("")}</div>`;
+    }
+
+    function signatureHtml(stats, isSelf) {
+      if (!stats) return "";
+      const full = target.display_name || target.username || "this cook";
+      /* "The Mackinley Kitchen" stays whole; "Sam MacKinley" becomes "Sam" */
+      const first = /^the\s/i.test(full) ? full : full.split(/\s+/)[0];
+      const total = stats.pub.length;
+      const top = stats.cuisines.slice(0, 4);
+      const rest = total - top.reduce((s, [, n]) => s + n, 0);
+      const segs = top.map(([c, n], i) => `<span class="sig-seg s${i}" style="flex:${n}" title="${escapeHtml(c)}: ${n}"></span>`).join("")
+        + (rest > 0 ? `<span class="sig-seg s-rest" style="flex:${rest}"></span>` : "");
+      const q = stats.quickest;
+      return `
+        <section class="kitchen-sig" aria-label="${escapeHtml(first)}'s kitchen at a glance">
+          <div class="sig-block sig-cuisines">
+            <span class="sig-label">Signature cuisines</span>
+            <div class="sig-bar" aria-hidden="true">${segs}</div>
+            <ul class="sig-legend">${top.map(([c, n], i) => `<li><i class="s${i}"></i>${escapeHtml(c)} <b>${n}</b></li>`).join("")}</ul>
+          </div>
+          <div class="sig-block">
+            <span class="sig-label">On the table in</span>
+            <strong class="sig-big">${stats.median || "—"}<small> min</small></strong>
+            <span class="sig-note">${total >= 4 ? `typical recipe · ${stats.easyShare}% rated easy` : "typical recipe"}</span>
+          </div>
+          ${stats.tags.length ? `
+          <div class="sig-block">
+            <span class="sig-label">Cooks mostly</span>
+            <div class="sig-tags">${stats.tags.slice(0, 4).map(([t, n]) => `<span>${escapeHtml(t)}${total >= 4 ? ` <b>${Math.round(n / total * 100)}%</b>` : ""}</span>`).join("")}</div>
+          </div>` : ""}
+          ${q ? `
+          <a class="sig-start" href="recipe.html?slug=${encodeURIComponent(q.slug)}#timing">
+            <span class="sig-start-thumb" style="${q.photo ? `background-image:url(${escapeHtml(/unsplash\.com/.test(q.photo) ? q.photo + "?auto=format&fit=crop&w=240&q=70" : q.photo)})` : ""}" aria-hidden="true"></span>
+            <span class="sig-start-text">
+              <span class="sig-label">${isSelf ? "Your quickest recipe" : "New here? Start with"}</span>
+              <strong>${escapeHtml(q.title)}</strong>
+              <span class="sig-note">${q.time ? q.time + " min · " : ""}Cook it tonight →</span>
+            </span>
+          </a>` : ""}
+        </section>`;
+    }
+
+    /* Own profile: a "set up your kitchen" checklist until it's done */
+    function setupHtml(recipesList, cooks) {
+      const steps = [
+        { done: !!target.avatar_url, label: "Add a profile photo", action: "edit" },
+        { done: !!(target.bio && target.bio.trim()), label: "Write a short bio", action: "edit" },
+        { done: recipesList.length > 0, label: "Submit your first recipe", href: "upload.html" },
+        { done: cooks.length > 0, label: "Share something you cooked", action: "share" }
+      ];
+      const done = steps.filter(s => s.done).length;
+      if (done === steps.length) return "";
+      const pct = Math.round(done / steps.length * 100);
+      return `
+        <section class="kitchen-setup" aria-label="Set up your kitchen">
+          <div class="setup-ring" style="--p:${pct}"><b>${done}/${steps.length}</b></div>
+          <div class="setup-text">
+            <h2>Make this kitchen yours</h2>
+            <p>A photo, a short bio and a first recipe help people know whose cooking they're following. You're ${pct}% there.</p>
+          </div>
+          <ul class="setup-steps">
+            ${steps.map(s => `<li class="${s.done ? "is-done" : ""}">
+              ${s.done ? `<span>${s.label}</span>` : s.href
+                ? `<a href="${s.href}">${s.label}</a>`
+                : `<button type="button" data-setup="${s.action}">${s.label}</button>`}
+            </li>`).join("")}
+          </ul>
+        </section>`;
+    }
+
     async function renderProfile({ counts, recipesList, cooks, isSelf }) {
       const root = $("#profileRoot");
+      const stats = kitchenStats(recipesList);
       root.innerHTML = `
+        ${coverHtml(recipesList, cooks)}
         <section class="profile-head">
           ${avatarHtml(target, "lg")}
           <div class="profile-meta">
@@ -401,6 +654,9 @@
                 : `<button class="btn btn-primary" id="followSignInBtn">Sign in to follow</button>`}
           </div>
         </section>
+
+        ${isSelf ? setupHtml(recipesList, cooks) : ""}
+        ${signatureHtml(stats, isSelf)}
 
         ${isSelf ? renderEditPanel() + renderSharePanel() : ""}
 
@@ -425,6 +681,12 @@
         });
         bindEditPanel();
         bindSharePanel();
+        $$("[data-setup]").forEach(b => b.addEventListener("click", () => {
+          const btn = b.dataset.setup === "edit" ? $("#editProfileBtn") : $("#shareCookBtn");
+          btn.click();
+          const panel = b.dataset.setup === "edit" ? $("#editPanel") : $("#sharePanel");
+          panel.scrollIntoView({ behavior: "smooth", block: "center" });
+        }));
       } else if (viewer) {
         $("#followBtn").addEventListener("click", onFollowClick);
       } else {
