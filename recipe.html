@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="timing.css" />
   <link rel="stylesheet" href="ingredient-lens.css" />
+  <link rel="stylesheet" href="cook-flow.css" />
 
   <style>
     /* Ensure [hidden] always wins over later display rules */
@@ -2283,6 +2284,7 @@
   <script src="app-shell.js"></script>
   <script src="timing.js"></script>
   <script src="ingredient-lens.js"></script>
+  <script src="cook-flow.js"></script>
   <script>
     /* ============================================================
        Shared data — Supabase first, with window.RECIPES as a fallback
@@ -3397,6 +3399,13 @@
     }
 
     function renderCookmodeStep() {
+      /* One-action-at-a-time flow (the Dutch learning view keeps the classic layout) */
+      if (window.RecipyCook && !learningMode) {
+        window.RecipyCook.render(cook.i);
+        $("#cookmodeTitle").textContent = recipe.title;
+        syncLearningControls();
+        return;
+      }
       const s = steps[cook.i];
       const el = $("#cookmodeStep");
       const ings = ingredientsForStep(s, cook.i);
@@ -3545,6 +3554,7 @@
 
     function openCookMode() {
       cook.i = 0;
+      if (window.RecipyCook) window.RecipyCook.invalidate();
       renderCookmodeStep();
       $("#cookmode").classList.add("open");
       document.body.style.overflow = "hidden";
@@ -3552,6 +3562,7 @@
       requestNotificationPermission();
     }
     function closeCookMode() {
+      if (window.RecipyCook) window.RecipyCook.onClose();
       $("#cookmode").classList.remove("open");
       document.body.style.overflow = "";
       releaseWakeLock();
@@ -3804,8 +3815,25 @@
       $("#cookModeBtn").addEventListener("click", openCookMode);
       $("#fabCook").addEventListener("click", openCookMode);
       $("#cookmodeClose").addEventListener("click", closeCookMode);
-      $("#cookmodeNext").addEventListener("click", nextStep);
-      $("#cookmodePrev").addEventListener("click", prevStep);
+      const cookForward = () => (window.RecipyCook && !learningMode ? window.RecipyCook.forward() : nextStep());
+      const cookBack = () => (window.RecipyCook && !learningMode ? window.RecipyCook.back() : prevStep());
+      $("#cookmodeNext").addEventListener("click", cookForward);
+      $("#cookmodePrev").addEventListener("click", cookBack);
+      if (window.RecipyCook) {
+        window.RecipyCook.mount({
+          steps: () => steps,
+          ingredientGroups: () => ingredientGroups,
+          factor: () => servings / baseServings,
+          formatAmount,
+          stepIndex: () => cook.i,
+          nextStep,
+          prevStep,
+          startTimer: (label, mins) => startCookTimer(label, mins),
+          timerRunning: (label) => cookTimers.some(t => t.label === label),
+          ingredientsForStep: (st, i) => ingredientsForStep(st, i),
+          toast
+        });
+      }
       
       // Cook mode learning toggle
       const cmLearnToggle = $("#cookmodeLearnToggle");
@@ -3819,8 +3847,8 @@
         const tag = document.activeElement?.tagName;
         const typing = tag === "INPUT" || tag === "TEXTAREA";
         if (e.key === "Escape")     { closeCookMode(); }
-        else if ((e.key === "ArrowRight" || e.key === " ") && !typing) { e.preventDefault(); nextStep(); }
-        else if (e.key === "ArrowLeft" && !typing) { prevStep(); }
+        else if ((e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") && !typing) { e.preventDefault(); cookForward(); }
+        else if ((e.key === "ArrowLeft" || e.key === "PageUp") && !typing) { e.preventDefault(); cookBack(); }
       });
     }
 

@@ -1,0 +1,233 @@
+/* ============================================================
+   Recipy — Cook Mode flow
+   A warm, dark "kitchen" canvas: big type you can read from the
+   hob, low glare, one action at a time.
+   ============================================================ */
+.cookmode.is-flow {
+  --cf-bg: #16130F;
+  --cf-bg-2: #211C16;
+  --cf-line: rgba(245, 237, 224, 0.12);
+  --cf-text: #F5EDE0;
+  --cf-soft: rgba(245, 237, 224, 0.58);
+  --cf-dim: rgba(245, 237, 224, 0.34);
+  --cf-sage: #C9CB7E;
+  --cf-ochre: #E3B07C;
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(201, 203, 126, 0.10), transparent 70%),
+    var(--cf-bg);
+  color: var(--cf-text);
+}
+.cookmode.is-flow .cookmode-head { border-bottom-color: var(--cf-line); padding: 14px 24px; gap: 12px; }
+.cookmode.is-flow .cookmode-title { color: var(--cf-soft); font-size: 14px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cookmode.is-flow .cookmode-title strong { color: var(--cf-text); }
+.cookmode.is-flow .cookmode-close { background: var(--cf-bg-2); color: var(--cf-text); }
+.cookmode.is-flow .cookmode-foot { border-top: 0; }
+.cookmode.is-flow .cookmode-progress { background: var(--cf-line); }
+.cookmode.is-flow .cookmode-progress-bar { background: var(--cf-sage); }
+.cookmode.is-flow .cookmode-body { overflow-y: auto; scrollbar-width: none; }
+.cookmode.is-flow .cookmode-body::-webkit-scrollbar { display: none; }
+
+/* Header controls */
+.cf-controls { display: flex; align-items: center; gap: 8px; }
+.cf-ctrl {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--cf-line);
+  background: transparent;
+  color: var(--cf-soft);
+  font: 600 13px var(--sans);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.cf-ctrl:hover { color: var(--cf-text); border-color: var(--cf-soft); }
+.cf-ctrl.is-on { background: var(--cf-sage); border-color: var(--cf-sage); color: #1B1A12; }
+#cfVoice.is-on svg { animation: cfListen 1.6s ease-in-out infinite; }
+@keyframes cfListen { 50% { transform: scale(1.15); } }
+.cf-heard {
+  font: italic 500 14px var(--serif);
+  color: var(--cf-sage);
+  opacity: 0;
+  max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cf-heard.show { animation: cfHeard 2.4s ease forwards; }
+@keyframes cfHeard { 0% { opacity: 0; } 10%, 70% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Stage */
+.cookmode.is-flow .cookmode-step { max-width: 980px; text-align: left; padding: 0; margin: 0 auto; width: 100%; }
+.cf {
+  min-height: calc(100vh - 150px);
+  display: flex; flex-direction: column;
+  padding: 18px 120px 28px;
+  cursor: pointer;
+  -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cf-stories { display: flex; gap: 6px; margin-bottom: 26px; }
+.cf-seg { flex: 1; height: 4px; border-radius: 99px; background: var(--cf-line); overflow: hidden; }
+.cf-seg i { display: block; height: 100%; background: var(--cf-sage); border-radius: 99px; transition: width .35s var(--easing); }
+
+.cf-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-bottom: 14px; }
+.cf-step { font: 700 12px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--cf-sage); }
+.cf-dot { color: var(--cf-dim); }
+.cf-title { font: 600 18px var(--serif); color: var(--cf-text); }
+.cf-dur { font: 600 12px var(--sans); color: var(--cf-soft); padding: 3px 9px; border-radius: 99px; border: 1px solid var(--cf-line); }
+
+.cf-need { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 26px; cursor: default; }
+.cf-need span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--cf-bg-2);
+  border: 1px solid var(--cf-line);
+  font: 500 15px var(--sans);
+  color: var(--cf-text);
+}
+.cf-need b { color: var(--cf-ochre); font-weight: 700; }
+
+/* Actions */
+.cf-beats { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.cf-beat { display: grid; grid-template-columns: 40px 1fr; gap: 18px; align-items: start; transition: opacity .3s var(--easing), transform .3s var(--easing); }
+.cf-beat p { margin: 0; }
+.cf-beat-mark {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--cf-line);
+  font: 700 15px var(--sans); color: var(--cf-dim);
+  margin-top: 4px;
+}
+.cf-beat.is-past p { font: 400 18px/1.45 var(--sans); color: var(--cf-dim); }
+.cf-beat.is-past .cf-beat-mark { background: var(--cf-line); border-color: transparent; color: var(--cf-sage); }
+.cf-beat.is-next p { font: 400 18px/1.45 var(--sans); color: var(--cf-soft); }
+.cf-beat.is-now { margin: 10px 0; }
+.cf-beat.is-now p {
+  font: 500 clamp(28px, 3.6vw, 46px)/1.28 var(--serif);
+  letter-spacing: -0.01em;
+  color: var(--cf-text);
+}
+.cf-beat.is-now .cf-beat-mark {
+  width: 40px; height: 40px;
+  background: var(--cf-sage); border-color: var(--cf-sage); color: #1B1A12;
+  margin-top: 10px;
+}
+.cf-beat.in-next { animation: cfIn .35s var(--easing); }
+.cf-beat.in-back { animation: cfBack .35s var(--easing); }
+@keyframes cfIn { from { opacity: .2; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes cfBack { from { opacity: .2; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+
+/* Ingredients written into the text */
+.cf-ing { white-space: nowrap; }
+.cf-ing b {
+  display: inline-block;
+  margin-left: .3em;
+  padding: .05em .45em;
+  border-radius: .45em;
+  background: rgba(227, 176, 124, 0.16);
+  color: var(--cf-ochre);
+  font: 700 .62em/1.5 var(--sans);
+  vertical-align: .2em;
+  letter-spacing: 0;
+}
+.cf-beat:not(.is-now) .cf-ing b { background: transparent; padding: 0; font-size: .85em; vertical-align: 0; }
+
+/* One-tap timers in the text */
+.cf-time {
+  display: inline-flex; align-items: center; gap: .3em;
+  margin: 0 .1em;
+  padding: .08em .55em .08em .45em;
+  border-radius: 999px;
+  border: 1.5px solid var(--cf-sage);
+  background: rgba(201, 203, 126, 0.12);
+  color: var(--cf-sage);
+  font: 700 .62em/1.6 var(--sans);
+  vertical-align: .18em;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.cf-time:hover { background: var(--cf-sage); color: #1B1A12; }
+.cf-time.is-running { background: var(--cf-sage); color: #1B1A12; }
+.cf-beat:not(.is-now) .cf-time { font-size: .8em; vertical-align: 0; }
+
+.cf-tip {
+  margin-top: 26px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--cf-bg-2);
+  border-left: 3px solid var(--cf-ochre);
+  font: italic 400 18px/1.45 var(--serif);
+  color: var(--cf-text);
+}
+.cf-tip b { display: block; margin-bottom: 4px; font: 700 11px var(--sans); font-style: normal; letter-spacing: .16em; text-transform: uppercase; color: var(--cf-ochre); }
+
+.cf-hint {
+  margin: 26px 0 0;
+  font: 500 14px var(--sans);
+  color: var(--cf-soft);
+  animation: cfHint 2.4s ease-in-out infinite;
+}
+@keyframes cfHint { 50% { opacity: .45; } }
+
+.cf-peek {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+}
+.cf-peek-label { font: 700 11px var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--cf-dim); }
+.cf-peek strong { font: 600 17px var(--serif); color: var(--cf-soft); }
+.cf-peek-need { flex-basis: 100%; font: 500 14px var(--sans); color: var(--cf-ochre); }
+
+/* Side buttons on the dark canvas */
+.cookmode.is-flow .cookmode-side-btn { background: var(--cf-bg-2); color: var(--cf-text); border: 1px solid var(--cf-line); box-shadow: none; }
+.cookmode.is-flow .cookmode-side-btn.next { background: var(--cf-sage); color: #1B1A12; border-color: var(--cf-sage); }
+.cookmode.is-flow .cookmode-side-btn:disabled { opacity: .3; }
+
+/* Running timers sit at the bottom so they never cover the words */
+.cookmode.is-flow.open ~ .cook-timers { top: auto; bottom: 34px; }
+
+/* Finish screen + timers keep working on the dark canvas */
+.cookmode.is-flow .cook-finish { color: var(--cf-text); }
+.cookmode.is-flow .cook-finish h2 { color: var(--cf-text); }
+.cookmode.is-flow .cook-finish-sub { color: var(--cf-soft); }
+.cookmode.is-flow .cook-finish-sub strong { color: var(--cf-text); }
+.cookmode.is-flow .cook-signed-out-cta p { color: var(--cf-soft); }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (max-width: 760px) {
+  .cookmode.is-flow .cookmode-head { padding: 10px 14px; }
+  .cookmode.is-flow .cookmode-title { display: none; }
+  .cf-controls { flex: 1; }
+  .cf-ctrl span { display: none; }
+  .cf-ctrl { width: 42px; padding: 0; justify-content: center; }
+  .cf-heard { flex: 1; max-width: none; }
+  .cf { padding: 14px 20px 120px; min-height: calc(100vh - 120px); }
+  .cf-stories { margin-bottom: 18px; }
+  .cf-title { font-size: 16px; }
+  .cf-need span { font-size: 14px; padding: 6px 12px; }
+  .cf-beat { grid-template-columns: 30px 1fr; gap: 12px; }
+  .cf-beat-mark { width: 30px; height: 30px; font-size: 13px; }
+  .cf-beat.is-now .cf-beat-mark { width: 30px; height: 30px; margin-top: 6px; }
+  .cf-beat.is-now p { font-size: 27px; }
+  .cf-beat.is-past p, .cf-beat.is-next p { font-size: 16px; }
+  /* thumb-friendly bar at the bottom instead of floating edge buttons */
+  .cookmode.is-flow .cookmode-side-btn {
+    top: auto; bottom: 18px; transform: none;
+    width: auto; height: 56px; padding: 0 22px;
+    flex-direction: row; gap: 8px;
+    border-radius: 999px;
+    font-size: 15px;
+  }
+  .cookmode.is-flow .cookmode-side-btn span { font-size: 15px; letter-spacing: 0; text-transform: none; }
+  .cookmode.is-flow .cookmode-side-btn.prev { left: 16px; width: 56px; padding: 0; justify-content: center; }
+  .cookmode.is-flow .cookmode-side-btn.prev span { display: none; }
+  .cookmode.is-flow .cookmode-side-btn.next { right: 16px; left: 84px; justify-content: center; }
+  .cookmode.is-flow.open ~ .cook-timers { bottom: 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-beat, .cf-seg i { transition: none; }
+  .cf-beat.in-next, .cf-beat.in-back, .cf-hint, #cfVoice.is-on svg { animation: none; }
+}
