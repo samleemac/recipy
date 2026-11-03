@@ -952,6 +952,54 @@
   /* Returns { reviews, average, count, mine } in one round trip set.
      `mine` is the viewer's own review (or null) so the page can prefill
      the form for editing. */
+  /* ------------------------------------------------------------
+     COOK NOTES — private, owner-only (RLS in scripts/cook-notes-migration.sql)
+     Errors are thrown with .code so the UI can fall back to device storage
+     when the table hasn't been created yet.
+  ------------------------------------------------------------ */
+  const NOTE_COLS = "id, recipe_slug, step_index, part_index, body, created_at, updated_at";
+  async function cookNotesUser() {
+    if (!CONFIGURED) { const e = new Error("not configured"); e.code = "no-backend"; throw e; }
+    const user = await authGetUser();
+    if (!user) { const e = new Error("signed out"); e.code = "signed-out"; throw e; }
+    return user;
+  }
+  function cookNotesFail(error) {
+    const e = new Error(error.message || "Couldn't reach your notes");
+    e.code = /PGRST205|42P01|does not exist|schema cache/i.test(`${error.code} ${error.message}`) ? "no-table" : (error.code || "error");
+    throw e;
+  }
+  async function cookNotesList(slug) {
+    const user = await cookNotesUser();
+    const { data, error } = await sb.from("cook_notes").select(NOTE_COLS)
+      .eq("user_id", user.id).eq("recipe_slug", slug)
+      .order("created_at", { ascending: false }).limit(200);
+    if (error) cookNotesFail(error);
+    return data || [];
+  }
+  async function cookNotesAdd({ slug, step, part, body }) {
+    const user = await cookNotesUser();
+    const { data, error } = await sb.from("cook_notes").insert({
+      user_id: user.id, recipe_slug: slug,
+      step_index: step == null ? null : step, part_index: part == null ? null : part,
+      body: String(body || "").trim().slice(0, 500),
+    }).select(NOTE_COLS).single();
+    if (error) cookNotesFail(error);
+    return data;
+  }
+  async function cookNotesUpdate(id, body) {
+    const user = await cookNotesUser();
+    const { data, error } = await sb.from("cook_notes").update({ body: String(body || "").trim().slice(0, 500) })
+      .eq("id", id).eq("user_id", user.id).select(NOTE_COLS).single();
+    if (error) cookNotesFail(error);
+    return data;
+  }
+  async function cookNotesRemove(id) {
+    const user = await cookNotesUser();
+    const { error } = await sb.from("cook_notes").delete().eq("id", id).eq("user_id", user.id);
+    if (error) cookNotesFail(error);
+  }
+
   async function reviewsForRecipe(recipeId, limit = 50) {
     const empty = { reviews: [], average: 0, count: 0, mine: null };
     if (!CONFIGURED || !recipeId) return empty;
@@ -1097,6 +1145,13 @@
       byUser:      postsByUser,
       likeToggle:  postsLikeToggle,
       subscribe:   postsSubscribe,
+    },
+
+    cookNotes: {
+      list:   cookNotesList,
+      add:    cookNotesAdd,
+      update: cookNotesUpdate,
+      remove: cookNotesRemove,
     },
 
     reviews: {

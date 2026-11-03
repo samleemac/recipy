@@ -1,0 +1,147 @@
+/* ============================================================
+   Recipy — private cook notes (on the dark Cook Mode canvas)
+   ============================================================ */
+.cn-btn { position: relative; }
+.cn-count:empty { display: none; }
+.cn-count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px;
+  display: inline-grid; place-items: center;
+  background: var(--cf-ochre); color: #1B1A12;
+  font: 800 11px var(--sans);
+}
+.cn-btn.has-notes { color: var(--cf-text); border-color: rgba(227, 176, 124, 0.45); }
+@media (max-width: 760px) {
+  .cn-count { position: absolute; top: -4px; right: -4px; }
+}
+
+/* Sticky note under the current part */
+.cn-inline { display: grid; gap: 8px; margin-top: 16px; }
+.cn-stick {
+  justify-self: start;
+  display: grid; gap: 4px;
+  max-width: 560px;
+  padding: 10px 14px 12px;
+  border-radius: 4px 14px 14px 14px;
+  background: #F3E3B8;
+  color: #3A2F18;
+  text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  transform: rotate(-0.6deg);
+  cursor: pointer;
+  transition: transform .15s var(--easing);
+  animation: cnIn .35s var(--easing);
+}
+.cn-stick:nth-child(2) { transform: rotate(0.5deg); }
+.cn-stick:hover { transform: rotate(0deg) translateY(-1px); }
+.cn-stick-head { display: inline-flex; align-items: center; gap: 6px; font: 700 10.5px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: #8A6A2E; }
+.cn-stick-body { font: 500 17px/1.4 var(--sans); }
+.cn-more { justify-self: start; background: none; border: 0; padding: 2px 4px; color: var(--cf-ochre); font: 700 13px var(--sans); cursor: pointer; }
+@keyframes cnIn { from { opacity: 0; transform: translateY(6px) rotate(-0.6deg); } to { opacity: 1; } }
+
+/* Notes on the Gather screen */
+.cn-gather {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(243, 227, 184, 0.08);
+  border: 1px solid rgba(243, 227, 184, 0.22);
+  display: grid; gap: 8px;
+}
+.cn-gather-head { display: flex; align-items: center; justify-content: space-between; font: 700 14px var(--sans); color: #F3E3B8; }
+.cn-link { background: none; border: 0; color: var(--cf-ochre); font: 700 13px var(--sans); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.cn-gather-note {
+  text-align: left; padding: 8px 10px; border-radius: 10px;
+  background: transparent; border: 0; color: var(--cf-text);
+  font: 500 15px/1.4 var(--sans); cursor: pointer;
+}
+.cn-gather-note:hover { background: rgba(243, 227, 184, 0.08); }
+.cn-gather-note b { display: block; font: 700 11px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--cf-soft); margin-bottom: 2px; }
+
+/* Panel */
+.cn-panel {
+  position: absolute; z-index: 30;
+  top: 72px; right: 16px; bottom: 16px;
+  width: min(420px, calc(100% - 32px));
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 18px 18px 22px;
+  border-radius: 22px;
+  background: #221D17;
+  border: 1px solid var(--cf-line);
+  box-shadow: 0 30px 70px rgba(0,0,0,.5);
+  color: var(--cf-text);
+  opacity: 0; transform: translateX(14px);
+  transition: opacity .2s var(--easing), transform .22s var(--easing);
+}
+.cn-panel.open { opacity: 1; transform: none; }
+.cn-panel[hidden] { display: none; }
+.cn-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.cn-head h3 { margin: 0 0 4px; font: 600 24px var(--serif); color: var(--cf-text); }
+.cn-lock { display: inline-flex; align-items: center; gap: 6px; font: 600 12px var(--sans); color: var(--cf-sage); }
+.cn-lock.is-device { color: var(--cf-ochre); }
+.cn-x { width: 36px; height: 36px; border-radius: 50%; background: var(--cf-bg-2); color: var(--cf-text); font: 400 22px/1 var(--sans); cursor: pointer; flex: none; }
+
+.cn-banner {
+  display: grid; gap: 8px;
+  margin-bottom: 12px; padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(227, 176, 124, 0.12);
+  border: 1px solid rgba(227, 176, 124, 0.3);
+  font: 500 13.5px/1.45 var(--sans); color: var(--cf-text);
+}
+.cn-banner button { justify-self: start; padding: 7px 14px; border-radius: 999px; background: var(--cf-ochre); color: #1B1A12; font: 700 13px var(--sans); cursor: pointer; }
+
+.cn-compose { padding: 14px; border-radius: 16px; background: var(--cf-bg-2); border: 1px solid var(--cf-line); }
+.cn-label { display: block; margin-bottom: 8px; font: 700 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--cf-soft); }
+.cn-pins { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(0,0,0,.25); margin-bottom: 8px; }
+.cn-pins button { flex: 1; height: 34px; border-radius: 999px; background: transparent; color: var(--cf-soft); font: 700 12.5px var(--sans); cursor: pointer; }
+.cn-pins button.is-on { background: var(--cf-text); color: var(--cf-bg); }
+.cn-context { margin: 0 0 8px; font: italic 400 13px/1.4 var(--serif); color: var(--cf-soft); }
+.cn-compose textarea, .cn-note textarea {
+  width: 100%; min-height: 84px; resize: vertical;
+  padding: 10px 12px; border-radius: 12px;
+  border: 1px solid var(--cf-line); background: #15120E; color: var(--cf-text);
+  font: 400 16px/1.45 var(--sans);
+}
+.cn-compose textarea:focus, .cn-note textarea:focus { outline: none; border-color: var(--cf-sage); }
+.cn-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.cn-quick button { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--cf-line); background: transparent; color: var(--cf-soft); font: 600 12px var(--sans); cursor: pointer; }
+.cn-quick button:hover { color: var(--cf-text); border-color: var(--cf-soft); }
+.cn-compose-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.cn-chars { font: 500 12px var(--sans); color: var(--cf-dim); }
+.cn-save { height: 40px; padding: 0 18px; border-radius: 999px; background: var(--cf-sage); color: #1B1A12; font: 800 14px var(--sans); cursor: pointer; }
+.cn-save:disabled { opacity: .35; cursor: not-allowed; }
+
+.cn-list { margin-top: 16px; }
+.cn-empty { margin: 4px 2px; font: 400 14px/1.5 var(--sans); color: var(--cf-soft); }
+.cn-group h4 { margin: 16px 2px 8px; font: 700 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--cf-ochre); }
+.cn-note { padding: 12px 14px; border-radius: 14px; background: #F3E3B8; color: #3A2F18; margin-bottom: 8px; }
+.cn-note p { margin: 0 0 8px; font: 500 15.5px/1.45 var(--sans); white-space: pre-wrap; }
+.cn-note-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font: 600 12px var(--sans); color: #7A6234; }
+.cn-jump { background: none; border: 0; padding: 0; color: #5E4A1F; font: 700 12px var(--sans); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; text-align: left; }
+.cn-note-actions { margin-left: auto; display: inline-flex; gap: 6px; }
+.cn-note-actions button { background: none; border: 0; padding: 4px 6px; border-radius: 8px; color: #7A6234; font: 700 12px var(--sans); cursor: pointer; }
+.cn-note-actions button:hover { background: rgba(0,0,0,.06); }
+.cn-note-actions button.is-confirm { background: #B3422F; color: #fff; }
+.cn-note.is-editing textarea { background: #fff9e8; color: #3A2F18; border-color: #d8c48e; }
+.cn-note.is-editing .cn-note-actions { margin-top: 8px; justify-content: flex-end; width: 100%; }
+
+@media (max-width: 760px) {
+  .cn-panel {
+    top: auto; left: 0; right: 0; bottom: 0; width: 100%;
+    max-height: 86vh;
+    border-radius: 22px 22px 0 0;
+    padding: 16px 16px 24px;
+    transform: translateY(20px);
+  }
+  .cn-panel.open { transform: none; }
+  .cn-stick-body { font-size: 16px; }
+  .cn-quick { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 8px -14px 0; padding: 0 14px 2px; }
+  .cn-quick::-webkit-scrollbar { display: none; }
+  .cn-quick button { flex: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cn-panel, .cn-stick { transition: none; animation: none; }
+}
+.cn-heads { display: grid; justify-items: center; gap: 8px; margin: 2px 0 20px; }
+.cn-heads-label { font: 700 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: #F3E3B8; }
+.cn-heads .cn-stick { justify-self: center; }

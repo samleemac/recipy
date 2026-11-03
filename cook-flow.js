@@ -242,6 +242,7 @@
               </button>`).join("")}
           </div>`}
 
+        ${window.RecipyNotes ? window.RecipyNotes.gatherHtml() : ""}
         ${kit.length ? `<div class="cf-g-kit"><span class="cf-g-kit-label">You'll also need</span>${kit.map(k => `<span>${esc(k)}</span>`).join("")}</div>` : ""}
       </div>`;
     syncChrome();
@@ -284,7 +285,8 @@
     const s = steps[stepIdx];
     if (!s) return;
     if (stepIdx !== lastStep) {
-      beat = (opts && opts.fromEnd) || pendingFromEnd ? beatsFor(stepIdx).length - 1 : 0;
+      beat = opts && opts.beat != null ? opts.beat
+        : (opts && opts.fromEnd) || pendingFromEnd ? beatsFor(stepIdx).length - 1 : 0;
       pendingFromEnd = false;
       lastStep = stepIdx;
     }
@@ -334,6 +336,7 @@
               <div class="cf-beat-body">
                 ${i === beat && beats.length > 1 ? `<span class="cf-beat-label">${i === beats.length - 1 ? "Last part of this step" : `Part ${i + 1} of ${beats.length}`}</span>` : ""}
                 <p>${h}</p>
+                ${i === beat && window.RecipyNotes ? window.RecipyNotes.inlineHtml(stepIdx, i) : ""}
               </div>
             </li>`).join("")}
         </ol>
@@ -385,6 +388,7 @@
           <span class="cf-check-label">Next up · Step ${stepIdx + 2} of ${steps.length}</span>
           <h3>${esc(next.title || `Step ${stepIdx + 2}`)}</h3>
           <p class="cf-check-meta">${next.time ? `About ${next.time} min · ` : ""}${beatsFor(stepIdx + 1).length} part${beatsFor(stepIdx + 1).length === 1 ? "" : "s"}</p>
+          ${window.RecipyNotes ? window.RecipyNotes.stepHtml(stepIdx + 1) : ""}
           ${need.length ? `
             <div class="cf-need cf-check-need" aria-label="Get ready">
               <span class="cf-check-ready">Get ready</span>
@@ -484,8 +488,12 @@
     rec = new SR();
     rec.continuous = true; rec.interimResults = false; rec.lang = "en-GB";
     rec.onresult = e => {
-      const said = e.results[e.results.length - 1][0].transcript.toLowerCase();
+      const heard = e.results[e.results.length - 1][0].transcript;
+      const said = heard.toLowerCase();
       flashHeard(said.trim());
+      /* "note: needs more salt" saves a private note right here */
+      const nm = heard.match(/^\s*(?:add (?:a )?)?note[:,]?\s+(.{2,})$/i);
+      if (nm && window.RecipyNotes) { window.RecipyNotes.quickAdd(nm[1]); return; }
       if (/\b(next|done|okay|ok|continue|go on|forward)\b/.test(said)) forward();
       else if (/\b(back|previous|go back)\b/.test(said)) back();
       else if (/\b(repeat|again|say that|read)\b/.test(said)) { const b = beatsFor(host.stepIndex())[beat]; speak(b); }
@@ -497,7 +505,7 @@
         prefs.voice = false; syncChrome(); host.toast("Microphone access was blocked");
       }
     };
-    try { rec.start(); host.toast('Hands-free on. Say "next", "back", "repeat" or "timer"'); } catch (e) {}
+    try { rec.start(); host.toast('Hands-free on. Say "next", "back", "repeat", "timer" or "note …"'); } catch (e) {}
   }
   function stopVoice() { try { if (rec) { rec.onend = null; rec.stop(); } } catch (e) {} rec = null; }
   function flashHeard(text) {
@@ -623,6 +631,20 @@
     mount, render, forward, back, onClose, invalidate,
     /* when stepping back into a previous step, start at its last action */
     renderFromEnd: i => { lastStep = -1; render(i, { fromEnd: true }); },
-    _beats: beatsFor
+    _beats: beatsFor,
+    /* where the cook is right now (for notes) */
+    position: () => ({ gather, checkpoint, step: host.stepIndex(), part: beat, parts: beatsFor(host.stepIndex()).length }),
+    stepTitle: i => ((host.steps()[i] || {}).title || `Step ${i + 1}`),
+    partText: (i, p) => (beatsFor(i)[p] || ""),
+    stepCount: () => host.steps().length,
+    rerender: () => {
+      if (!root || !root.querySelector(".cf")) return;
+      if (gather) renderGather(); else if (checkpoint) renderCheckpoint(host.stepIndex()); else render(host.stepIndex());
+    },
+    goTo: (i, p) => {
+      gather = false; checkpoint = false; lastStep = -1;
+      if (host.setStep) host.setStep(i);
+      render(i, { beat: p || 0 });
+    }
   };
 })();

@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="timing.css" />
   <link rel="stylesheet" href="ingredient-lens.css" />
   <link rel="stylesheet" href="cook-flow.css" />
+  <link rel="stylesheet" href="cook-notes.css" />
 
   <style>
     /* Ensure [hidden] always wins over later display rules */
@@ -2285,6 +2286,7 @@
   <script src="timing.js"></script>
   <script src="ingredient-lens.js"></script>
   <script src="cook-flow.js"></script>
+  <script src="cook-notes.js"></script>
   <script>
     /* ============================================================
        Shared data — Supabase first, with window.RECIPES as a fallback
@@ -3560,8 +3562,10 @@
       document.body.style.overflow = "hidden";
       acquireWakeLock();
       requestNotificationPermission();
+      if (window.RecipyNotes) window.RecipyNotes.onOpen();
     }
     function closeCookMode() {
+      if (window.RecipyNotes) window.RecipyNotes.onClose();
       if (window.RecipyCook) window.RecipyCook.onClose();
       $("#cookmode").classList.remove("open");
       document.body.style.overflow = "";
@@ -3833,6 +3837,7 @@
           ingredientsForStep: (st, i) => ingredientsForStep(st, i),
           toast,
           servings: () => servings,
+          setStep: i => { cook.i = Math.max(0, Math.min(steps.length - 1, i)); },
           equipment: () => (recipe && recipe.equipment) || [],
           isChecked: key => { try { return new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]")).has(key); } catch (e) { return false; } },
           toggleChecked: key => {
@@ -3843,6 +3848,9 @@
             localStorage.setItem(STORAGE_INGREDIENTS, JSON.stringify([...set]));
           }
         });
+        if (window.RecipyNotes) {
+          window.RecipyNotes.mount({ slug: () => (recipe && recipe.slug) || "", toast });
+        }
       }
       
       // Cook mode learning toggle
@@ -4122,6 +4130,8 @@
           syncSaveButtons();
         }
         updateEditAccess(user, profile);
+        /* signing in or out inside Cook Mode switches whose notes are shown */
+        if (window.RecipyNotes && $("#cookmode").classList.contains("open")) window.RecipyNotes.reload();
         if (recipe) {
           initFollowButton(recipe);
           refreshReviews();
