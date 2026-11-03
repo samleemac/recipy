@@ -3831,7 +3831,17 @@
           startTimer: (label, mins) => startCookTimer(label, mins),
           timerRunning: (label) => cookTimers.some(t => t.label === label),
           ingredientsForStep: (st, i) => ingredientsForStep(st, i),
-          toast
+          toast,
+          servings: () => servings,
+          equipment: () => (recipe && recipe.equipment) || [],
+          isChecked: key => { try { return new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]")).has(key); } catch (e) { return false; } },
+          toggleChecked: key => {
+            const li = document.querySelector(`.r-ingredient[data-key="${key}"]`);
+            if (li) { li.click(); return; }
+            let set; try { set = new Set(JSON.parse(localStorage.getItem(STORAGE_INGREDIENTS) || "[]")); } catch (e) { set = new Set(); }
+            if (set.has(key)) set.delete(key); else set.add(key);
+            localStorage.setItem(STORAGE_INGREDIENTS, JSON.stringify([...set]));
+          }
         });
       }
       
