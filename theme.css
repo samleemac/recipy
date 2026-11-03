@@ -709,3 +709,22 @@ body.is-admin     [data-auth="admin"] { display: flex !important; }
   animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Search pill shrinks to an icon on small screens, so the nav never pushes
+   the page wider than the phone (which made Safari zoom out and wobble). */
+@media (max-width: 1100px) {
+  .cmdk-trigger { min-width: 0; }
+  .cmdk-trigger .label { display: none; }
+}
+@media (max-width: 760px) {
+  .cmdk-trigger { width: 40px; height: 40px; padding: 0; justify-content: center; gap: 0; flex: 0 0 auto; }
+  .cmdk-trigger .kbd { display: none; }
+}
+@media (max-width: 360px) {
+  .nav-wrap .nav .nav-brand { gap: 6px; }
+  .nav-wrap .nav .nav-brand .logo { font-size: 19px; }
+  .nav-wrap .nav .nav-right { gap: 4px; }
+  .nav-wrap .nav .nav-icons .icon-btn,
+  .nav-wrap .nav .nav-icons .account-btn { width: 32px; height: 32px; }
+  .nav-wrap .nav .cmdk-trigger { width: 36px; height: 36px; }
+}

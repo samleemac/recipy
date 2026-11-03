@@ -340,3 +340,26 @@
   .cf-beat, .cf-seg i { transition: none; }
   .cf-beat.in-next, .cf-beat.in-back, .cf-hint, #cfVoice.is-on svg { animation: none; }
 }
+
+/* ============================================================
+   No accidental zooming on iPhone / iPad (Safari)
+   ============================================================ */
+/* double-tap to zoom off; taps fire instantly; scrolling still works */
+.cookmode, .cookmode *, .cook-timers, .cook-timers * {
+  touch-action: manipulation;
+}
+/* long-press won't select words, show the magnifier or the copy menu */
+.cookmode, .cook-timers {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* ...except where you type */
+.cookmode input, .cookmode textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+/* Safari zooms into any text box under 16px when you tap it */
+.cookmode input, .cookmode textarea, .cookmode select { font-size: 16px !important; }

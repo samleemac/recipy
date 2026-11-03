@@ -353,6 +353,8 @@
       if (!root.querySelector(".cf")) return;
       if (e.target.closest("[data-continue]")) { forward(); return; }
       if (e.target.closest("[data-backto]")) { back(); return; }
+      /* the step-done card only moves on with its own buttons, never a stray tap */
+      if (checkpoint) return;
       if (e.target.closest("button, a, input, textarea, .cf-need")) return;
       const rect = root.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -366,7 +368,7 @@
       touchX = null;
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
         e.preventDefault();
-        if (dx < 0) forward(); else back();
+        if (dx < 0) { if (!checkpoint) forward(); } else back();
       }
     });
 
@@ -405,11 +407,41 @@
     try { speechSynthesis.cancel(); } catch (e) {}
   }
 
+  /* Safari on iPhone/iPad: block pinch-zoom and any double-tap zoom that slips
+     past touch-action, but only while Cook Mode is open */
+  function guardZoom() {
+    const cm = document.getElementById("cookmode");
+    const open = () => cm && cm.classList.contains("open");
+    ["gesturestart", "gesturechange", "gestureend"].forEach(ev =>
+      document.addEventListener(ev, e => { if (open()) e.preventDefault(); }, { passive: false }));
+    let lastEnd = 0;
+    document.addEventListener("touchend", e => {
+      if (!open()) return;
+      const now = Date.now();
+      if (now - lastEnd < 350 && !e.target.closest("input, textarea")) {
+        e.preventDefault();          /* stops the zoom */
+        const t = e.target.closest("button, a, [data-timer]");
+        if (t) t.click();            /* a quick second tap still counts as a tap */
+        else if (e.target.closest("#cookmodeStep") && root.querySelector(".cf") && !checkpoint) {
+          const p = e.changedTouches && e.changedTouches[0];
+          const r = root.getBoundingClientRect();
+          if (p && p.clientX - r.left < r.width * 0.28) back(); else forward();
+        }
+      }
+      lastEnd = now;
+    }, { passive: false });
+    document.addEventListener("touchmove", e => {
+      if (open() && e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    document.addEventListener("dblclick", e => { if (open()) e.preventDefault(); });
+  }
+
   function mount(h) {
     host = h;
     root = document.getElementById("cookmodeStep");
     document.getElementById("cookmode").classList.add("is-flow");
     bind();
+    guardZoom();
   }
 
   /* called when the recipe's servings change: amounts in the text update */
