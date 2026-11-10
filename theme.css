@@ -253,6 +253,17 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 700; letter-
   color: #F5EDE0;
   font-weight: 600;
 }
+.nav-week {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font: 500 14px var(--sans);
+  color: var(--text);
+  white-space: nowrap;
+}
+.nav-week:hover,
+.nav-week.is-active { background: rgba(255, 255, 255, 0.14); color: #F5EDE0; }
 
 .nav-crumb {
   font: 500 13px var(--sans);

@@ -57,7 +57,17 @@
 .sl-recipes summary span { flex: 1; }
 .sl-recipes summary svg, .sl-cupboard summary svg { transition: transform .2s; color: var(--text-soft); }
 .sl-recipes[open] summary svg, .sl-cupboard[open] summary svg { transform: rotate(180deg); }
-.sl-recipes .shop-serving-row { border-top: 1px solid var(--border); padding: 8px 0; }
+.sl-recipes .shop-serving-row { border-top: 1px solid var(--border); padding: 8px 0; flex-wrap: wrap; }
+.sl-week {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--sage-soft, #EDEEDC);
+  color: var(--text);
+  font: 600 12px var(--sans);
+  white-space: nowrap;
+}
+.sl-week:hover { background: var(--sage, #B4B56B); color: #2E2A25; }
 .sl-thumb { flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--border) center / cover no-repeat; }
 .sl-recipes .shop-stepper-btn { width: 34px; height: 34px; }
 

@@ -1208,7 +1208,13 @@
     .plan-bar.show { transform: translateY(0); }
     .plan-bar-left { font: 600 15px var(--sans); }
     .plan-bar-left span { opacity: .8; font-weight: 400; font-size: 13px; margin-left: 8px; }
-    .plan-bar-actions { display: flex; gap: 10px; }
+    .plan-bar-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .plan-bar-actions a.plan-bar-btn-week {
+      padding: 9px 18px; border-radius: 100px; font: 600 14px var(--sans);
+      background: rgba(255,255,255,0.2); color: var(--white);
+      display: inline-flex; align-items: center;
+    }
+    .plan-bar-actions a.plan-bar-btn-week:hover { background: rgba(255,255,255,0.3); }
     .plan-bar-actions button {
       padding: 9px 18px; border-radius: 100px; font: 600 14px var(--sans);
       transition: background .2s, color .2s;
@@ -2271,6 +2277,7 @@
       <span id="planBarNames"></span>
     </div>
     <div class="plan-bar-actions">
+      <a class="plan-bar-btn-week" href="week.html">Plan the week</a>
       <button class="plan-bar-btn-list" id="planBarView" type="button">View shopping list →</button>
       <button class="plan-bar-btn-cancel" id="planBarCancel" type="button">Done</button>
     </div>
@@ -2313,9 +2320,10 @@
   <script src="techniques-data.js"></script>
   <script src="basics-studio.js"></script>
   <script src="shopping-list.js"></script>
+  <script src="week.js"></script>
   <script src="shopping-ui.js"></script>
   <script src="supabase-client.js"></script>
-  <script src="app-shell.js"></script>
+  <script src="app-shell.js?v=week"></script>
   <script>
     /* ============================================================
        Recipe data — loaded from Supabase via supabase-client.js,

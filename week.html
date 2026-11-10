@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>Your week — Recipy</title>
+  <meta name="description" content="Plan Monday to Sunday. Drop breakfast, lunch, dinner, dessert and snacks from your shopping list." />
+  <meta name="theme-color" content="#B4B56B" />
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="week.css?v=week" />
+</head>
+<body data-page="week">
+  <div class="nav-wrap" id="navWrap"><div id="appNav"></div></div>
+  <main class="week-main" id="weekApp" aria-label="Weekly meal plan"></main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="recipes-data.js"></script>
+  <script src="supabase-client.js"></script>
+  <script src="app-shell.js?v=week"></script>
+  <script src="week.js"></script>
+</body>
+</html>

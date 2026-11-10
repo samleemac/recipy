@@ -84,7 +84,7 @@
         <span>${done === all.length && all.length ? "All in the basket 🎉" : `${done} of ${all.length} in the basket`}</span>
       </div>
 
-      <details class="sl-recipes"${shared ? " open" : ""}>
+      <details class="sl-recipes" open>
         <summary>
           <span>${ents.length} recipe${ents.length === 1 ? "" : "s"} · adjust servings</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -93,6 +93,7 @@
           <div class="shop-serving-row">
             <span class="sl-thumb" style="${e.recipe.photo ? `background-image:url(${esc(/unsplash\.com/.test(e.recipe.photo) ? e.recipe.photo + "?auto=format&fit=crop&w=120&q=60" : e.recipe.photo)})` : ""}" aria-hidden="true"></span>
             <span class="shop-serving-title">${esc(tidyTitle(e.recipe.title))}</span>
+            <button type="button" class="sl-week" data-week="${esc(e.recipe.id)}">Add to week</button>
             <div class="shop-serving-stepper">
               <button class="shop-stepper-btn" data-serv="${esc(e.id)}" data-dir="-1" aria-label="Fewer servings of ${esc(tidyTitle(e.recipe.title))}" type="button">−</button>
               <span class="shop-stepper-val">${e.servings}</span>
@@ -299,6 +300,15 @@
       if (rm) {
         S().setExtras(S().getExtras().filter(x => x !== rm.dataset.remove));
         render(); return;
+      }
+      const wk = t.closest("[data-week]");
+      if (wk && window.RecipyWeek) {
+        const id = wk.dataset.week;
+        const ent = entries().find(x => x.recipe && String(x.recipe.id) === String(id));
+        window.RecipyWeek.addToShoppingList(id);
+        const placed = window.RecipyWeek.placeNext(id, ent && ent.recipe);
+        host.toast(window.RecipyWeek.placedMessage(placed));
+        return;
       }
       const sv = t.closest("[data-serv]");
       if (sv) {

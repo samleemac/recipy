@@ -92,12 +92,14 @@
           ? `<div class="nav-crumb"><a href="${crumbHref}">${crumbLabel}</a> · <strong id="navCrumbTitle">${escapeHtml(recipeTitle)}</strong></div>`
           : `<ul class="nav-links">
               ${navLink("index.html", "Recipes", "home", page)}
+              ${navLink("week.html", "Week", "week", page)}
               ${navLink("learn.html", "Learn", "learn", page)}
               <li data-auth="user">${innerNavLink("feed.html", "Feed", "feed", page)}</li>
               <li data-auth="user">${innerNavLink("upload.html", "Submit", "upload", page)}</li>
               <li data-auth="admin">${innerNavLink("admin.html", "Admin", "admin", page)}</li>
             </ul>`}
         <div class="nav-right">
+          ${isCrumbPage ? `<a href="week.html" class="nav-week">Week</a>` : ""}
           ${showCmdk ? `
           <button class="cmdk-trigger" id="cmdkTrigger" type="button" aria-label="Search">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -158,6 +160,7 @@
       ${isCrumbPage ? "" : `
       <div class="mobile-nav" id="mobileNav" aria-label="Mobile navigation">
         <a href="index.html" class="${page === "home" ? "is-active" : ""}">Recipes</a>
+        <a href="week.html" class="${page === "week" ? "is-active" : ""}">Week</a>
         <a href="learn.html" class="${page === "learn" ? "is-active" : ""}">Learn</a>
         <a data-auth="user" href="feed.html" class="${page === "feed" ? "is-active" : ""}">Feed</a>
         <a data-auth="user" href="upload.html" class="${page === "upload" ? "is-active" : ""}">Submit</a>

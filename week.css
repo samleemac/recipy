@@ -1,0 +1,205 @@
+/* Monday–Sunday board. The meal names stay put while the days scroll. */
+.week-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 118px 20px 72px;
+}
+.wk-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.wk-kicker {
+  margin: 0 0 6px;
+  font: 700 11px var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage-dark);
+}
+.wk-head h1 {
+  font: 700 clamp(36px, 5vw, 56px)/1.05 var(--serif);
+  letter-spacing: -0.02em;
+}
+.wk-lead {
+  margin: 10px 0 0;
+  max-width: 46rem;
+  color: var(--text-soft);
+  font: 400 16px/1.5 var(--sans);
+}
+.wk-switch { display: flex; gap: 8px; flex: none; }
+.wk-switch button {
+  height: 42px;
+  min-width: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: 600 14px var(--sans);
+}
+.wk-switch button:hover { background: var(--bg-soft); }
+.wk-switch button[hidden] { display: none; }
+
+.wk-tray {
+  margin-bottom: 22px;
+  padding: 16px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.wk-tray-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 12px; }
+.wk-tray-head h2 { font: 700 20px var(--serif); }
+.wk-tray-head p { margin: 0; color: var(--text-soft); font: 500 13px var(--sans); }
+.wk-chips { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.wk-chip, .wk-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+.wk-chip {
+  flex: none;
+  min-width: 240px;
+  max-width: 320px;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--bg-soft);
+  border: 1px solid transparent;
+}
+.wk-chip:hover { border-color: var(--border); }
+.wk-chip img, .wk-card img, .wk-ph {
+  width: 44px; height: 44px; border-radius: 12px;
+  object-fit: cover; flex: none; background: var(--border);
+}
+.wk-chip-copy { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.wk-chip-copy strong, .wk-card a {
+  font: 600 14px/1.25 var(--sans);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wk-chip-copy small { color: var(--text-soft); font: 500 12px var(--sans); margin-top: 2px; }
+.wk-add, .wk-go {
+  flex: none;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font: 600 12px var(--sans);
+}
+.wk-add:hover, .wk-go:hover { background: var(--sage-dark); color: #fff; }
+.wk-empty { margin: 0 0 10px; color: var(--text-soft); font: 500 14px/1.5 var(--sans); }
+.wk-go { display: inline-flex; }
+
+.wk-scroll { overflow-x: auto; padding-bottom: 8px; }
+.wk-board {
+  display: grid;
+  grid-template-columns: 108px repeat(7, minmax(148px, 1fr));
+  gap: 8px;
+  min-width: 1140px;
+}
+.wk-corner { position: sticky; left: 0; z-index: 2; background: var(--bg); }
+.wk-dayhead, .wk-meal {
+  position: sticky;
+  font: 700 13px var(--sans);
+}
+.wk-dayhead {
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 4px 4px 8px;
+  color: var(--text);
+}
+.wk-dayhead small { font: 600 12px var(--sans); color: var(--text-soft); }
+.wk-dayhead.is-today small { color: var(--sage-dark); }
+.wk-dayhead.is-today::before {
+  content: "Today";
+  font: 700 10px var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sage-dark);
+}
+.wk-meal {
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  padding: 8px 10px 8px 0;
+  background: var(--bg);
+  color: var(--text);
+}
+.wk-slot {
+  min-height: 112px;
+  border-radius: 16px;
+  border: 1.5px dashed var(--border);
+  background: var(--bg-soft);
+  display: flex;
+  align-items: stretch;
+  transition: border-color .15s, background .15s;
+}
+.wk-slot.is-filled { border-style: solid; background: var(--surface); }
+.wk-slot.is-drop { border-style: solid; border-color: var(--sage-dark); background: var(--green-soft); }
+.wk-hint {
+  margin: auto;
+  color: var(--text-soft);
+  font: 500 12px var(--sans);
+  opacity: 0.8;
+}
+.wk-card {
+  width: 100%;
+  padding: 8px;
+  position: relative;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.wk-card img, .wk-card .wk-ph { width: 100%; height: 36px; }
+.wk-card a {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.25;
+}
+.wk-clear {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--text-soft);
+  font: 600 16px/1 var(--sans);
+}
+.wk-clear:hover { background: var(--danger-soft); color: var(--danger); }
+.wk-chip.is-dragging, .wk-card.is-dragging { opacity: 0.35; }
+.wk-ghost {
+  position: fixed;
+  z-index: 400;
+  pointer-events: none;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--bg);
+  font: 600 13px var(--sans);
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 720px) {
+  .week-main { padding: 104px 14px 48px; }
+  .wk-head { flex-direction: column; align-items: stretch; }
+  .wk-tray-head { flex-direction: column; }
+  .wk-chip { min-width: 220px; }
+}
