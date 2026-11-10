@@ -776,8 +776,10 @@
        ============================================================ */
     .basics-banner {
       background: var(--bg-soft);
+      border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       padding: 26px 24px;
+      scroll-margin-top: 96px;
     }
     .basics-inner {
       max-width: var(--container);
@@ -2067,44 +2069,11 @@
       </div>
     </section>
 
-    <!-- 3b. Master the Basics — Cookery School cross-link -->
-    <section class="basics-banner" aria-label="Cookery School guides" data-reveal>
-      <div class="basics-inner">
-        <div class="basics-intro">
-          <span class="basics-tag">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
-            Cookery School
-          </span>
-          <h2>Master the basics</h2>
-          <p>Technique guides with times, tips and troubleshooting.</p>
-          <a class="basics-all" href="learn.html">See all guides
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </a>
-        </div>
-        <div class="basics-cards">
-          <a class="basics-card" href="technique.html?slug=how-to-cook-eggs">
-            <span class="emoji" aria-hidden="true">🍳</span>
-            <span><strong>Eggs</strong><small>6 methods · 6 min read</small></span>
-          </a>
-          <a class="basics-card" href="technique.html?slug=how-to-cook-tofu">
-            <span class="emoji" aria-hidden="true">🧊</span>
-            <span><strong>Tofu</strong><small>6 methods · 7 min read</small></span>
-          </a>
-          <a class="basics-card" href="technique.html?slug=how-to-cook-chickpeas">
-            <span class="emoji" aria-hidden="true">🫘</span>
-            <span><strong>Chickpeas</strong><small>7 methods · 6 min read</small></span>
-          </a>
-          <a class="basics-card" href="technique.html?slug=how-to-make-dairy-free-cheese">
-            <span class="emoji" aria-hidden="true">🧀</span>
-            <span><strong>Homemade cheese</strong><small>3 cheeses · 8 min read</small></span>
-          </a>
-        </div>
-      </div>
-    </section>
-
     <!-- 3b. Cook from your kitchen -->
     <section class="fridge" id="fridge" aria-label="Find recipes by the ingredients you have"></section>
 
+    <!-- Recipe list. The filter stays stuck only while this block is on screen. -->
+    <div class="recipe-browse">
     <!-- 4. Filter / Category Bar -->
     <div class="filter-bar" id="filterBar">
       <div class="filter-inner">
@@ -2187,6 +2156,42 @@
       </button>
       <div class="page-summary" id="pageSummary"></div>
     </nav>
+    </div>
+
+    <!-- Master the Basics — Cookery School, at the foot of the page -->
+    <section class="basics-banner" aria-label="Cookery School guides" data-reveal>
+      <div class="basics-inner">
+        <div class="basics-intro">
+          <span class="basics-tag">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            Cookery School
+          </span>
+          <h2>Master the basics</h2>
+          <p>Technique guides with times, tips and troubleshooting.</p>
+          <a class="basics-all" href="learn.html">See all guides
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+        <div class="basics-cards">
+          <a class="basics-card" href="technique.html?slug=how-to-cook-eggs">
+            <span class="emoji" aria-hidden="true">🍳</span>
+            <span><strong>Eggs</strong><small>6 methods · 6 min read</small></span>
+          </a>
+          <a class="basics-card" href="technique.html?slug=how-to-cook-tofu">
+            <span class="emoji" aria-hidden="true">🧊</span>
+            <span><strong>Tofu</strong><small>6 methods · 7 min read</small></span>
+          </a>
+          <a class="basics-card" href="technique.html?slug=how-to-cook-chickpeas">
+            <span class="emoji" aria-hidden="true">🫘</span>
+            <span><strong>Chickpeas</strong><small>7 methods · 6 min read</small></span>
+          </a>
+          <a class="basics-card" href="technique.html?slug=how-to-make-dairy-free-cheese">
+            <span class="emoji" aria-hidden="true">🧀</span>
+            <span><strong>Homemade cheese</strong><small>3 cheeses · 8 min read</small></span>
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- 8. Footer -->
