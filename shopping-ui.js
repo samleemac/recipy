@@ -49,6 +49,8 @@
     const ents = entries().filter(e => e.recipe);
 
     title.textContent = shared ? `${shared.from ? shared.from + "'s" : "A friend's"} shopping list` : "Shopping list";
+    const wipe = $("#shopClearAll");
+    if (wipe) wipe.hidden = !!shared || (!ents.length && !extras().length);
 
     if (!ents.length && !extras().length) {
       sub.textContent = "Nothing on it yet";

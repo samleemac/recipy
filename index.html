@@ -2291,6 +2291,7 @@
     <div class="shop-modal-body" id="shopBody"></div>
     <div class="shop-modal-foot sl-foot">
       <button class="shop-btn shop-btn-clear" id="shopClearChecked" type="button">Clear ticks</button>
+      <button class="shop-btn shop-btn-wipe" id="shopClearAll" type="button">Remove everything</button>
       <button class="shop-btn shop-btn-done sl-done" id="shopDone" type="button">Done</button>
       <button class="sl-send" id="shopSendBtn" type="button">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -3041,6 +3042,44 @@
       renderShopIngredients($("#shopIngredients"));
     }
 
+    function clearPlannedCards() {
+      $$(".card.is-planned").forEach(card => {
+        card.classList.remove("is-planned");
+        const btn = card.querySelector(".plan-overlay-btn");
+        if (btn) {
+          btn.setAttribute("aria-pressed", "false");
+          btn.setAttribute("aria-label", "Add to plan");
+        }
+        const icon = card.querySelector(".plan-center-icon");
+        if (icon) {
+          icon.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        }
+      });
+    }
+
+    /* Drops the ingredients, extra items, ticks, and the meals that built the list. */
+    function clearShoppingList() {
+      if (window.RecipyShopUI && window.RecipyShopUI.isShared()) {
+        toast("This is someone else's list. Close it to change your own meals.");
+        return;
+      }
+      const extras = window.RecipyShop ? window.RecipyShop.getExtras() : [];
+      if (getPlan().size === 0 && extras.length === 0) {
+        toast("The list is already empty");
+        return;
+      }
+      if (!window.confirm("Remove everything from the shopping list, including the meals you chose?")) return;
+      savePlan(new Set());
+      localStorage.removeItem(SERVINGS_KEY);
+      localStorage.removeItem(SHOP_KEY);
+      if (window.RecipyShop) window.RecipyShop.setExtras([]);
+      clearPlannedCards();
+      updatePlanBar();
+      if (window.RecipyShopUI) window.RecipyShopUI.closeSheet();
+      renderShoppingList();
+      toast("Shopping list cleared, meals removed");
+    }
+
     function openShoppingList() {
       renderShoppingList();
       $("#shopBackdrop").classList.add("open");
@@ -3086,6 +3125,7 @@
         renderShoppingList();
         toast("Ticks cleared");
       });
+      $("#shopClearAll").addEventListener("click", clearShoppingList);
       $("#shopFab").addEventListener("click", openShoppingList);
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && $("#shopModal").classList.contains("open")) closeShoppingList();

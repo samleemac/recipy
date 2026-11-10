@@ -133,10 +133,17 @@
 /* Footer */
 .shop-modal-foot.sl-foot {
   display: grid;
-  grid-template-columns: auto auto 1fr;
+  grid-template-columns: auto auto auto 1fr;
   align-items: center;
   gap: 8px;
 }
+.shop-btn-wipe {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid transparent;
+}
+.shop-btn-wipe:hover { background: var(--danger); color: #fff; }
+.shop-btn-wipe[hidden] { display: none; }
 .sl-done { background: var(--bg-soft) !important; color: var(--text) !important; border: 1px solid var(--border); }
 .sl-send {
   justify-self: end;
@@ -245,9 +252,9 @@
 @keyframes slFab { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 640px) {
-  .shop-modal-foot.sl-foot { grid-template-columns: auto 1fr; }
+  .shop-modal-foot.sl-foot { grid-template-columns: 1fr 1fr; }
   .sl-done { display: none; }
-  .sl-send { width: 100%; justify-content: center; }
+  .sl-send { grid-column: 1 / -1; width: 100%; justify-content: center; }
   .sl-sheet { padding: 16px 16px 20px; }
   .sl-fab { right: 14px; bottom: 14px; }
 }
